@@ -27,6 +27,7 @@ source(here::here("mini-snorkel-app","pull_from_edi.R"))
 feather_cover <- mini_fish_raw |> 
   left_join(mini_locations_raw |> 
               distinct(location_table_id, date, channel_location)) |> 
+  # create cover variables that are more consistent with strategic plan categories
   mutate(woody_debris = percent_small_woody_cover_inchannel + percent_large_woody_cover_inchannel,
          boulder = percent_boulder_substrate,
          cobble = percent_cobble_substrate, 
@@ -40,7 +41,7 @@ feather_cover <- mini_fish_raw |>
   distinct() 
 
 
-locations_sf <- sf::st_as_sf(mini_locations_raw |> na.omit(), coords = c('longitude', 'latitude')) |> 
+locations_sf <- sf::st_as_sf(mini_locations_raw |> distinct(location_table_id, date, channel_location, .keep_all = T) |> na.omit(), coords = c('longitude', 'latitude')) |> 
   select(location_table_id, location) |> 
   distinct() |> 
   mutate(color = colors_full[match(location, location)])
@@ -48,13 +49,12 @@ locations_sf <- sf::st_as_sf(mini_locations_raw |> na.omit(), coords = c('longit
 
 ```
 
-## Column {data-width="500"}
-
+Inputs {.sidebar}
 ------------------------------------------------------------------------
 
 ```{r}
 selectInput("location_filter", label = "Filter by Location:",
-            choices = c(unique(locations_sf$location)), selected = "hatchery ditch")
+            choices = c(sort(unique(locations_sf$location))), selected = "hatchery ditch")
 
 # TODO: figure out best way to integrate this component 
 # selectInput("channel_type_filter", label = "Filter by Channel Type:",
@@ -72,6 +72,7 @@ filtered_location_id <- reactive({
 ```
 
 ```{r}
+# Note - discuss if this is the way we want to do the location ID filter. Considering if we need it
 output$location_id_ui <- renderUI({
   selectInput("location_id", label = "Filter by Location Table Id:",
               choices = c(filtered_location_id()))
@@ -84,40 +85,18 @@ output$location_id_ui <- renderUI({
 uiOutput("location_id_ui")
 ```
 
-***
-
-
-
-```{r}
-renderPlot({
-  ggplot(feather_cover |> filter(location_table_id == input$location_id),
-         aes(y = cover_type, x = as.factor(micro_hab_data_tbl_id), fill = percent_cover)) + 
-    geom_tile() + 
-    scale_fill_viridis_c(name = "percent cover") +
-    labs(
-      x = "Micro Habitat Data Table ID",   
-      y = "Cover Type"                     
-    ) +
-    theme(
-      axis.title = element_text(size = 16),
-      axis.text = element_text(size = 10, face = "bold"),
-      legend.title = element_text(size = 14, face = "bold"),
-      legend.text = element_text(size = 10, face = "bold")
-    )
-})
-```
-
-## Column {data-width="490"}
+Column
+------------------------------------------------------------------------
 
 ### Habitat Map
 
-Each circle represents a unique habitat location. Each location has multiple `location_ids` and each `location_id` represents an array of microhabitat grids that were sampled for cover. 
+Each circle represents a unique habitat location. Each location may have multiple `location_ids` and each `location_id` represents an array of microhabitat grids that were sampled for cover. 
 
 ```{r}
 leaflet(locations_sf) |> 
   addProviderTiles(providers$Esri.WorldImagery, group = "Aerial Imagery") |> 
   addProviderTiles(providers$OpenStreetMap, group = "Street Map") |> 
-  addCircleMarkers(color = ~color,
+  addCircleMarkers(color = ~colors_full,
                    radius = 6,
                    fill = TRUE, 
                    fillOpacity = 0.2,
@@ -134,4 +113,41 @@ leaflet(locations_sf) |>
 #           labels = locations_sf$location,
 #           title = "Location Names", opacity = 1)
 
+# observeEvent(input$location_filter, {
+#   proxy_setview <- leafletProxy("mainMap")
+#     proxy_setview |> fitBounds(
+#       lng1 = river_bounds[[input$zoom_select_river]][["xmin"]],
+#       lat1 = river_bounds[[input$zoom_select_river]][["ymin"]],
+#       lng2 = river_bounds[[input$zoom_select_river]][["xmax"]],
+#       lat2 = river_bounds[[input$zoom_select_river]][["ymax"]]
+#     )
+#   }
+# })
+
 ```
+
+### Heat Map
+
+```{r}
+renderPlot({
+  ggplot(feather_cover |> filter(location_table_id == input$location_id),
+         aes(y = cover_type, x = micro_hab_data_tbl_id, fill = percent_cover)) + 
+    geom_tile() + 
+    scale_fill_viridis_c(name = "Percent Cover") +
+    labs(
+      x = "Micro Habitat Data Table ID",   
+      y = "Cover Type"                     
+    ) +
+    theme_minimal() +
+    theme(
+      axis.title = element_text(size = 16),
+      axis.text = element_text(size = 10, face = "bold"),
+      legend.title = element_text(size = 14, face = "bold"),
+      legend.text = element_text(size = 10, face = "bold"),
+      legend.position = "bottom"
+    )
+})
+```
+
+
+
