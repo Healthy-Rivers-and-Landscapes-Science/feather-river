@@ -69,6 +69,8 @@ Column
 Each circle represents a unique habitat location. Each location may have multiple `location_ids` and each `location_id` represents an array of microhabitat grids that were sampled for cover. 
 
 ```{r}
+# TODO add a default because when open the heat map is empty. Maybe it prints "click a point on the map" when empty?
+
 output$mapfilter <- renderLeaflet({
   leaflet(locations_sf) |> 
   addProviderTiles(providers$Esri.WorldImagery, group = "Aerial Imagery") |> 
@@ -177,6 +179,8 @@ Row
 Each circle represents a unique habitat location. Each location has multiple `location_ids` and each `location_id` represents an array of microhabitat grids that were sampled for cover. 
 
 ```{r}
+# TODO add a zoom to point functionality based on the location_id input
+
 leaflet(locations_sf) |> 
   addProviderTiles(providers$Esri.WorldImagery, group = "Aerial Imagery") |> 
   addProviderTiles(providers$OpenStreetMap, group = "Street Map") |> 
@@ -203,18 +207,20 @@ leaflet(locations_sf) |>
 ```{r}
 renderPlot({
   ggplot(feather_cover |> filter(location_table_id == input$location_id),
-         aes(y = cover_type, x = as.factor(micro_hab_data_tbl_id), fill = percent_cover)) + 
-    geom_tile() + 
-    scale_fill_viridis_c(name = "percent cover") +
+         aes(y = cover_type, x = micro_hab_data_tbl_id, fill = percent_cover)) + 
+    geom_tile(color = "white") + 
+    scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Percent Cover") +
     labs(
       x = "Micro Habitat Data Table ID",   
-      y = "Cover Type"                     
+      y = ""                     
     ) +
+    theme_minimal() +
     theme(
       axis.title = element_text(size = 16),
       axis.text = element_text(size = 10, face = "bold"),
       legend.title = element_text(size = 14, face = "bold"),
-      legend.text = element_text(size = 10, face = "bold")
+      legend.text = element_text(size = 10, face = "bold"),
+      legend.position = "top"
     )
 })
 ```
