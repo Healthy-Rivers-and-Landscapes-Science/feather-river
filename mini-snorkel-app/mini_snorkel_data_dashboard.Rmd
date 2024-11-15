@@ -69,27 +69,25 @@ Column
 Each circle represents a unique habitat location. Each location may have multiple `location_ids` and each `location_id` represents an array of microhabitat grids that were sampled for cover. 
 
 ```{r}
-# TODO add a default because when open the heat map is empty. Maybe it prints "click a point on the map" when empty?
-
 output$mapfilter <- renderLeaflet({
   leaflet(locations_sf) |> 
-  addProviderTiles(providers$Esri.WorldImagery, group = "Aerial Imagery") |> 
-  addProviderTiles(providers$OpenStreetMap, group = "Street Map") |> 
-  addCircleMarkers(layerId = ~location_table_id,
-                   color = ~color,
-                   radius = 6,
-                   fill = TRUE,
-                   fillOpacity = 0.2,
-                   opacity = 0.6,
-                   popup = paste0("Location Name: ", locations_sf$location, 
-                                  "<br>",
-                                  "Location ID: ", locations_sf$location_table_id,
-                                   "<br>",
-                                  "Channel Type: ", locations_sf$channel_type)) |> 
-  addLayersControl(
-    baseGroups = c("Aerial Imagery", "Street Map"),
-    options = layersControlOptions(collapsed = FALSE)
-  )
+    addProviderTiles(providers$Esri.WorldImagery, group = "Aerial Imagery") |> 
+    addProviderTiles(providers$OpenStreetMap, group = "Street Map") |> 
+    addCircleMarkers(layerId = ~location_table_id,
+                     color = ~color,
+                     radius = 6,
+                     fill = TRUE,
+                     fillOpacity = 0.2,
+                     opacity = 0.6,
+                     popup = paste0("Location Name: ", locations_sf$location, 
+                                    "<br>",
+                                    "Location ID: ", locations_sf$location_table_id,
+                                    "<br>",
+                                    "Channel Type: ", locations_sf$channel_type)) |> 
+    addLayersControl(
+      baseGroups = c("Aerial Imagery", "Street Map"),
+      options = layersControlOptions(collapsed = FALSE)
+    )
 })
 
 leafletOutput("mapfilter")
@@ -103,47 +101,48 @@ Column
 
 ```{r}
 click_marker <- eventReactive(input$mapfilter_marker_click, {
-
+  
   click <- input$mapfilter_marker_click
-
+  
   return(click$id)
-
+  
 })
 
 filtered_data <- reactive({
-
+  
   return(feather_cover |> 
            filter(location_table_id %in% click_marker()))
-
+  
 })
 
 renderPlot({
   
   if (is.null(input$mapfilter_marker_click)) {
     ggplot() +
-      annotate("text", x = 0.5, y = 0.5, label = "Click on a Sampling Location\nin Map View to Populate Plot", size = 6, hjust = 0.5, vjust = 0.5) +
+      annotate("text", x = 0.5, y = 0.5, label = "Click on a Sampling Location\nin Map View to Populate Plot", 
+               size = 6, hjust = 0.5, vjust = 0.5) +
       theme_void() +
       theme(
         plot.title = element_text(size = 16, face = "bold", hjust = 0.5)
       )
   } else {
-  
-  ggplot(filtered_data(),
-         aes(y = cover_type, x = micro_hab_data_tbl_id, fill = percent_cover)) + 
-    geom_tile(color = "white") + 
-    scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Percent Cover") +
-    labs(
-      x = "Micro Habitat Data Table ID",   
-      y = ""                     
-    ) +
-    theme_minimal() +
-    theme(
-      axis.title = element_text(size = 16),
-      axis.text = element_text(size = 10, face = "bold"),
-      legend.title = element_text(size = 14, face = "bold"),
-      legend.text = element_text(size = 10, face = "bold"),
-      legend.position = "top"
-    )
+    
+    ggplot(filtered_data(),
+           aes(y = cover_type, x = micro_hab_data_tbl_id, fill = percent_cover)) + 
+      geom_tile(color = "white") + 
+      scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Percent Cover") +
+      labs(
+        x = "Micro Habitat Data Table ID",   
+        y = ""                     
+      ) +
+      theme_minimal() +
+      theme(
+        axis.title = element_text(size = 16),
+        axis.text = element_text(size = 10, face = "bold"),
+        legend.title = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size = 10, face = "bold"),
+        legend.position = "top"
+      )
   }
 })
 ```
@@ -156,7 +155,7 @@ Row {data-height=100}
 
 ```{r}
 selectInput("location_filter", label = "Filter by Location:",
-            choices = c(unique(locations_sf$location)), selected = "hatchery ditch")
+            choices = c("all locations", unique(locations_sf$location)), selected = "all locations")
 # TODO: figure out best way to integrate this component 
 # selectInput("channel_type_filter", label = "Filter by Channel Type:",
 #             choices = c("LFC", "HFC"))
@@ -174,7 +173,7 @@ filtered_location_id <- reactive({
 ```{r}
 output$location_id_ui <- renderUI({
   selectInput("location_id", label = "Filter by Location Table Id:",
-              choices = c(filtered_location_id()))
+              choices = c("", filtered_location_id()), selected = "-")
 })
 ```
 
@@ -190,27 +189,73 @@ Row
 Each circle represents a unique habitat location. Each location has multiple `location_ids` and each `location_id` represents an array of microhabitat grids that were sampled for cover. 
 
 ```{r}
-# TODO add a zoom to point functionality based on the location_id input
+output$map <- renderLeaflet({
+  leaflet(locations_sf) |> 
+    addProviderTiles(providers$Esri.WorldImagery, group = "Aerial Imagery") |> 
+    addProviderTiles(providers$OpenStreetMap, group = "Street Map") |> 
+    addCircleMarkers(color = ~color,
+                     radius = 6,
+                     fill = TRUE, 
+                     fillOpacity = 0.2,
+                     opacity = 0.6,
+                      popup = paste0("Location Name: ", locations_sf$location, 
+                         "<br>",
+                         "Location ID: ", locations_sf$location_table_id,
+                         "<br>",
+                         "Channel Type: ", locations_sf$channel_type)) |> 
+    addLayersControl(
+      baseGroups = c("Aerial Imagery", "Street Map"),
+      options = layersControlOptions(collapsed = FALSE)
+    ) 
+})
 
-leaflet(locations_sf) |> 
-  addProviderTiles(providers$Esri.WorldImagery, group = "Aerial Imagery") |> 
-  addProviderTiles(providers$OpenStreetMap, group = "Street Map") |> 
-  addCircleMarkers(color = ~color,
-                   radius = 6,
-                   fill = TRUE, 
-                   fillOpacity = 0.2,
-                   opacity = 0.6,
-                   popup = paste0("Location Name: ", locations_sf$location, 
-                                  "<br>",
-                                  "Location ID: ", locations_sf$location_table_id)) |> 
-  addLayersControl(
-    baseGroups = c("Aerial Imagery", "Street Map"),
-    options = layersControlOptions(collapsed = FALSE)
-  )
-# addLegend("bottomright", 
-#           colors = locations_sf$color, 
-#           labels = locations_sf$location,
-#           title = "Location Names", opacity = 1)
+leafletOutput("map")
+
+observeEvent(c(input$location_filter, input$location_id), {
+  
+  req(input$location_filter, input$location_id) 
+  
+  print(input$location_filter)
+  print(input$location_id)
+  
+  if (input$location_filter != "all locations" && input$location_id != "" && input$location_id != "-") {
+    #   
+    print("what???")
+    
+    selected_location <- locations_sf |> 
+      filter(location == input$location_filter & location_table_id == input$location_id)
+    
+    if (nrow(selected_location) > 0) {
+      
+      coords <- sf::st_coordinates(selected_location)
+      
+      leafletProxy("map") |> 
+        setView(
+          lng = coords[1],  
+          lat = coords[2],  
+          zoom = 15         
+        ) |> 
+        clearGroup("highlighted") |>  # Clear previously highlighted points
+        addCircleMarkers(
+          data = selected_location,
+          lng = coords[1],
+          lat = coords[2],
+          color = "darkred",       
+          radius = 12,         
+          fill = TRUE,
+          fillOpacity = 1,
+          popup = paste0("Location Name: ", locations_sf$location, 
+                         "<br>",
+                         "Location ID: ", locations_sf$location_table_id,
+                         "<br>",
+                         "Channel Type: ", locations_sf$channel_type),
+          group = "highlighted"  
+        )
+    }
+  }
+  
+})
+
 ```
 
 ### Heat Map
