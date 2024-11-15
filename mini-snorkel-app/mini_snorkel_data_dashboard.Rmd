@@ -58,6 +58,9 @@ filtered_location_id <- reactiveValues(
 )
 ```
 
+Map Filter
+========================================================================
+
 Column
 ------------------------------------------------------------------------
 
@@ -132,5 +135,86 @@ renderPlot({
 })
 ```
 
+Attribute Filter {data-orientation=rows}
+========================================================================
 
+Row {data-height=100}
+------------------------------------------------------------------------
 
+```{r}
+selectInput("location_filter", label = "Filter by Location:",
+            choices = c(unique(locations_sf$location)), selected = "hatchery ditch")
+# TODO: figure out best way to integrate this component 
+# selectInput("channel_type_filter", label = "Filter by Channel Type:",
+#             choices = c("LFC", "HFC"))
+```
+
+```{r}
+filtered_location_id <- reactive({
+  locations_sf |>
+    filter(location == input$location_filter) |>
+    pull(location_table_id) |> 
+    unique()
+})
+```
+
+```{r}
+output$location_id_ui <- renderUI({
+  selectInput("location_id", label = "Filter by Location Table Id:",
+              choices = c(filtered_location_id()))
+})
+```
+
+```{r}
+uiOutput("location_id_ui")
+```
+
+Row
+------------------------------------------------------------------------
+
+### Habitat Map
+
+Each circle represents a unique habitat location. Each location has multiple `location_ids` and each `location_id` represents an array of microhabitat grids that were sampled for cover. 
+
+```{r}
+leaflet(locations_sf) |> 
+  addProviderTiles(providers$Esri.WorldImagery, group = "Aerial Imagery") |> 
+  addProviderTiles(providers$OpenStreetMap, group = "Street Map") |> 
+  addCircleMarkers(color = ~color,
+                   radius = 6,
+                   fill = TRUE, 
+                   fillOpacity = 0.2,
+                   opacity = 0.6,
+                   popup = paste0("Location Name: ", locations_sf$location, 
+                                  "<br>",
+                                  "Location ID: ", locations_sf$location_table_id)) |> 
+  addLayersControl(
+    baseGroups = c("Aerial Imagery", "Street Map"),
+    options = layersControlOptions(collapsed = FALSE)
+  )
+# addLegend("bottomright", 
+#           colors = locations_sf$color, 
+#           labels = locations_sf$location,
+#           title = "Location Names", opacity = 1)
+```
+
+### Heat Map
+
+```{r}
+renderPlot({
+  ggplot(feather_cover |> filter(location_table_id == input$location_id),
+         aes(y = cover_type, x = as.factor(micro_hab_data_tbl_id), fill = percent_cover)) + 
+    geom_tile() + 
+    scale_fill_viridis_c(name = "percent cover") +
+    labs(
+      x = "Micro Habitat Data Table ID",   
+      y = "Cover Type"                     
+    ) +
+    theme(
+      axis.title = element_text(size = 16),
+      axis.text = element_text(size = 10, face = "bold"),
+      legend.title = element_text(size = 14, face = "bold"),
+      legend.text = element_text(size = 10, face = "bold")
+    )
+})
+```
