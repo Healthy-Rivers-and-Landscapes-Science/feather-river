@@ -116,11 +116,7 @@ renderPlot({
   ggplot(filtered_data(),
          aes(y = cover_type, x = micro_hab_data_tbl_id, fill = percent_cover)) + 
     geom_tile(color = "white") + 
-<<<<<<< HEAD
-    scale_fill_viridis_c(name = "Percent Cover") +
-=======
     scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Percent Cover") +
->>>>>>> d73081f (transitions to map as filter)
     labs(
       x = "Micro Habitat Data Table ID",   
       y = ""                     
