@@ -22,6 +22,9 @@ colors_full <-  c("#9A8822", "#F5CDB4", "#F8AFA8", "#FDDDA0", "#74A089", #Royal 
                   "#798E87", "#C27D38", "#CCC591", "#29211F", # moonrise 2
                   "#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B" ) # moonrise 3 
 
+colfunc <- colorRampPalette(c("#02401B", "white"))
+gradient <- colfunc(100)
+
 source(here::here("mini-snorkel-app","pull_from_edi.R"))
 
 feather_cover <- mini_fish_raw |> 
@@ -40,49 +43,19 @@ feather_cover <- mini_fish_raw |>
                values_to = "percent_cover") |>  
   distinct() 
 
+# added distinct statement because there seem to be duplicates in the location table (we should fix this on EDI)
 
+# TODO - The color setting isn't quite working
 locations_sf <- sf::st_as_sf(mini_locations_raw |> distinct(location_table_id, date, channel_location, .keep_all = T) |> na.omit(), coords = c('longitude', 'latitude')) |> 
-  select(location_table_id, location) |> 
-  distinct() |> 
+  select(location_table_id, location, channel_type) |> 
   mutate(color = colors_full[match(location, location)])
-
-
-```
-
-Inputs {.sidebar}
-------------------------------------------------------------------------
-
-```{r}
-selectInput("location_filter", label = "Filter by Location:",
-            choices = c(sort(unique(locations_sf$location))), selected = "hatchery ditch")
-
-# TODO: figure out best way to integrate this component 
-# selectInput("channel_type_filter", label = "Filter by Channel Type:",
-#             choices = c("LFC", "HFC"))
-
 ```
 
 ```{r}
-filtered_location_id <- reactive({
-  locations_sf |>
-    filter(location == input$location_filter) |>
-    pull(location_table_id) |> 
-    unique()
-})
-```
-
-```{r}
-# Note - discuss if this is the way we want to do the location ID filter. Considering if we need it
-output$location_id_ui <- renderUI({
-  selectInput("location_id", label = "Filter by Location Table Id:",
-              choices = c(filtered_location_id()))
-})
-```
-
-
-```{r}
-
-uiOutput("location_id_ui")
+filtered_location_id <- reactiveValues(
+  selected_points = NULL,
+  filtered_data = feather_cover
+)
 ```
 
 Column
@@ -93,50 +66,64 @@ Column
 Each circle represents a unique habitat location. Each location may have multiple `location_ids` and each `location_id` represents an array of microhabitat grids that were sampled for cover. 
 
 ```{r}
-leaflet(locations_sf) |> 
+output$mapfilter <- renderLeaflet({
+  leaflet(locations_sf) |> 
   addProviderTiles(providers$Esri.WorldImagery, group = "Aerial Imagery") |> 
   addProviderTiles(providers$OpenStreetMap, group = "Street Map") |> 
-  addCircleMarkers(color = ~colors_full,
+  addCircleMarkers(layerId = ~location_table_id,
+                   color = ~color,
                    radius = 6,
-                   fill = TRUE, 
+                   fill = TRUE,
                    fillOpacity = 0.2,
                    opacity = 0.6,
                    popup = paste0("Location Name: ", locations_sf$location, 
                                   "<br>",
-                                  "Location ID: ", locations_sf$location_table_id)) |> 
+                                  "Location ID: ", locations_sf$location_table_id,
+                                   "<br>",
+                                  "Channel Type: ", locations_sf$channel_type)) |> 
   addLayersControl(
     baseGroups = c("Aerial Imagery", "Street Map"),
     options = layersControlOptions(collapsed = FALSE)
   )
-# addLegend("bottomright", 
-#           colors = locations_sf$color, 
-#           labels = locations_sf$location,
-#           title = "Location Names", opacity = 1)
+})
 
-# observeEvent(input$location_filter, {
-#   proxy_setview <- leafletProxy("mainMap")
-#     proxy_setview |> fitBounds(
-#       lng1 = river_bounds[[input$zoom_select_river]][["xmin"]],
-#       lat1 = river_bounds[[input$zoom_select_river]][["ymin"]],
-#       lng2 = river_bounds[[input$zoom_select_river]][["xmax"]],
-#       lat2 = river_bounds[[input$zoom_select_river]][["ymax"]]
-#     )
-#   }
-# })
+leafletOutput("mapfilter")
 
 ```
+
+Column
+------------------------------------------------------------------------
 
 ### Heat Map
 
 ```{r}
+click_marker <- eventReactive(input$mapfilter_marker_click, {
+
+  click <- input$mapfilter_marker_click
+
+  return(click$id)
+
+})
+
+filtered_data <- reactive({
+
+  return(feather_cover |> 
+           filter(location_table_id %in% click_marker()))
+
+})
+
 renderPlot({
-  ggplot(feather_cover |> filter(location_table_id == input$location_id),
+  ggplot(filtered_data(),
          aes(y = cover_type, x = micro_hab_data_tbl_id, fill = percent_cover)) + 
     geom_tile(color = "white") + 
+<<<<<<< HEAD
     scale_fill_viridis_c(name = "Percent Cover") +
+=======
+    scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Percent Cover") +
+>>>>>>> d73081f (transitions to map as filter)
     labs(
       x = "Micro Habitat Data Table ID",   
-      y = "Cover Type"                     
+      y = ""                     
     ) +
     theme_minimal() +
     theme(
@@ -144,7 +131,7 @@ renderPlot({
       axis.text = element_text(size = 10, face = "bold"),
       legend.title = element_text(size = 14, face = "bold"),
       legend.text = element_text(size = 10, face = "bold"),
-      legend.position = "bottom"
+      legend.position = "top"
     )
 })
 ```
