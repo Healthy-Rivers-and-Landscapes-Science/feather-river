@@ -46,9 +46,14 @@ feather_cover <- mini_fish_raw |>
 # added distinct statement because there seem to be duplicates in the location table (we should fix this on EDI)
 
 # TODO - The color setting isn't quite working
-locations_sf <- sf::st_as_sf(mini_locations_raw |> distinct(location_table_id, date, channel_location, .keep_all = T) |> na.omit(), coords = c('longitude', 'latitude')) |> 
+locations_sf <- sf::st_as_sf(mini_locations_raw |> 
+                               distinct(location_table_id, date, channel_location, .keep_all = T) |> 
+                               na.omit(), coords = c('longitude', 'latitude')) |> 
   select(location_table_id, location, channel_type) |> 
-  mutate(color = colors_full[match(location, location)])
+  mutate(color = colors_full[match(location, location)]) 
+# group_by(geometry, location, channel_type, color) |> 
+# summarise(location_table_id = paste0(unique(location_table_id), collapse = "; ")) |> glimpse()
+
 ```
 
 ```{r}
@@ -66,7 +71,7 @@ Column
 
 ### Habitat Map
 
-Each circle represents a unique habitat location. Each location may have multiple `location_ids` and each `location_id` represents an array of microhabitat grids that were sampled for cover. 
+Each circle represents a unique habitat location. Each location may have multiple `location_ids` and each `location_id` represents an array of microhabitat grids that were sampled for cover. Note that there are duplicate coordinates for some `location_ids`.
 
 ```{r}
 output$mapfilter <- renderLeaflet({
@@ -186,7 +191,7 @@ Row
 
 ### Habitat Map
 
-Each circle represents a unique habitat location. Each location has multiple `location_ids` and each `location_id` represents an array of microhabitat grids that were sampled for cover. 
+Each circle represents a unique habitat location. Each location has multiple `location_ids` and each `location_id` represents an array of microhabitat grids that were sampled for cover. Note that there are duplicate coordinates for some `location_ids`.
 
 ```{r}
 output$map <- renderLeaflet({
@@ -198,11 +203,11 @@ output$map <- renderLeaflet({
                      fill = TRUE, 
                      fillOpacity = 0.2,
                      opacity = 0.6,
-                      popup = paste0("Location Name: ", locations_sf$location, 
-                         "<br>",
-                         "Location ID: ", locations_sf$location_table_id,
-                         "<br>",
-                         "Channel Type: ", locations_sf$channel_type)) |> 
+                     popup = paste0("Location Name: ", locations_sf$location, 
+                                    "<br>",
+                                    "Location ID: ", locations_sf$location_table_id,
+                                    "<br>",
+                                    "Channel Type: ", locations_sf$channel_type)) |> 
     addLayersControl(
       baseGroups = c("Aerial Imagery", "Street Map"),
       options = layersControlOptions(collapsed = FALSE)
@@ -219,11 +224,13 @@ observeEvent(c(input$location_filter, input$location_id), {
   print(input$location_id)
   
   if (input$location_filter != "all locations" && input$location_id != "" && input$location_id != "-") {
-    #   
-    print("what???")
     
     selected_location <- locations_sf |> 
-      filter(location == input$location_filter & location_table_id == input$location_id)
+      filter(location == input$location_filter) |> 
+      group_by(geometry, location, channel_type, color) |> 
+      summarise(location_table_id = paste0(unique(location_table_id), collapse = "; ")) |> 
+      ungroup() |> 
+      filter(str_detect(location_table_id, paste0("\\b", input$location_id, "\\b")))
     
     if (nrow(selected_location) > 0) {
       
@@ -235,20 +242,22 @@ observeEvent(c(input$location_filter, input$location_id), {
           lat = coords[2],  
           zoom = 15         
         ) |> 
-        clearGroup("highlighted") |>  # Clear previously highlighted points
+        clearGroup("highlighted") |>  
         addCircleMarkers(
           data = selected_location,
           lng = coords[1],
           lat = coords[2],
-          color = "darkred",       
-          radius = 12,         
+          fillOpacity = 0.2,
+          opacity = 0.6,     
           fill = TRUE,
-          fillOpacity = 1,
-          popup = paste0("Location Name: ", locations_sf$location, 
+          radius = 6,
+          stroke = TRUE,  
+          weight = 4,      
+          popup = paste0("Location Name: ", selected_location$location, 
                          "<br>",
-                         "Location ID: ", locations_sf$location_table_id,
+                         "Location ID: ", selected_location$location_table_id,
                          "<br>",
-                         "Channel Type: ", locations_sf$channel_type),
+                         "Channel Type: ", selected_location$channel_type),
           group = "highlighted"  
         )
     }
@@ -260,23 +269,39 @@ observeEvent(c(input$location_filter, input$location_id), {
 
 ### Heat Map
 
+
+
 ```{r}
+# c(input$location_filter, input$location_id)
+
+
+
 renderPlot({
-  ggplot(feather_cover |> filter(location_table_id == input$location_id),
-         aes(y = cover_type, x = micro_hab_data_tbl_id, fill = percent_cover)) + 
-    geom_tile(color = "white") + 
-    scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Percent Cover") +
-    labs(
-      x = "Micro Habitat Data Table ID",   
-      y = ""                     
-    ) +
-    theme_minimal() +
-    theme(
-      axis.title = element_text(size = 16),
-      axis.text = element_text(size = 10, face = "bold"),
-      legend.title = element_text(size = 14, face = "bold"),
-      legend.text = element_text(size = 10, face = "bold"),
-      legend.position = "top"
-    )
+  if (input$location_filter != "all locations" && input$location_id != "" && input$location_id != "-") {
+    ggplot(feather_cover |> filter(location_table_id  == input$location_id),
+           aes(y = cover_type, x = micro_hab_data_tbl_id, fill = percent_cover)) + 
+      geom_tile(color = "white") + 
+      scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Percent Cover") +
+      labs(
+        x = "Micro Habitat Data Table ID",   
+        y = ""                     
+      ) +
+      theme_minimal() +
+      theme(
+        axis.title = element_text(size = 16),
+        axis.text = element_text(size = 10, face = "bold"),
+        legend.title = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size = 10, face = "bold"),
+        legend.position = "top"
+      )
+  } else {
+     ggplot() +
+      annotate("text", x = 0.5, y = 0.5, label = "Choose a sampling location name and \nlocation ID to populate map",
+               size = 6, hjust = 0.5, vjust = 0.5) +
+      theme_void() +
+      theme(
+        plot.title = element_text(size = 16, face = "bold", hjust = 0.5)
+      )
+  }
 })
 ```
