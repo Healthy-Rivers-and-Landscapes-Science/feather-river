@@ -26,10 +26,26 @@ colfunc <- colorRampPalette(c("#02401B", "white"))
 gradient <- colfunc(100)
 
 source(here::here("mini-snorkel-app","pull_from_edi.R"))
+# orders locations from upstream to downstream. 
+# TODO we are missing coordinates for some locations
+location_order <- tibble(location = c("hatchery ditch", "hour bars", "hatchery riffle", "trailer park", 
+                                      "bedrock riffle", "steep riffle", "robinson riffle", "upper big hole", 
+                                      "lower big hole", "g95", "gridley riffle", "big bar", "goose riffle", 
+                                      "macfarland riffle", "shallow riffle", "herringer riffle", "junkyard riffle", 
+                                      "auditorium riffle", "eye side channel", "matthews riffle", "eye riffle", 
+                                      "lower hour", "aleck riffle", "weir riffle", "vance avenue", 
+                                      "big hole", "hour riffle", "cox riffle", "gateway riffle"),
+                         order = c(2,19,1,5,
+                                   4,9,8,15,
+                                   16,17,23,21,20,
+                                   22,25,26,24,
+                                   3,11,6,12,
+                                   18,7,10,13,
+                                   14,NA,NA,NA))
 
 feather_cover <- mini_fish_raw |> 
   left_join(mini_locations_raw |> 
-              distinct(location_table_id, date, channel_location)) |> 
+              distinct(location_table_id, date, channel_location, location)) |> 
   # create cover variables that are more consistent with strategic plan categories
   mutate(woody_debris = percent_small_woody_cover_inchannel + percent_large_woody_cover_inchannel,
          boulder = percent_boulder_substrate,
@@ -37,11 +53,17 @@ feather_cover <- mini_fish_raw |>
          undercut_bank = percent_undercut_bank, 
          aquatic_veg = percent_submerged_aquatic_veg_inchannel, 
          overhanging_veg = percent_cover_half_meter_overhead + percent_cover_more_than_half_meter_overhead) |> 
-  select(micro_hab_data_tbl_id, location_table_id, transect_code,
+  select(micro_hab_data_tbl_id, location_table_id, transect_code, location,
          woody_debris:overhanging_veg) |>
   pivot_longer(cols = c(woody_debris, boulder, cobble, undercut_bank, aquatic_veg, overhanging_veg), names_to = "cover_type", 
                values_to = "percent_cover") |>  
-  distinct() 
+  distinct() |> 
+  left_join(location_order)
+
+summary_cover <- feather_cover |> 
+  group_by(location, cover_type, order) |> 
+  summarize(percent_cover = mean(percent_cover)) |> 
+  mutate(percent_cover = ifelse(is.na(percent_cover), 0, percent_cover))
 
 # added distinct statement because there seem to be duplicates in the location table (we should fix this on EDI)
 
@@ -62,6 +84,40 @@ filtered_location_id <- reactiveValues(
   filtered_data = feather_cover
 )
 ```
+
+Habitat Summary
+========================================================================
+
+Column
+------------------------------------------------------------------------
+
+### Feather River locations are ordered from most upstream (closed to Oroville Dam) to the most downstream. Percent cover is averaged across all microhabitat plots within each location. See the Map Filter or Attribute Filter for more detailed summaries of habitat by microhabitat.
+
+```{r, fig.width=11}
+summary_cover |> 
+  filter(!is.na(order)) |> 
+  group_by(cover_type) |> 
+  arrange(desc(order)) |> 
+  mutate(location = factor(location, levels=location, ordered = T)) |> 
+  ggplot(aes(x = cover_type, y = location, fill = percent_cover)) + 
+  #scale_y_reverse() +
+  geom_tile(color = "white") + 
+  scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Mean Percent Cover") +
+  labs(
+    x = "",   
+    y = ""                     
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 10, face = "bold"),
+    legend.title = element_text(size = 14, face = "bold"),
+    legend.text = element_text(size = 10, face = "bold"),
+    legend.position = "top"
+  )
+```
+
+
 
 Map Filter
 ========================================================================
