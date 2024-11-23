@@ -25,7 +25,8 @@ colors_full <-  c("#9A8822", "#F5CDB4", "#F8AFA8", "#FDDDA0", "#74A089", #Royal 
 colfunc <- colorRampPalette(c("#02401B", "white"))
 gradient <- colfunc(100)
 
-source(here::here("mini-snorkel-app","pull_from_edi.R"))
+mini_locations_raw <- read_csv("mini_locations_raw.csv")
+mini_fish_raw <- read_csv("mini_fish_raw.csv")
 # orders locations from upstream to downstream. 
 # TODO we are missing coordinates for some locations
 location_order <- tibble(location = c("hatchery ditch", "hour bars", "hatchery riffle", "trailer park", 
