@@ -22,6 +22,8 @@ colors_full <-  c("#9A8822", "#F5CDB4", "#F8AFA8", "#FDDDA0", "#74A089", #Royal 
                   "#798E87", "#C27D38", "#CCC591", "#29211F", # moonrise 2
                   "#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B" ) # moonrise 3 
 
+ fish_pres_cols <- c('Yes' = "#E6A0C4", 'No' = "#D5D5D3")
+
 colfunc <- colorRampPalette(c("#02401B", "white"))
 gradient <- colfunc(100)
 
@@ -55,14 +57,15 @@ feather_cover <- mini_fish_raw |>
          aquatic_veg = percent_submerged_aquatic_veg_inchannel, 
          overhanging_veg = percent_cover_half_meter_overhead + percent_cover_more_than_half_meter_overhead) |> 
   select(micro_hab_data_tbl_id, location_table_id, transect_code, location,
-         woody_debris:overhanging_veg) |>
+         woody_debris:overhanging_veg, count) |>
   pivot_longer(cols = c(woody_debris, boulder, cobble, undercut_bank, aquatic_veg, overhanging_veg), names_to = "cover_type", 
                values_to = "percent_cover") |>  
   distinct() |> 
-  left_join(location_order)
+  left_join(location_order) |> 
+  mutate(fish_presence = ifelse(count > 0, "Yes", "No")) |> select(-count)
 
 summary_cover <- feather_cover |> 
-  group_by(location, cover_type, order) |> 
+  group_by(location, cover_type, order, fish_presence) |> 
   summarize(percent_cover = mean(percent_cover)) |> 
   mutate(percent_cover = ifelse(is.na(percent_cover), 0, percent_cover))
 
@@ -99,7 +102,7 @@ summary_cover |>
   filter(!is.na(order)) |> 
   group_by(cover_type) |> 
   arrange(desc(order)) |> 
-  mutate(location = factor(location, levels=location, ordered = T)) |> 
+  mutate(location = factor(location, levels=unique(location), ordered = T)) |> 
   ggplot(aes(x = cover_type, y = location, fill = percent_cover)) + 
   #scale_y_reverse() +
   geom_tile(color = "white") + 
@@ -191,7 +194,8 @@ renderPlot({
     
     ggplot(filtered_data(),
            aes(y = cover_type, x = micro_hab_data_tbl_id, fill = percent_cover)) + 
-      geom_tile(color = "white") + 
+      geom_tile(aes(color = as.character(fish_presence)), size = 1) + 
+      scale_color_manual(values = fish_pres_cols, name = "Fish Presence") +
       scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Percent Cover") +
       labs(
         x = "Micro Habitat Data Table ID",   
@@ -337,7 +341,8 @@ renderPlot({
   if (input$location_filter != "all locations" && input$location_id != "" && input$location_id != "-") {
     ggplot(feather_cover |> filter(location_table_id  == input$location_id),
            aes(y = cover_type, x = micro_hab_data_tbl_id, fill = percent_cover)) + 
-      geom_tile(color = "white") + 
+      geom_tile(aes(color = fish_presence), size = 1) + 
+      scale_color_manual(values = fish_pres_cols, name = "Fish Presence") +
       scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Percent Cover") +
       labs(
         x = "Micro Habitat Data Table ID",   
