@@ -1,0 +1,120 @@
+---
+title: "Feather River Mini Snorkel Data Location Data QC"
+author: "flowwest"
+date: "june 2024"
+output: html_document
+---
+
+## Location data available
+
+The mini snorkel database contained a location table that included the following:
+
+* PhysDataTblID (unique identifier)
+* Location (name, not standardized)
+* Date, Crew, NumberOfDivers
+* WaterTemp, Weather, Flow
+* RiverMile
+* ReachWidth, ReachLength, ChannelType, ChannelWidth
+* GPS.Coordinate
+
+It is important to have good location information for this data in order to do analyses
+that appropriately group data spatially, compare observations to hydraulic model output
+and cover maps.
+
+## Challenges
+
+The challenge with this dataset is that (1) the `Location` field does not use a standard naming
+convention making it difficult to determine which locations are the same or not, and (2)
+not all locations have coordinates.
+
+## QC workflow
+In order to address these challenges we did the following:
+
+1. standardize location names based on similarities/patterns of the names (this was then reviewed by Ryon)
+2. manual preliminary coordinate QC (search coordinate in Google and remove those not within Feather River)
+3. convert coordinates to latitude and longitude for easier handling
+4. extract latitude and longitudes from the [.kmz file of survey locations](https://netorg629193.sharepoint.com/:u:/r/sites/VA-FeatherRiver/Shared%20Documents/Resources/Snorkel%20Survey%20Locations.kmz?csf=1&web=1&e=a9nuyg) provided by Casey
+5. fill in missing latitude/longitude by mapping to kmz latitude/longitude by location name
+6. fill in missing latitude/longitude by finding the average for a given survey location and applying that to any missing
+7. map the resulting latitude/longitude colored by location name
+8. flag any where a particular point is out of place (e.g. named aleck riffle but mapped near vance avenue)
+
+```{r, include = F}
+# Load required libraries
+library(leaflet)
+library(RColorBrewer)
+library(viridis)
+library(tidyverse)
+```
+
+
+```{r, include = F}
+# Read the CSV file
+data <- read.csv("data/survey_locations.csv")
+
+data_jitter <- data |> 
+  mutate(latitude = jitter(latitude, factor = 10),
+         longitude = jitter(longitude, factor = 10))
+
+# Define a color palette mapping each location to a color
+palette <- viridis(n = nlevels(factor(data$location)))  # Specify the number of colors based on the number of unique locations
+```
+
+## Map
+
+This map was used to flag datapoints that are either named incorrectly or have incorrect
+coordinates.
+
+* Points are colored by location name. It does not look pretty with the overlapping labels but the labels are
+helpful in identifying points out of place.
+* On click the location table id and location name will be displayed
+* Zoom in to get a better view
+
+```{r}
+# Create a leaflet map
+leaflet(data_jitter) |> 
+  addTiles() |> 
+  addCircleMarkers(
+    ~longitude, ~latitude,
+    popup =  ~paste0("ID: ", location_table_id, "<br>Location: ", location),
+    radius = 2,
+    color = ~palette[as.numeric(factor(location))],
+    label = ~as.character(location),
+    labelOptions = labelOptions(noHide = TRUE, textOnly = TRUE)
+  )
+```
+
+## QC flags
+
+List of locations that need to be further QC'd
+
+location_table_id:
+
+   * 105 - Location name = vance avenue. This is how name was reported on database. Coordinates were reported in the database, but when mapped it shows next to hatchery riffle
+   * 79 - Location name = eye riffle. This is how name was reported on database. Coordinates were reported in the database, but when mapped it shows next to aleck riffle
+   * 18 - Location name = robinson riffle (originally named robinson side channel). Coordinates were reported in the database, but when mapped it shows next to steep riffle
+   * 65 - Location name = vance avenue. Coordinates were reported in the database, but when mapped it shows next to steep riffle
+   * 102 - Location name = g95. Coordinates were reported in the database, but when mapped it shows next to lower big hole
+   * 68- Location name = g95. Coordinates were reported in the database, but when mapped it shows next to lower big hole
+   * 49 - Location name = big bar. Coordinates were reported in the database, but when mapped it shows next to goose riffle
+   * 27 - Location name = gridley riffle. Coordinates were reported in the database, but when mapped it shows next to macfarland riffle
+   * 46 - Location name = lower hour. Coordinates were reported in the database, but when mapped it shows next to herringe riffle
+   * 15 - Location name = trailer park riffle. Coordinates were reported in the database, but when mapped it shows next to herringe riffle
+   
+   
+   
+General notes:
+
+  * Hatchery Ditch and Hatchery Riffle; location difference is unclear. Maybe we should name them the same way
+  * Big bar and mcfarland riffle are near each other but blend in in the middle. We should check if they should be name differently, or if coordinates are off
+  
+  
+  Still issues after Ryon's revisions: (Ashley proposed adjusting coordinate to another with same location, emailed Ryon to see what he thinks)
+     * 79 - Location name = eye riffle. This is how name was reported on database. Coordinates were reported in the database, but when mapped it shows next to aleck riffle. Adjust coordinates to be near eye riffle?
+     * 78 - Location name = eye riffle. This is how name was reported on database. Coordinates were reported in the database, but when mapped it shows next to aleck riffle. Adjust coordinates to be near eye riffle?
+     * 68 - Location name = g95. Coordinates were reported in the database, but when mapped it shows next to lower big hole. Adjust coordinates to be near g95?
+     * 102 - Location name = g95. Coordinates were reported in the database, but when mapped it shows next to lower big hole. Adjust coordinates to be near g95?
+     * 146 - Location name = big bar. Shows up near Goose Riffle. This is one of the coordinates you changed.
+     * 30 - Location name = macfarland riffle. Shows up near Big Bar. Adjust coordinates?
+     * 27 - Location name = gridley riffle. Shows up near macfarland riffle. Adjust coordinates?
+   

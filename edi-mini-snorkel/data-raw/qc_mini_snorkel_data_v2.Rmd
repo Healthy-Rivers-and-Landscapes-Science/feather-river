@@ -1,0 +1,1212 @@
+---
+title: "Feather River Mini Snorkel Data QC"
+author: "Maddee Rubenson"
+date: "August 21, 2024"
+output: 
+  html_document:
+    code_folding: hide
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+library(tidyverse)
+library(lubridate)
+library(googleCloudStorageR)
+library(ggplot2)
+library(scales)
+
+colors_small <-  c("#9A8822", "#F5CDB4", "#F8AFA8", "#FDDDA0", "#74A089", #Royal 2
+                   "#899DA4", "#C93312", "#DC863B" # royal 1 (- 3)
+)
+```
+
+# Feather River Mini Snorkel Data - 2001 & 2002
+
+## Description of Monitoring Data
+
+This markdown explores the data that was provided for mini snorkel data
+for Feather River in the database: `minisnorkdb3.mdb`. Previously, a
+database was provided that only contained 2001 data
+(`MiniSnorkelDTB.mdb`). Upon exploration and comparison between this new
+database and the old database, it was decided that we will move forward
+using this database for publishing on EDI. For details on the
+`MiniSnorkelDTB` database visit: `qc_mini_snorkel_data.Rmd` and for
+details on the database comparison, visit: `database_qc.Rmd`.
+
+**Timeframe:** March 2001 - August 2002
+
+**Completeness of Record throughout timeframe:** fairly complete
+
+**Sampling Location:** Feather River
+
+**Data Contact:** Ryon Kurth
+
+## Source Database pull
+
+-   Database name: `minisnorkdb3.mdb`
+
+```{r include=FALSE}
+source(here::here('data-raw', 'query_4mac.R'))
+```
+
+Read in data sourced from query script, glimpse raw data and domain
+description sheet:
+
+```{r}
+# read in data to clean 
+microhabitat_2002 |> glimpse()
+```
+
+## Data transformations
+
+### first table reviewed is the All Fish Observation Table
+
+All of the substrate and cover lookups are not true look ups. Substrate
+and cover column indicate a percentage of cover or substrate of each
+type. I updated the column names to reflect this and utilized the lookup
+tables to understand which substrate or cover type each column was
+referring to.
+
+Columns removed:
+
+-   SpecAge removed - just a combination of species and age
+
+-   i_cov_sum - removed because sum of other columns
+
+-   o_cov_sum - removed because sum of other columns
+
+-   sub_sum - removed because sum of other columns
+
+-   start_time - just a date that seemed wrong
+
+-   end_time - also just a date that seemed wrong
+
+-   crew - specific crew names do not need to be present on public EDI
+dataset
+
+```{r}
+# Combine the data here
+# 2001/2002 data
+all_fish_data <- microhabitat_2002 |> 
+  left_join(fish_data_2002, by = c("TCode" = "TCode", "PDatID" = "PDatID")) |> 
+  left_join(species_code_lookup_2002, by = c("Species" = "SpeciesCodeID")) |> # all codes are in the lookup
+  select(-c(SpeciesCode, Species)) |>
+  rename(species = Species.y, 
+         percent_fine_substrate = Sub1, 
+         percent_sand_substrate = Sub2, 
+         percent_small_gravel_substrate = Sub3, 
+         percent_large_gravel_substrate = Sub4, 
+         percent_cobble_substrate = Sub5, 
+         percent_boulder_substrate = Sub6,
+         percent_no_cover_inchannel = IcovA, 
+         percent_small_woody_cover_inchannel = IcovB, 
+         percent_large_woody_cover_inchannel = IcovC, 
+         percent_submerged_aquatic_veg_inchannel = IcovE, 
+         percent_undercut_bank = IcovF,
+         percent_no_cover_overhead = Ocov0,
+         percent_cover_half_meter_overhead = Ocov1, 
+         percent_cover_more_than_half_meter_overhead = Ocov2)|> 
+  # Clean in separate file
+  left_join(location_table_2002, by = c("PDatID" = "PhysDataTblID")) |> 
+  left_join(weather_code_lookup_2002, by = c("Weather" = "WeatherCodeLookUpID")) |> # all codes are in the lookup
+  select(-WeatherCode, -Weather) |> 
+  rename(weather = Weather.y) |> 
+  # note that there are 0 channel types which do not map to the lookup
+  left_join(channel_lookup_2002, by = c("ChannelType" = "ChannelTypeCode")) |> 
+  select(-ChannelType, -ChannelTypeCodeID) |> 
+  rename(channel_type = ChannelType.y) |> 
+  janitor::clean_names() |> 
+  # fixes issues with the codes so the CGU lookup will work
+  mutate(cgu = tolower(cgu),
+         cgu = case_when(cgu == "rm`" ~ "rm",
+                         cgu == "gm." ~ "gm",
+                         cgu == "" ~ NA,
+                         T ~ cgu)) |> 
+  left_join(cgu_code_lookup_2002 |> mutate(CGUCode = tolower(CGUCode)), by = c("cgu" = "CGUCode")) |> 
+  select(-cgu, -CGUCodeID, -sub_sum, -i_cov_sum, -o_cov_sum, -start_time, -end_time, -crew) |> 
+  rename(channel_geomorphic_unit = CGU) |> 
+  filter(!is.na(date)) |> 
+  write_csv('2002_fish_obs_tmp.csv') # annoying workaround to remove labeled date column 
+
+all_fish_data <- read_csv('2002_fish_obs_tmp.csv')  |> glimpse()
+
+```
+
+**NA and Unknown Date Values**
+
+There are `r is.na(all_fish_data$date) |> sum()` NA values
+
+## Explore Numeric Variables: {.tabset}
+
+```{r}
+# Filter clean data to show only numeric variables 
+all_fish_data %>% select_if(is.numeric) %>% colnames()
+
+```
+
+### Variable: `count`
+
+**Plotting Count over Period of Record**
+
+```{r}
+# Make whatever plot is appropriate 
+# maybe 2+ plots are appropriate
+all_fish_data %>% 
+  ggplot(aes(x = rm, y = count, group = 1))+
+  # geom_line()+
+  geom_point(aes(x=date, y = count))+
+  theme_minimal()+
+  labs(title = "Count over Time",
+       y = "Number of Fish Observations")
+```
+
+**Numeric Summary of Count over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$count)
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$count) |> sum()` NA values
+
+### Variable: `date`
+
+**Plotting Date over Period of Record**
+
+All observations are from 2001
+
+```{r}
+# Make whatever plot is appropriate 
+# maybe 2+ plots are appropriate
+all_fish_data %>% 
+  ggplot(aes(x = date, y = TRUE, group = 1))+
+  # geom_line()+
+  geom_point(aes(x=date, y = TRUE))+
+  theme_minimal()+
+  labs(title = "Dates Surveyed",
+       y = "")
+```
+
+**Numeric Summary of Count over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$date)
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$date) |> sum()` NA values
+
+### Variable: \`river_mile\`\`
+
+**Plotting river_mile over Period of Record**
+
+```{r}
+# Make whatever plot is appropriate 
+# maybe 2+ plots are appropriate
+all_fish_data %>% 
+  ggplot(aes(x = river_mile, y = date, group = 1))+
+  # geom_line()+
+  geom_point(aes(x=river_mile, y = date))+
+  theme_minimal()+
+  labs(title = "Dates that River miles Surveyed",
+       y = "")
+```
+
+**Numeric Summary of river_mile over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$river_mile)
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$river_mile) |> sum()` NA values
+
+### Variable: `fl_mm`
+
+**Plotting fl_mm over Period of Record**
+
+```{r}
+# Make whatever plot is appropriate 
+# maybe 2+ plots are appropriate
+all_fish_data |> 
+  # filter(fork_length < 250) %>% # filter out 13 points so we can more clearly see distribution
+  ggplot(aes(x = fl_mm)) + 
+  geom_histogram(breaks=seq(0, 200, by=2)) + 
+  scale_x_continuous(breaks=seq(0, 200, by=25)) +
+  theme_minimal() +
+  labs(title = "Fork length distribution") + 
+  theme(text = element_text(size = 18),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+```
+
+```{r}
+all_fish_data %>% 
+  mutate(year = as.factor(year(date))) %>%
+  ggplot(aes(x = fl_mm, y = species)) + 
+  geom_boxplot() + 
+  theme_minimal() +
+  labs(title = "Fork length summarized by species") + 
+  theme(text = element_text(size = 18),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+
+```
+
+**Numeric Summary of fl_mm over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$fl_mm)
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$fl_mm) |> sum()` NA values
+
+### Variable: `dist_to_bottom`
+
+**Plotting dist_to_bottom distribution**
+
+```{r}
+# Make whatever plot is appropriate 
+# maybe 2+ plots are appropriate
+all_fish_data |> 
+  # filter(fork_length < 250) %>% # filter out 13 points so we can more clearly see distribution
+  ggplot(aes(x = dist_to_bottom)) + 
+  geom_histogram(breaks=seq(0, 200, by=2)) + 
+  scale_x_continuous(breaks=seq(0, 200, by=25)) +
+  theme_minimal() +
+  labs(title = "Distance to Bottom") + 
+  theme(text = element_text(size = 18),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+```
+
+```{r}
+
+all_fish_data %>% 
+  mutate(year = as.factor(year(date))) %>%
+  ggplot(aes(x = dist_to_bottom, y = as.factor(river_mile))) + 
+  geom_boxplot() + 
+  theme_minimal() +
+  labs(title = "Distance to bottom summarized by river_mile") + 
+  theme(text = element_text(size = 18),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+```
+
+**Numeric Summary of dist_to_bottom over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$river_mile)
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$river_mile) |> sum()` NA values
+
+### Variable: `focal_velocity` & `velocity`
+
+**Plotting velocities over Period of Record**
+
+```{r}
+all_fish_data |> 
+  # filter(fork_length < 250) %>% # filter out 13 points so we can more clearly see distribution
+  ggplot(aes(x = focal_velocity)) + 
+  geom_histogram(breaks=seq(0, 10, by=1), group = "Focal velocity", fill = "blue", alpha = .2 ) + 
+  geom_histogram(aes(x = velocity), breaks=seq(0, 10, by=1), group = "Focal velocity", fill = "red", alpha = .2 ) + 
+  scale_x_continuous(breaks=seq(0, 10, by=1)) +
+  theme_minimal() +
+  labs(title = "Focal Velocity vs ") + 
+  theme(text = element_text(size = 18),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+```
+
+Looks like velocity and focal velocity have similar distributions
+
+**Numeric Summary of focal_velocity over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$focal_velocity)
+summary(all_fish_data$velocity)
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$focal_velocity) |> sum()` NA values
+There are `r is.na(all_fish_data$velocity) |> sum()` NA values
+
+### Variable: `t_code`
+
+**Plotting t_code over Period of Record**
+
+```{r}
+all_fish_data |> 
+  # filter(fork_length < 250) %>% # filter out 13 points so we can more clearly see distribution
+  ggplot(aes(x = t_code)) + 
+  geom_histogram(breaks=seq(0, 30, by=1)) + 
+  scale_x_continuous(breaks=seq(0, 30, by=1)) +
+  theme_minimal() +
+  labs(title = "T code distribution") + 
+  theme(text = element_text(size = 18),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+```
+
+**Numeric Summary of t_code over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$t_code)
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$t_code) |> sum()` NA values
+
+### Variable: `depth`
+
+**Plotting depth over Period of Record**
+
+```{r}
+all_fish_data |> 
+  # filter(fork_length < 250) %>% # filter out 13 points so we can more clearly see distribution
+  ggplot(aes(x = depth)) + 
+  geom_histogram(breaks=seq(0, 250, by=1)) + 
+  scale_x_continuous(breaks=seq(0, 200, by=50)) +
+  theme_minimal() +
+  labs(title = "T code distribution") + 
+  theme(text = element_text(size = 18),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+```
+
+**Numeric Summary of depth over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$depth)
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$t_code) |> sum()` NA values
+
+### Variable: `substrate`
+
+**Plotting substrate over Period of Record**
+
+```{r}
+# Make whatever plot is appropriate 
+# maybe 2+ plots are appropriate
+all_fish_data |> 
+  arrange(river_mile) |> 
+  mutate(obs_id = 1:nrow(all_fish_data)) |> 
+  select(obs_id, 
+         percent_fine_substrate,
+         percent_sand_substrate,
+         percent_small_gravel_substrate,
+         percent_large_gravel_substrate,
+         percent_cobble_substrate,
+         percent_boulder_substrate) |> 
+  pivot_longer(cols = percent_fine_substrate:percent_boulder_substrate, 
+               names_to = "substrate_type", values_to = "percent") |> 
+  ggplot(aes(x = obs_id, y = percent, fill = substrate_type)) +
+  geom_col() +
+  scale_fill_manual(values = colors_small) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+
+```
+
+**Numeric Summary of substrate over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$percent_fine_substrate)
+summary(all_fish_data$percent_sand_substrate)
+summary(all_fish_data$percent_small_gravel_substrate)
+summary(all_fish_data$percent_large_gravel_substrate)
+summary(all_fish_data$percent_boulder_substrate)
+summary(all_fish_data$percent_cobble_substrate)
+
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$percent_fine_substrate) |> sum()` NA
+values There are
+`r is.na(all_fish_data$percent_sand_substrate) |> sum()` NA values There
+are `r is.na(all_fish_data$percent_small_gravel_substrate) |> sum()` NA
+values There are
+`r is.na(all_fish_data$percent_small_gravel_substrate) |> sum()` NA
+values There are
+`r is.na(all_fish_data$percent_boulder_substrate) |> sum()` NA values
+There are `r is.na(all_fish_data$percent_cobble_substrate) |> sum()` NA
+values
+
+### Variable: `inchannel cover`
+
+**Plotting inchannel cover over Period of Record**
+
+Notes: - some cover totals less than 100%
+
+```{r}
+all_fish_data |> 
+  arrange(river_mile) |> 
+  mutate(obs_id = 1:nrow(all_fish_data)) |> 
+  select(obs_id, 
+         percent_no_cover_inchannel,
+         percent_small_woody_cover_inchannel,
+         percent_large_woody_cover_inchannel,
+         percent_submerged_aquatic_veg_inchannel) |> 
+  pivot_longer(cols = percent_no_cover_inchannel:percent_submerged_aquatic_veg_inchannel, 
+               names_to = "inchannel_cover_type", values_to = "percent") |> 
+  ggplot(aes(x = obs_id, y = percent, fill = inchannel_cover_type)) +
+  geom_col() +
+  scale_fill_manual(values = colors_small[4:7]) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+**Numeric Summary of inchannel cover over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$percent_no_cover_inchannel)
+summary(all_fish_data$percent_small_woody_cover_inchannel)
+summary(all_fish_data$percent_large_woody_cover_inchannel)
+summary(all_fish_data$percent_submerged_aquatic_veg_inchannel)
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$percent_no_cover_inchannel) |> sum()`
+NA values There are
+`r is.na(all_fish_data$percent_small_woody_cover_inchannel) |> sum()` NA
+values There are
+`r is.na(all_fish_data$percent_large_woody_cover_inchannel) |> sum()` NA
+values There are
+`r is.na(all_fish_data$percent_submerged_aquatic_veg_inchannel) |> sum()`
+NA values
+
+### Variable: `overhead cover`
+
+**Plotting overhead cover over Period of Record**
+
+Notes: - some cover totals more than 100%
+
+```{r}
+all_fish_data |> 
+  arrange(river_mile) |> 
+  mutate(obs_id = 1:nrow(all_fish_data)) |> 
+  select(obs_id, 
+         percent_undercut_bank,
+         percent_no_cover_overhead,
+         percent_cover_half_meter_overhead,
+         percent_cover_more_than_half_meter_overhead) |> 
+  pivot_longer(cols = percent_undercut_bank:percent_cover_more_than_half_meter_overhead, 
+               names_to = "overhead_cover_type", values_to = "percent") |> 
+  ggplot(aes(x = obs_id, y = percent, fill = overhead_cover_type)) +
+  geom_col() +
+  scale_fill_manual(values = colors_small[4:7]) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+**Numeric Summary of overhead cover over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$percent_undercut_bank)
+summary(all_fish_data$percent_no_cover_overhead)
+summary(all_fish_data$percent_cover_half_meter_overhead)
+summary(all_fish_data$percent_cover_more_than_half_meter_overhead)
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$percent_undercut_bank) |> sum()` NA
+values There are
+`r is.na(all_fish_data$percent_no_cover_overhead) |> sum()` NA values
+There are
+`r is.na(all_fish_data$percent_cover_half_meter_overhead) |> sum()` NA
+values There are
+`r is.na(all_fish_data$percent_cover_more_than_half_meter_overhead) |> sum()`
+NA values
+
+### Variable: `sur_turb`
+
+**Plotting sur_turb over Period of Record**
+
+```{r}
+all_fish_data |> 
+  # filter(fork_length < 250) %>% # filter out 13 points so we can more clearly see distribution
+  ggplot(aes(x = sur_turb)) + 
+  geom_histogram(breaks=seq(0, 75, by=1)) + 
+  scale_x_continuous(breaks=seq(0, 75, by=5)) +
+  theme_minimal() +
+  labs(title = "Surface turbidity distribution") + 
+  theme(text = element_text(size = 18),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+```
+
+**Numeric Summary of sur_turb over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$sur_turb)
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$sur_turb) |> sum()` NA values
+
+### Variable: `dist_to_bottom`
+
+**Plotting dist_to_bottom over Period of Record**
+
+```{r}
+all_fish_data |> 
+  # filter(fork_length < 250) %>% # filter out 13 points so we can more clearly see distribution
+  ggplot(aes(x = dist_to_bottom)) + 
+  geom_histogram(breaks=seq(0, 5, by=1)) + 
+  scale_x_continuous(breaks=seq(0, 5, by=1)) +
+  theme_minimal() +
+  labs(title = "Distance") + 
+  theme(text = element_text(size = 18),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+```
+
+**Numeric Summary of dist_to_bottom over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$dist_to_bottom)
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$dist_to_bottom) |> sum()` NA values
+
+### Variable: `fish_data_id`
+
+Looks like there are one more unique fish data id than there is number
+of rows where joined fish has a count greater than o
+
+```{r}
+nrow(all_fish_data |> filter(count > 0)) == length(unique(all_fish_data$fish_data_id))
+```
+
+**Numeric Summary of fish_data_id over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$fish_data_id)
+
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$fish_data_id) |> sum()` NA values
+
+### Variable: `micro_hab_data_tbl_id`
+
+There are more observations than unique micro hab ids so there are some
+micro habitat transects that have more than one row in the table
+
+```{r}
+nrow(all_fish_data) == length(unique(all_fish_data$micro_hab_data_tbl_id))
+
+```
+
+**Numeric Summary of micro_hab_data_tbl_id over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$micro_hab_data_tbl_id)
+
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$micro_hab_data_tbl_id) |> sum()` NA
+values
+
+### Variable: `water_temp`
+
+**Plotting water_temp over Period of Record**
+
+```{r}
+all_fish_data |> 
+  # filter(fork_length < 250) %>% # filter out 13 points so we can more clearly see distribution
+  ggplot(aes(x = water_temp)) + 
+  geom_histogram(breaks=seq(0, 90, by=1)) + 
+  scale_x_continuous(breaks=seq(0, 90, by=5)) +
+  theme_minimal() +
+  labs(title = "Temperature distribution") + 
+  theme(text = element_text(size = 18),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+```
+
+**Numeric Summary of water_temp over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$water_temp)
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$water_temp) |> sum()` NA values
+
+### Variable: `flow`
+
+**Plotting flow over Period of Record**
+
+```{r}
+all_fish_data |> 
+  # filter(fork_length < 250) %>% # filter out 13 points so we can more clearly see distribution
+  ggplot(aes(x = flow)) + 
+  geom_histogram(breaks=seq(0, 3500, by=50)) + 
+  scale_x_continuous(breaks=seq(0, 3500, by=1000)) +
+  theme_minimal() +
+  labs(title = "Flow distribution") + 
+  theme(text = element_text(size = 18),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+```
+
+**Numeric Summary of flow over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$flow)
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$flow) |> sum()` NA values
+
+### Variable: `number_of_divers`
+
+**Plotting number_of_divers over Period of Record**
+
+```{r}
+all_fish_data |> 
+  ggplot(aes(x = number_of_divers)) + 
+  geom_histogram(breaks=seq(0, 6, by=1)) + 
+  scale_x_continuous(breaks=seq(0, 6, by=1)) +
+  theme_minimal() +
+  labs(title = "Number of Divers distribution") + 
+  theme(text = element_text(size = 18),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+```
+
+**Numeric Summary of number_of_divers over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$number_of_divers)
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$number_of_divers) |> sum()` NA values
+
+### Variable: `reach_length`
+
+All of the reach lengths are 25 (m?)
+
+**Plotting reach_length over Period of Record**
+
+```{r}
+all_fish_data |> 
+  ggplot(aes(x = reach_length)) + 
+  geom_histogram(breaks=seq(0, 100, by=1)) + 
+  scale_x_continuous(breaks=seq(0, 100, by=25)) +
+  theme_minimal() +
+  labs(title = "Reach Length distribution") + 
+  theme(text = element_text(size = 18),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+```
+
+**Numeric Summary of reach_length over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$reach_length)
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$reach_length) |> sum()` NA values
+
+### Variable: `reach_width`
+
+All of the reach widths are 4 meters
+
+**Plotting reach_width over Period of Record**
+
+```{r}
+all_fish_data |> 
+  ggplot(aes(x = reach_width)) + 
+  geom_histogram(breaks=seq(0, 10, by=1)) + 
+  scale_x_continuous(breaks=seq(0, 10, by=1)) +
+  theme_minimal() +
+  labs(title = "Reach Width distribution") + 
+  theme(text = element_text(size = 18),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+```
+
+**Numeric Summary of reach_width over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$reach_width)
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$reach_width) |> sum()` NA values
+
+### Variable: `chanel_width`
+
+**Plotting chanel_width over Period of Record**
+
+Even through reach width measured is only ever 4 meters sometimes
+channel width is much larger
+
+```{r}
+all_fish_data |> 
+  ggplot(aes(x = channel_width)) + 
+  geom_histogram(breaks=seq(0, 170, by=1)) + 
+  scale_x_continuous(breaks=seq(0, 170, by=50)) +
+  theme_minimal() +
+  labs(title = "Channel Width distribution") + 
+  theme(text = element_text(size = 18),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+```
+
+**Numeric Summary of chanel_width over Period of Record**
+
+```{r}
+# Table with summary statistics
+summary(all_fish_data$channel_width)
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$chanel_width) |> sum()` NA values
+
+## Explore Categorical variables: {.tabset}
+
+```{r}
+# Filter clean data to show only categorical variables 
+all_fish_data %>% select_if(is.character) %>% colnames()
+```
+
+### Variable: `location`
+
+```{r}
+table(all_fish_data$location) 
+```
+
+Fix inconsistencies with spelling, capitalization, and abbreviations.
+
+```{r}
+# Fix any inconsistencies with categorical variables
+all_fish_data$location <- tolower(all_fish_data$location)
+table(all_fish_data$location) 
+
+all_fish_data <- all_fish_data |> 
+  mutate(location = case_when(location %in% c("aleck riffle", "alec riffle") ~ "aleck riffle",
+                              location == "hatchery  ditch" ~ "hatchery ditch",
+                              location %in% c("hour bars", "hour bar") ~ "hour bars",
+                              T ~ location))
+unique(all_fish_data$location)
+# FIX aleck riffle and alec riffle
+# FIX hatchery  ditch and hatchery ditch
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$location) |> sum()` NA values
+
+### Variable: `species`
+
+```{r}
+table(all_fish_data$species) 
+```
+
+Fix inconsistencies with spelling, capitalization, and abbreviations.
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$species) |> sum()` NA values
+
+### Variable: `channel_geomorphic_unit`
+
+```{r}
+table(all_fish_data$channel_geomorphic_unit) 
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$channel_geomorphic_unit) |> sum()` NA
+values
+
+### Variable: `gps_coordinate`
+
+```{r}
+table(all_fish_data$gps_coordinate) 
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$gps_coordinate) |> sum()` NA values
+
+### Variable: `weather`
+
+```{r}
+table(all_fish_data$weather) 
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$weather) |> sum()` NA values
+
+### Variable: `channel_type`
+
+```{r}
+table(all_fish_data$channel_type) 
+```
+
+**NA and Unknown Values**
+
+There are `r is.na(all_fish_data$channel_type) |> sum()` NA values
+
+## Summary of identified issues
+
+-   percent cover that is \> or \< 100%
+-   did some location name clean up but could be better
+-   remove sac squawfish
+-   other?
+
+## Fixing location names and adding coordinates
+
+The location names were reconciled for the 2001 data (see
+`qc_mini_snorkel_data.Rmd`). Here we will read in the reconciled names
+and add the 2002 data.
+
+```{r}
+microhabitat_with_fish_detections <- all_fish_data |> 
+  rename(transect_code = t_code,
+         location_table_id = p_dat_id,
+         surface_turbidity = sur_turb) |> 
+  mutate(species = tolower(species),
+         species = ifelse(species == "sacramento squawfish","sacramento pikeminnow", species),
+         count = ifelse(is.na(count), 0, count),
+         channel_geomorphic_unit = tolower(channel_geomorphic_unit),
+         channel_geomorphic_unit = case_when(channel_geomorphic_unit == "glide edgewater" ~ "glide margin",
+                                             channel_geomorphic_unit == "riffle edgewater" ~ "riffle margin",
+                                             T ~ channel_geomorphic_unit)) |> 
+  select(micro_hab_data_tbl_id, location_table_id, transect_code, fish_data_id, date, count, species, fl_mm, dist_to_bottom, depth, focal_velocity, velocity, surface_turbidity, percent_fine_substrate, percent_sand_substrate, percent_small_gravel_substrate, percent_large_gravel_substrate, percent_cobble_substrate, percent_boulder_substrate, percent_no_cover_inchannel, percent_small_woody_cover_inchannel, percent_large_woody_cover_inchannel, percent_submerged_aquatic_veg_inchannel, percent_undercut_bank, percent_no_cover_overhead, percent_cover_half_meter_overhead, percent_cover_more_than_half_meter_overhead, channel_geomorphic_unit) 
+
+survey_locations <- all_fish_data |> 
+  rename(transect_code = t_code,
+         location_table_id = p_dat_id) |> 
+  mutate(weather = tolower(weather),
+         channel_type = tolower(channel_type),
+         location_revised = case_when(grepl("big hole", location) ~ "big hole",
+                                      grepl("auditorium", location) ~ "auditorium riffle",
+                                      location %in% c("bedrock", "bedrock park", "bedrock park, unit #50") ~ "bedrock riffle",
+                                      grepl("bedrock", location) ~ "bedrock riffle",
+                                      grepl("cox", location) ~ "cox riffle", # TODO: is this a new location? 
+                                      grepl("gateway", location) ~ "gateway riffle", # TODO: is this a new location? 
+                                      grepl("goose", location) ~ "goose riffle", 
+                                      grepl("aleck", location) ~ "aleck riffle", 
+                                      grepl("big bar", location) ~ "big bar",
+                                      grepl("eye", location) ~ "eye riffle",
+                                      location %in% c("east g 95", "g 95", "g-95 side channel", "g95", "g95 (area)", "g95 east", "g95 rr downstream head", "g95 west side channel") ~ "g95",
+                                      grepl("g95", location) ~ "g95",
+                                      grepl("g-95", location) ~ "g95",
+                                      grepl("g 95", location) ~ "g95",
+                                      grepl("gridley", location)  ~ "gridley riffle",
+                                      grepl("grifley", location)  ~ "gridley riffle",
+                                      grepl("herringer", location) ~ "herringer riffle",
+                                      grepl("junkyard", location) ~ "junkyard riffle",
+                                      location == "lower hole" ~ "lower big hole",
+                                      location == "lower hour side channel" ~ "lower hour",
+                                      grepl("hour", location) ~ "lower hour",
+                                      grepl("matthews", location) ~ "matthews riffle",
+                                      grepl("mathews", location) ~ "matthews riffle",
+                                      grepl("mcfarland", location) ~ "macfarland riffle",
+                                      grepl("macfarland", location) ~ "macfarland riffle",
+                                      grepl("trailer park", location) ~ "trailer park",
+                                      grepl("trialer", location) ~ "trailer park",
+                                      grepl("robinson", location) ~ "robinson riffle",
+                                      grepl("robinsoon", location) ~ "robinson riffle",
+                                      grepl("shallow", location) ~ "shallow riffle",
+                                      grepl("steep", location) ~ "steep riffle",
+                                      grepl("vance", location) ~ "vance avenue",
+                                      grepl("weir", location) ~ "weir riffle",
+                                      grepl("hatchery riffle", location) ~ "hatchery riffle", 
+                                      grepl("hatchery ditch", location) ~ "hatchery ditch", 
+                                      T ~ location)) |> 
+  select(location_table_id, date, location, location_revised, water_temp, 
+         weather, river_mile, flow, number_of_divers, 
+         reach_length, reach_width, channel_width, 
+         channel_type, gps_coordinate) |> 
+  select(-location) |> 
+  rename(location = location_revised) |> 
+  distinct() 
+
+```
+
+Okay, let's compare the names of the 2001/2002 data with the reconciled
+name list from 2001.
+
+```{r}
+# This is created in the qc_mini_snorkel_data.Rmd
+survey_locations_2001 <- read_csv(here::here("data", "archive", "survey_locations.csv")) 
+
+# the only two names that exist in the 2002 dataset are and NOT the 2001 are: cox riffle and gateway riffle
+setdiff(sort(unique(survey_locations$location)), sort(unique(survey_locations_2001$location)))
+
+# create a location lookup using the 2001 reconciled locations that can be used for 2002 data 
+lookup <- survey_locations_2001 |> 
+  select(location, channel_type, longitude, latitude, coordinate_method, channel_location) # river_mile
+
+# joined by location and channel type
+location_data_updated <- survey_locations |> 
+  filter(year(date) == 2002) |> 
+  left_join(lookup) |> 
+  select(colnames(survey_locations_2001)) |> 
+  bind_rows(survey_locations_2001) |> 
+  arrange(location_table_id) |> 
+  mutate(latitude = case_when(location == "cox riffle" ~  39.33564114789087, # based off of gps_coordinates
+                              location == "gateway riffle" ~ 39.45696577928121, 
+                              (location == "shallow riffle" & channel_type == "mainchannel branch") ~ 39.32967570030937,
+                              (location == "shallow riffle" & channel_type == "mainchannel") ~ 39.33154115157018, 
+                              T ~ latitude), 
+         longitude = case_when(location == "cox riffle" ~ -121.63215000396984, # based off of gps_coordinates
+                               location == "gateway riffle" ~ -121.62560364814165,
+                               (location == "shallow riffle" & channel_type == "mainchannel branch") ~ -121.6285435907359,
+                               (location == "shallow riffle" & channel_type == "mainchannel") ~ -121.63033927513442,
+                               T ~ longitude), 
+         coordinate_method = case_when(location %in% c("cox riffle", "gateway riffle") ~ "assigned based on similar location",
+                                       (location == "shallow riffle" & channel_type %in%  c("mainchannel branch", "mainchannel")) ~ "assigned based on similar location", 
+                                       T ~ coordinate_method),
+         channel_location = case_when(location == "shallow riffle" ~ "HFC",
+                                      location == "trailer park" ~ "LFC", # this removes 1 NA but is consistent with all other trailer parks            
+                                      location == "cox riffle" ~ "HFC",
+                                      location == "gateway riffle" ~ "LFC", 
+                                      T ~ channel_location),
+         channel_type = case_when(location == "trailer park" ~ "mainchannel",
+                                  T ~ channel_type)) # this removes 1 NA but is consistent with all other trailer parks
+
+# QC
+# test_2001 <- location_data_2002 |> 
+#   filter(year(date) == 2001) 
+# unique(test_2001 == survey_locations_2001)
+
+```
+
+
+Save data:
+
+```{r}
+
+write_csv(location_data_updated, here::here("data", "survey_locations.csv"))
+write_csv(microhabitat_with_fish_detections, here::here("data", "microhabitat_observations.csv"))
+
+```
+
+```{r}
+
+knitr::knit_exit()
+
+```
+
+# OLD location reconciliation. do not run. 
+
+```{r}
+# Ryon reviewed the list of revised locations and provided some changes
+rk_revised <- read_csv(here::here("data-raw", "check_locations_4ryon_rk.csv")) |>
+  rename(location = existing_location_name) |>
+  distinct() |>
+  filter(revised_location_name != "trailer park") |> 
+  rename(old_location_name = location, 
+         location = revised_location_name) 
+
+survey_locations_revised <- survey_locations |> 
+  left_join(rk_revised) |> 
+  select(-c(old_location_name)) 
+
+write_csv(survey_locations_revised, here::here("data-raw","survey_locations_revised.csv"))
+
+# Ashley used google to QC the coordinates- looked up coordinates by entering 39 (deg symbol) XX.XXN 121 (deg symbol) XX.XXW
+survey_locations_google <- read_csv(here::here("data-raw", "survey_locations_revised_av.csv")) |> 
+  mutate(date = lubridate::mdy(date)) |> 
+  select(location, gps_coordinate, longitude_google, latitude_google) |> 
+  filter(!is.na(gps_coordinate)) |> 
+  glimpse()
+
+# NOTE: there are still some NAs in the GPS coordinates; unsure how much of an issue this is.. 
+combined_survey_locations <- survey_locations_revised |> 
+  left_join(survey_locations_google)
+
+```
+
+```{r}
+# badhia pulled coordinates from kmz Casey provided, use this to try and associate coordinates with the locations (https://netorg629193.sharepoint.com/:u:/s/VA-FeatherRiver/EeHO1UrPtzVMiO1lFkFTBQwBhTzsveQ6d62gZv7fbxVldg?e=hSjJDR)
+# There are multiple coordinates for each location so take the average
+detach("package:Hmisc", unload = TRUE)
+coordinates_from_kmz_raw <- read_csv(here::here("data-raw", "Coordinates_Snorkel_Survey_Locations.csv"))
+
+coordinates_from_kmz <- coordinates_from_kmz_raw |> 
+  rename(location = Name) |> 
+  mutate(location = tolower(location)) |> 
+  group_by(location) |> 
+  summarize(longitude = mean(Longitude),
+            latitude = mean(Latitude)) |> 
+  # adjusting some names to match with the survey locations
+  mutate(location = case_when(location == "alec riffle" ~ "aleck riffle",
+                              location == "bedrock riffle" ~ "bedrock park riffle",
+                              location == "g95 side channel" ~ "g95",
+                              location == "gridley side channel" ~ "gridley riffle",
+                              location == "upper mcfarland" ~ "macfarland riffle",
+                              location == "vance west" ~ "vance avenue",
+                              T ~ location))
+# find an average lat/long by location name
+coordinate_from_google <- combined_survey_locations |> 
+  mutate(longitude_google = ifelse(location_table_id %in% c(25,34,112), NA, longitude_google),
+         longitude_google = as.numeric(longitude_google)) |> 
+  group_by(location) |> 
+  summarize(longitude_google = mean(longitude_google, na.rm = T),
+            latitude_google = mean(latitude_google, na.rm = T))
+
+# summary of assigning coordinates
+# 1. use the coordinates reported in the db (if when QCd the coordinate makes sense), convert to lat/long
+# 2. for missing coordinates use the average location level as provided by Casey in kmz file or the average location level as reported
+
+# following these steps we have 5 missing coordinates for sites - 
+# bedrock riffle, lower big hole, mcfarland riffle, vance riffle, cox riffle
+location_coordinates <- combined_survey_locations |> 
+  select(location_table_id, location, river_mile, longitude_google, latitude_google) |> 
+  mutate(longitude_google = ifelse(location_table_id %in% c(25,34,112), NA, longitude_google),
+         longitude_google = as.numeric(longitude_google)) |> 
+  left_join(coordinates_from_kmz) |> 
+  mutate(coordinate_method = case_when(!is.na(longitude_google) ~ "reported in database",
+                                       is.na(longitude_google) & !is.na(longitude) ~ "kmz from casey"),
+         longitude_google = case_when(is.na(longitude_google) & !is.na(longitude) ~ longitude,
+                                      T ~ longitude_google),
+         latitude_google = case_when(is.na(latitude_google) & !is.na(latitude) ~ latitude,
+                                     T ~ latitude_google)) |> 
+  select(location_table_id, location, river_mile, longitude_google, latitude_google, coordinate_method) |> 
+  rename(longitude = longitude_google,
+         latitude = latitude_google) |> 
+  left_join(coordinate_from_google) |> 
+  mutate(coordinate_method = case_when(is.na(longitude) & !is.na(longitude_google) ~ "location average",
+                                       T ~ coordinate_method),
+         longitude = case_when(is.na(longitude) & !is.na(longitude_google) ~ longitude_google,
+                               T ~ longitude),
+         latitude = case_when(is.na(latitude) & !is.na(latitude_google) ~ latitude_google,
+                              T ~ latitude)) |> 
+  select(-c(longitude_google, latitude_google))
+
+survey_locations_with_latlong <- survey_locations_revised |> 
+  select(-gps_coordinate, -river_mile) |>  # this field is messy and was converted to lat/long so removing
+  left_join(location_coordinates) 
+
+location_coordinates |> filter(is.na(coordinate_method)) |> distinct(location)
+
+write_csv(survey_locations_with_latlong, here::here("data", "survey_locations.csv"))
+```
+
+```{r}
+ryon_coordinates <- readxl::read_xlsx(here::here("data-raw", "survey_locations_name_cleanup_rk.xlsx")) |> 
+  select(-date, -location_table_id, -location) |> 
+  rename(location = location_revised) |> 
+  rename(rk_latitude = latitude,
+         rk_longitude = longitude,
+         #rk_location = location,
+         # rk_location_revised = location,
+         channel_location = channel) |> 
+  glimpse()
+
+locations_ck <- survey_locations_with_latlong |> 
+  left_join(ryon_coordinates) #|>  
+  #select(location, rk_latitude, rk_longitude, channel_location)
+
+# there are some locations where ryon updated name
+# locations_ck |> 
+#   filter(location != rk_location_revised)
+
+survey_locations_post_ryon_revisions <- locations_ck |> 
+mutate(#location = rk_location_revised,
+rk_latitude = ifelse(is.na(rk_latitude), latitude, rk_latitude),
+rk_longitude = ifelse(is.na(rk_longitude), longitude, rk_longitude),
+coordinate_method = case_when(coordinate_method %in% c("location average","kmz from casey") | 
+is.na(coordinate_method) ~ "assigned based on similar location",
+T ~ coordinate_method)) |> # assume all from ryon are assigned from similar location (these are the same ones that I tried to fill in)
+select(-c(latitude, longitude)) |> # rk_location, rk_location_revised
+rename(latitude = rk_latitude,
+longitude = rk_longitude)
+
+# i plotted these locations on the map and noticed some disconnect between the name and coordinate
+# suggested to ryon that we update these coordinates based on his method of selecting another with same name, he agreed
+#      * 79 - Location name = eye riffle. This is how name was reported on database. Coordinates were reported in the database, but when mapped it shows next to aleck riffle. Adjust coordinates to be near eye riffle?
+# * 78 - Location name = eye riffle. This is how name was reported on database. Coordinates were reported in the database, but when mapped it shows next to aleck riffle. Adjust coordinates to be near eye riffle?
+# * 68 - Location name = g95. Coordinates were reported in the database, but when mapped it shows next to lower big hole. Adjust coordinates to be near g95?
+# * 102 - Location name = g95. Coordinates were reported in the database, but when mapped it shows next to lower big hole. Adjust coordinates to be near g95?
+# * 146 - Location name = big bar. Shows up near Goose Riffle. This is one of the coordinates you changed.
+# * 30 - Location name = macfarland riffle. Shows up near Big Bar. Adjust coordinates?
+# * 27 - Location name = gridley riffle. Shows up near macfarland riffle. Adjust coordinates?
+
+coordinate_by_name <- survey_locations_post_ryon_revisions |> 
+filter(!location_table_id  %in% c(79, 78, 68, 102, 146, 30, 27)) |> 
+select(location, latitude, longitude) |> 
+group_by(location) |> 
+slice_head() |> 
+rename(loc_lat = latitude,
+loc_long = longitude) |> 
+filter(!is.na(location)) # removes one field of all NAs
+
+survey_locations_post_ryon_revisions_qc <- survey_locations_post_ryon_revisions |> 
+left_join(coordinate_by_name) |> 
+mutate(latitude = ifelse(location_table_id  %in% c(79, 78, 68, 102, 146, 30, 27), loc_lat, latitude),
+longitude = ifelse(location_table_id %in% c(79, 78, 68, 102, 146, 30, 27), loc_long, longitude),
+coordinate_method = ifelse(location_table_id %in% c(79, 78, 68, 102, 146, 30, 27), "assigned based on similar location", coordinate_method)) |> 
+select(location_table_id, date, location, channel_location, water_temp, weather, flow, number_of_divers, reach_length, reach_width, channel_width, channel_type, river_mile, coordinate_method, latitude, longitude)
+
+# these edits were mapped and there are no longer any disconnect between the location name and coordinates
+```
+
+## Save cleaned data to data/
+
+```{r}
+# Save to data folder
+# Name file [watershed]_[data type].csv
+write_csv(microhabitat_with_fish_detections, here::here("data", "microhabitat_observations.csv"))
+#write_csv(survey_locations, "data/survey_locations.csv")
+write_csv(survey_locations_post_ryon_revisions_qc, here::here("data", "survey_locations.csv"))
+
+# create list of existing locations and revised locations for casey and ryon to check
+# check_locations <- survey_locations |> 
+#   select(location, location_revised) |> 
+#   rename(existing_location_name = location,
+#          revised_location_name = location_revised)
+# write_csv(check_locations, "data-raw/check_locations_4ryon.csv")
+# TODO add coordinates for survey locations
+# From Casey kmz we have the following: aleck riffle, auditorium riffle, bedrock riffle, eye riffle, eye side channel, g95, goose riffle, gridley riffle, hatchery riffle, junkyard riffle, matthews riffle, robinson riffle, steep riffle, trailer park riffle, vance riffle
+# Missing big bar, big hole, hatchery ditch, herringer riffle, hour bars, hour riffle, lower big hole, lower hour, mcfarland riffle, shallow riffle, upper big hole, weir riffle
+
+```

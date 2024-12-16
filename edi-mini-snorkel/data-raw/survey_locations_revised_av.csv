@@ -1,0 +1,137 @@
+location_table_id,date,location,water_temp,weather,river_mile,flow,number_of_divers,reach_length,reach_width,channel_width,channel_type,gps_coordinate,longitude_google,latitude_google
+11,3/14/01,hatchery ditch,47,direct sunlight,66.6,12,3,25,4,7,sidechannel,NA,,
+12,3/15/01,hour bars,56,overcast,56,1700,2,25,4,160,mainchannel branch,NA,,
+13,8/20/01,hatchery riffle,57,direct sunlight,66.5,600,2,25,4,0,mainchannel,"n 39*30.950, w 21*33.212",-121.553533,39.515833
+14,8/20/01,hatchery ditch,55,direct sunlight,66.6,600,2,25,4,0,sidechannel,"N 39* 30.952,  W 21* 33.215",-121.553583,39.515867
+15,8/20/01,trailer park riffle,58,direct sunlight,64,600,2,25,4,0,mainchannel,"N 39* 19.055, W 21*37.394",-121.623233,39.317583
+16,8/20/01,bedrock park riffle,58,direct sunlight,65.5,600,2,25,4,0,mainchannel,"N 39* 30.783, W 21*34.089",-121.56815,39.51305
+17,8/20/01,steep riffle,63.5,direct sunlight,61,600,2,25,4,17,mainchannel,"N 39*27.758', w 121* 36.263'",-121.604383,39.462633
+18,8/20/01,robinson riffle,59.5,direct sunlight,61.5,600,2,25,4,14,sidechannel,"N 39* 27.804', W 121* 36.240'",-121.604,39.463389
+19,8/20/01,steep riffle,62.5,direct sunlight,61,600,2,25,4,8,sidechannel,"N 39* 27.755', W 121* 36.201'",-121.60335,39.462583
+20,8/20/01,robinson riffle,61,direct sunlight,61.5,600,2,25,4,31,mainchannel,"N 39* 27.979', W 121* 35.922",-121.5987,39.466317
+21,7/16/01,upper big hole,67.5,direct sunlight,58.3,1900,2,25,4,50,mainchannel branch,None,,
+22,7/16/01,lower big hole,68,direct sunlight,58,1900,2,25,4,50,mainchannel,None,,
+23,7/16/01,g95,68,direct sunlight,57,900,2,25,4,39,sidechannel,None,,
+24,7/16/01,g95,72,direct sunlight,57,900,2,25,4,45,mainchannel branch,not taken,,
+25,7/17/01,lower big hole,68,direct sunlight,56,1900,2,25,4,43,mainchannel branch,N 39* 30.537' W121* 30.315',coordinate doesn't make sense (DWR office),
+26,7/17/01,hour bars,68,direct sunlight,56,1900,2,25,4,50,mainchannel branch,NA,,
+27,7/17/01,gridley riffle,68,direct sunlight,49.5,1900,2,25,4,0,mainchannel,N 39* 22.523'  W 121* 37.945',-121.632417,39.375383
+28,7/17/01,big bar,69,direct sunlight,52.5,1900,2,25,4,55,mainchannel,N39*23.155  W121*37.722,-121.6287,39.385917
+29,7/17/01,goose riffle,68,direct sunlight,54.5,1900,2,25,4,71,mainchannel,N39*24.340 W121*37.029,-121.61715,39.405667
+30,7/17/01,macfarland riffle,68,direct sunlight,52.5,1900,2,25,4,75,mainchannel,N 39*23.154' W121*37.723',-121.628717,39.3859
+31,7/18/01,shallow riffle,72,direct sunlight,47,1900,2,25,4,42,sidechannel,N 39* 19.757'  W 121* 37.841',-121.630683,39.329283
+32,7/18/01,herringer riffle,74,direct sunlight,46,1900,2,25,4,32,sidechannel,N 39* 19.056'  W 121* 37.394',-121.623233,39.3176
+33,7/18/01,junkyard riffle,68,direct sunlight,48.5,1900,2,25,4,48,mainchannel,N 39* 20.733'  W 121* 37.574,-121.626233,39.34555
+34,7/10/01,hatchery riffle,60,direct sunlight,66,600,3,25,4,28,mainchannel branch,N 39º 30.519'  W 121º 30.288,coordinate doesn't make sense (DWR office),
+35,7/10/01,auditorium riffle,57,direct sunlight,66,600,2,25,4,32,mainchannel branch,NA,,
+36,7/10/01,hatchery ditch,59,direct sunlight,66.5,600,2,25,4,9,sidechannel,N 39º 30.961'  W 121º 33.529,-121.558817,39.516017
+37,7/11/01,trailer park riffle,59,direct sunlight,64,600,4,25,4,57,mainchannel,N 31º 29.68  W 121º 34.765,-121.579417,39.494667
+38,7/11/01,robinson riffle,63,direct sunlight,61.5,600,3,25,4,34,mainchannel,N 39º 27.983  W 121º 35.919,-121.59865,39.466383
+39,7/11/01,robinson riffle,63,direct sunlight,61,600,3,25,4,16,sidechannel,N 39º 27.982'  W 121º 35.920,-121.598667,39.466367
+40,7/12/01,bedrock park riffle,58,direct sunlight,66,600,2,25,4,51,mainchannel,NA,,
+41,7/12/01,eye riffle,63,direct sunlight,60.1,600,2,25,4,21,sidechannel,NA,,
+42,7/12/01,matthews riffle,60.5,direct sunlight,64,600,2,25,4,42,mainchannel,NA,,
+43,7/12/01,eye riffle,62,direct sunlight,60,600,2,25,4,25,mainchannel,NA,,
+44,7/12/01,steep riffle,61,direct sunlight,61,600,2,25,4,20,sidechannel,N 39º 27.814  W 121º 36.234,-121.6039,39.463567
+45,7/12/01,steep riffle,62,direct sunlight,61,600,2,25,4,0,mainchannel,NA,,
+46,6/19/01,lower hour,68,direct sunlight,56,1900,2,25,4,20,mainchannel branch,N 39º 19.139'  W 121º 37.216,-121.620267,39.318983
+47,6/19/01,lower hour,69,direct sunlight,56,1900,2,25,4,65,sidechannel,NA,,
+48,6/19/01,goose riffle,69,direct sunlight,54.5,1900,2,25,4,0,mainchannel,N 39º 24.319'  W 121º 36.976,-121.616267,39.405317
+49,6/19/01,big bar,72,direct sunlight,53.5,1900,2,25,4,0,mainchannel,"N39º 24.321', W121º 36.982",-121.616367,39.40535
+50,6/19/01,gridley riffle,69,direct sunlight,49.5,1900,2,25,4,45,mainchannel branch,"N39*21.247', W121*37.835'",-121.630583,39.354117
+51,6/19/01,junkyard riffle,70,direct sunlight,48.5,1900,2,25,4,47,mainchannel,"N39º 20.738', W121º 37.576'",-121.626267,39.345633
+52,6/19/01,shallow riffle,73,direct sunlight,47,1900,2,25,4,33,sidechannel,"N39*19.765', W121*37.72'",-121.628667,39.329417
+53,6/11/01,hatchery ditch,53,direct sunlight,66.5,0,2,25,4,8,sidechannel,NA,,
+54,6/11/01,hatchery riffle,56,overcast,66.5,600,2,25,4,0,mainchannel,NA,,
+55,6/11/01,bedrock park riffle,56,overcast,66,600,2,25,4,0,mainchannel,NA,,
+56,6/11/01,trailer park riffle,57,direct sunlight,64.5,600,2,25,4,97,mainchannel,"N 39º 29.642, W121º 34.801",-121.580017,39.494033
+57,6/11/01,matthews riffle,59,direct sunlight,64,600,2,25,4,77,mainchannel,N 39º 29.575'   W 121º 34.795',-121.579917,39.492917
+58,6/11/01,aleck riffle,60.5,direct sunlight,63.5,600,1,25,4,104,mainchannel,N 39º 29.066'  W121º 34.739',-121.578983,39.484433
+59,6/12/01,robinson riffle,58,direct sunlight,62,600,2,25,4,18,sidechannel,N 39° 27.895'  W 121° 35.857,-121.597617,39.464917
+60,6/12/01,robinson riffle,59,direct sunlight,62,600,2,25,4,34,mainchannel,N 39° 27.976'  W 121° 35.981',-121.599683,39.466267
+61,6/12/01,steep riffle,60,direct sunlight,61,600,2,25,4,92,mainchannel,N 39° 27.796'  W 121° 36.242',-121.604033,39.463267
+62,6/12/01,steep riffle,61.5,direct sunlight,61,600,2,25,4,30,sidechannel,NA,,
+63,6/12/01,weir riffle,66,direct sunlight,60.5,600,2,25,4,61,mainchannel,NA,,
+64,6/12/01,eye riffle,61,direct sunlight,60,600,2,25,4,19,sidechannel,NA,,
+65,6/14/01,vance avenue,0,direct sunlight,58.5,1800,2,25,4,55,mainchannel,N 39° 27.795'  W 121° 36.241',-121.604017,39.46325
+66,6/14/01,big hole,64,direct sunlight,58,1800,2,25,4,64,mainchannel,N 39° 26.601'  W 121° 38.228',-121.637133,39.44335
+67,6/14/01,big hole,65,direct sunlight,57.5,1800,2,25,4,60,mainchannel branch,N 39° 26.592'  W 121° 38.212',-121.636867,39.4432
+68,6/14/01,g95,66,direct sunlight,57,1800,2,25,4,24,sidechannel,N 39° 26.289'  W 121° 38.260',-121.637667,39.43815
+69,6/14/01,g95,75,direct sunlight,57,1800,2,25,4,31,sidechannel,N 39° 25.882'  W 121° 37.932',-121.6322,39.431367
+70,5/21/01,hatchery ditch,54,direct sunlight,66.5,0,3,25,4,0,sidechannel,NA,,
+71,5/21/01,hatchery riffle,57,direct sunlight,66.5,600,3,25,4,0,mainchannel,N 39° 30.94'  W 121° 33.28',-121.554667,39.515667
+72,5/21/01,auditorium riffle,57,direct sunlight,66,600,2,25,4,60,mainchannel,N 39° 30.92'  W 121° 33.54',-121.559,39.515333
+73,5/22/01,bedrock park riffle,55,direct sunlight,65.8,600,3,25,4,56,mainchannel,N 39° 30.750'  W 121° 34.166',-121.569433,39.5125
+74,5/22/01,aleck riffle,62.5,direct sunlight,63.5,600,2,25,4,44,mainchannel,N 39° 29.103'  W 121* 34.740',-121.579,39.48505
+75,5/21/01,robinson riffle,60,direct sunlight,61.5,600,2,25,4,24,sidechannel,N 39º 27.962'  W121º 35.980',-121.599667,39.466033
+76,5/21/01,robinson riffle,57.5,direct sunlight,61.5,600,3,25,4,35,mainchannel,NA,,
+77,5/21/01,steep riffle,60,direct sunlight,61,600,2,25,4,8,sidechannel,N 39° 27.754'  W 121° 36.194',-121.603233,39.462567
+78,5/22/01,eye riffle,61,direct sunlight,60,600,3,25,4,53,mainchannel,N 39° 29.012'  W 121° 34.740',-121.579,39.483533
+79,5/22/01,eye riffle,62,direct sunlight,60,600,3,25,4,23,sidechannel,N 39° 29.012'  W 121° 34.740',-121.579,39.483533
+80,5/22/01,big hole,67,direct sunlight,58,2000,2,25,4,20,mainchannel branch,N 39° 26.592'  W 121° 38.209',-121.636817,39.4432
+81,5/22/01,big hole,69,direct sunlight,58,2000,2,25,4,21,mainchannel branch,N 39° 26.362'  W 121° 38.220',-121.637,39.439367
+82,5/22/01,g95,67,direct sunlight,57,2000,2,25,4,16,sidechannel,N 39° 25.863'  W 121° 37.934',-121.632233,39.43105
+83,5/23/01,g95,62,direct sunlight,57,2000,3,25,4,36,mainchannel,NA,,
+84,5/23/01,hour riffle,65,direct sunlight,56.5,2000,3,25,4,40,mainchannel branch,NA,,
+85,5/23/01,hour bars,70,direct sunlight,56,2000,3,25,4,55,mainchannel branch,NA,,
+86,8/22/01,macfarland riffle,70,direct sunlight,52,2000,2,25,4,84,mainchannel,N 39° 22.50'  W 121° 37.94',-121.632333,39.375
+87,5/23/01,goose riffle,69,direct sunlight,54.7,2000,2,25,4,56,mainchannel,N 39° 24.197'  W 121° 37.094',-121.618233,39.403283
+88,5/23/01,macfarland riffle,68,direct sunlight,52.4,2000,2,25,4,60,mainchannel,N 39°22.503 W 121° 37.942,-121.632367,39.37505
+89,5/23/01,gridley riffle,67,direct sunlight,49.5,2000,2,25,4,30,mainchannel branch,NA,,
+90,5/24/01,junkyard riffle,0,direct sunlight,49,2000,2,25,4,67,NA,N 39° 20.8 W 121° 37.6,-121.626667,39.346667
+91,5/24/01,shallow riffle,NA,direct sunlight,47,2000,2,25,4,30,sidechannel,N 39° 19.743 W 121° 37.741,-121.629017,39.32905
+92,5/24/01,herringer riffle,0,direct sunlight,46,2000,3,25,4,96,mainchannel,N 39° 19.14 W 121° 37.22',-121.620333,39.319
+93,8/23/01,herringer riffle,70,direct sunlight,0,0,2,25,4,115,NA,N 39° 19.14 W 121° 37.22',-121.620333,39.319
+94,8/22/01,shallow riffle,68,direct sunlight,0,0,2,25,4,33,sidechannel,N 39°19.734' W 121°37.791',-121.62985,39.3289
+95,8/23/01,gridley riffle,68,direct sunlight,0,0,2,25,4,48,mainchannel branch,N 39°21.261 W 121°37.779,-121.62965,39.35435
+96,4/9/01,hatchery riffle,52.5,direct sunlight,66.5,600,2,25,4,32,mainchannel branch,NA,,
+97,4/9/01,auditorium riffle,53,direct sunlight,66.5,600,2,25,4,51,mainchannel branch,NA,,
+98,8/22/01,big bar,69,direct sunlight,52.5,0,2,25,4,40,mainchannel,N 39° 23.188'  W 121° 37.671',-121.62785,39.386467
+99,8/22/01,goose riffle,68.5,direct sunlight,54.5,2000,2,25,4,73,mainchannel,N 39° 24.27'  W 121° 37.02',-121.617,39.4045
+100,8/22/01,hour bars,68.5,direct sunlight,56,2000,2,25,4,147,mainchannel branch,N 39° 24.95'  W 121° 37.60',-121.626667,39.415833
+101,8/22/01,lower hour,67,direct sunlight,56,2000,2,25,4,33,mainchannel,N 39° 25.24'  W 121° 37.54',-121.625667,39.420667
+102,8/21/01,g95,68,direct sunlight,57,2000,2,25,4,0,sidechannel,N 39° 26.24'  W 121° 38.28,-121.638,39.437333
+103,8/21/01,lower big hole,65,direct sunlight,57.5,2000,2,25,4,0,mainchannel branch,N 39° 26.24'  W 121° 38.28',-121.638,39.437333
+104,8/21/01,g95,70.5,direct sunlight,57,2000,2,25,4,0,mainchannel branch,N 39° 25.75'  W 121° 37.57',-121.626167,39.429167
+105,8/21/01,vance avenue,65,direct sunlight,58.5,2000,2,25,4,20,mainchannel branch,N 39° 30.987'  W 121° 33.46',-121.557667,39.51645
+106,8/21/01,auditorium riffle,56,direct sunlight,66.5,700,2,25,4,74,mainchannel,N 39° 30.906'  W 121° 33.600,-121.56,39.5151
+107,8/21/01,aleck riffle,58,direct sunlight,63.5,700,2,25,4,42,mainchannel,N 39° 29.052'  W 121° 34.755',-121.57925,39.4842
+108,8/21/01,weir riffle,62,direct sunlight,60.5,700,2,25,4,48,mainchannel,N 39° 27.705'  W 121° 36.387',-121.60645,39.46175
+109,8/21/01,eye riffle,64,direct sunlight,60,700,2,25,4,44,sidechannel,N 39° 27.435'  W 121° 36.834',-121.6139,39.45725
+110,8/21/01,eye riffle,62,direct sunlight,60,700,2,25,4,22,sidechannel,N 39° 27.452'  W 121° 36.788',-121.613133,39.457533
+111,4/9/01,hatchery ditch,50,direct sunlight,66,0,2,25,4,5,sidechannel,NA,,
+112,4/9/01,trailer park riffle,52,direct sunlight,64.5,600,2,25,4,0,mainchannel,70,coordinate doesn't make sense (DWR office),
+113,4/9/01,matthews riffle,54,direct sunlight,64,600,2,25,4,40,NA,NA,,
+114,4/9/01,aleck riffle,54,direct sunlight,63.5,600,2,25,4,75,mainchannel,NA,,
+115,4/10/01,steep riffle,56,direct sunlight,62.5,600,2,25,4,76,mainchannel,NA,,
+116,4/10/01,robinson riffle,58,direct sunlight,61,600,3,25,4,25,mainchannel,NA,,
+117,4/10/01,robinson riffle,55,direct sunlight,61,600,3,25,4,35,sidechannel,NA,,
+118,4/10/01,weir riffle,53,direct sunlight,61,600,2,25,4,37,mainchannel,NA,,
+119,4/10/01,eye riffle,NA,direct sunlight,60,600,2,25,4,19,sidechannel,NA,,
+120,4/10/01,eye riffle,53,direct sunlight,60,600,2,25,4,31,mainchannel,NA,,
+121,4/11/01,vance avenue,56,overcast,58.5,1000,2,25,4,0,mainchannel branch,NA,,
+122,4/11/01,big hole,57,overcast,58,1000,2,25,4,NA,mainchannel branch,NA,,
+123,4/11/01,big hole,59,overcast,57.5,1000,2,25,4,NA,mainchannel branch,NA,,
+124,4/11/01,g95,55.5,overcast,57.4,1000,3,25,4,35,sidechannel,NA,,
+125,4/11/01,g95,56,overcast,57,1000,3,25,4,50,sidechannel,NA,,
+126,4/11/01,hour riffle,55,overcast,56.4,1000,2,25,4,27,mainchannel,NA,,
+127,4/12/01,goose riffle,59,direct sunlight,54.9,1000,2,25,4,58,mainchannel,NA,,
+128,4/12/01,big bar,59,direct sunlight,53.4,1000,2,25,4,32,mainchannel,NA,,
+129,4/12/01,macfarland riffle,58,direct sunlight,52.5,1000,2,25,4,60,mainchannel,NA,,
+130,4/12/01,gridley riffle,56.5,direct sunlight,49.5,100,2,25,4,0,sidechannel,NA,,
+131,4/12/01,junkyard riffle,59,direct sunlight,48.5,1000,2,25,4,64,mainchannel branch,NA,,
+132,3/19/01,gridley riffle,56.5,direct sunlight,49.5,1750,2,25,4,37,mainchannel branch,NA,,
+133,3/19/01,shallow riffle,62.5,direct sunlight,47,1750,2,25,4,31,sidechannel,NA,,
+134,3/19/01,herringer riffle,58,direct sunlight,46,1750,2,25,4,124,mainchannel,NA,,
+135,3/13/01,g95,56,direct sunlight,57.3,1750,3,25,4,20,sidechannel,NA,,
+136,3/13/01,steep riffle,0,direct sunlight,61,600,2,25,4,16,mainchannel branch,NA,,
+137,3/14/01,hatchery riffle,52,direct sunlight,66.6,600,2,25,4,32,mainchannel branch,NA,,
+138,3/14/01,auditorium riffle,49,direct sunlight,66.5,600,2,25,4,50,mainchannel,NA,,
+139,3/14/01,bedrock park riffle,50,direct sunlight,65.9,600,3,25,4,65,mainchannel,NA,,
+140,3/14/01,trailer park riffle,52,direct sunlight,64.4,600,3,25,4,70,mainchannel,NA,,
+141,3/14/01,matthews riffle,52,direct sunlight,64,600,3,25,4,30,mainchannel,NA,,
+142,3/15/01,robinson riffle,49,overcast,61.5,600,3,25,4,35,mainchannel branch,NA,,
+143,3/15/01,steep riffle,49,overcast,61,600,3,25,4,7,sidechannel,NA,,
+144,3/15/01,eye riffle,50,overcast,60.2,600,2,25,4,16,mainchannel branch,NA,,
+145,3/15/01,vance avenue,54,overcast,58.5,1700,3,25,4,50,mainchannel branch,NA,,
+146,3/15/01,big bar,56,overcast,53.4,1750,3,25,4,34,mainchannel branch,NA,,

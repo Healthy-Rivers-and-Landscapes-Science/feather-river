@@ -1,0 +1,318 @@
+---
+author: "Maddee Rubenson"
+date: "August 7, 2024"
+output: 
+  html_document:
+    code_folding: hide
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, collapse=TRUE)
+library(tidyverse)
+library(lubridate)
+library(googleCloudStorageR)
+library(ggplot2)
+library(scales)
+```
+
+# Feather River Mini Snorkel Data - Database Comparison
+
+## Comparison Highlights
+
+-   The `minisnorkdb3` that Ryon has recently provided seems to be more
+    complete than the `MiniSnorkDBT` database.
+
+-   There are some differences between the two datasets, major
+    differences include:
+
+    -   In some cases, the `dist_to_bottom` variable is an order of
+        magnitude different between the two datasets, with the older
+        `MiniSnorkDBT` being larger (example: 5.0 vs. 0.5)
+
+    -   In some cases, the location names and coordinates are different
+        between the two datasets
+
+-   The `minisnorkdb3` database is the only one that contains 2002 data
+
+-   There are two additional rows in 2001 for the `minisnorkdb3`
+    database on 5/21/2001 that account for an additional 152 fish counts
+
+## Description
+
+Two databases were provided containing data for 2001 and 2002 with some
+overlap. This markdown will compare the databases and explore
+differences.
+
+**Timeframe:** March 2001 - August 2001 (`MiniSnorkDBT`) & March 2001 -
+August 2002 (`minisnorkdb3`)
+
+**Completeness of Record throughout timeframe:** fairly complete
+
+**Sampling Location:** Feather River
+
+**Data Contact:** Ryon Kurth
+
+## Source Database pull
+
+-   Database 1: `MiniSnorkelDTB.mdb`
+
+-   Database 2: `minisnorkdb3.mdb`
+
+```{r include=FALSE}
+source(here::here('data-raw', 'query_4mac.R'))
+```
+
+### Data transformations
+
+All of the substrate and cover lookups are not true look ups. Substrate
+and cover column indicate a percentage of cover or substrate of each
+type. I updated the column names to reflect this and utilized the lookup
+tables to understand which substrate or cover type each column was
+referring to.
+
+Columns removed:
+
+-   SpecAge removed - just a combination of species and age
+
+-   i_cov_sum - removed because sum of other columns
+
+-   o_cov_sum - removed because sum of other columns
+
+-   sub_sum - removed because sum of other columns
+
+-   start_time - just a date that seemed wrong
+
+-   end_time - also just a date that seemed wrong
+
+-   crew - specific crew names do not need to be present on public EDI
+    dataset
+
+The two databases have the same format and therefore the same script can
+be used to combine tables into one (`joined_fish_obs` or
+`joined_fish_obs_2002`) dataset for each of the databases.
+
+```{r}
+# MiniSnorkDBT
+
+# For different database tables, combine here
+# 2001 data: 
+joined_fish_obs <- microhabitat |> 
+  left_join(fish_data, by = c("TCode" = "TCode", "PDatID" = "PDatID")) |> 
+  left_join(species_code_lookup, by = c("Species" = "SpeciesCodeID")) |> # all codes are in the lookup
+  select(-c(SpeciesCode, Species)) |>
+  rename(species = Species.y, 
+         percent_fine_substrate = Sub1, 
+         percent_sand_substrate = Sub2, 
+         percent_small_gravel_substrate = Sub3, 
+         percent_large_gravel_substrate = Sub4, 
+         percent_cobble_substrate = Sub5, 
+         percent_boulder_substrate = Sub6,
+         percent_no_cover_inchannel = IcovA, 
+         percent_small_woody_cover_inchannel = IcovB, 
+         percent_large_woody_cover_inchannel = IcovC, 
+         percent_submerged_aquatic_veg_inchannel = IcovE, 
+         percent_undercut_bank = IcovF,
+         percent_no_cover_overhead = Ocov0,
+         percent_cover_half_meter_overhead = Ocov1, 
+         percent_cover_more_than_half_meter_overhead = Ocov2)|> 
+  # Clean in separate file
+  left_join(location_table, by = c("PDatID" = "PhysDataTblID")) |> 
+  left_join(weather_code_lookup, by = c("Weather" = "WeatherCodeLookUpID")) |> # all codes are in the lookup
+  select(-WeatherCode, -Weather) |> 
+  rename(weather = Weather.y) |> 
+  # note that there are 0 channel types which do not map to the lookup
+  left_join(channel_lookup, by = c("ChannelType" = "ChannelTypeCode")) |> 
+  select(-ChannelType, -ChannelTypeCodeID) |> 
+  rename(channel_type = ChannelType.y) |> 
+  janitor::clean_names() |> 
+  # fixes issues with the codes so the CGU lookup will work
+  mutate(cgu = tolower(cgu),
+         cgu = case_when(cgu == "rm`" ~ "rm",
+                         cgu == "gm." ~ "gm",
+                         cgu == "" ~ NA,
+                         T ~ cgu)) |> 
+  left_join(cgu_code_lookup |> mutate(CGUCode = tolower(CGUCode)), by = c("cgu" = "CGUCode")) |> 
+  select(-cgu, -CGUCodeID, -sub_sum, -i_cov_sum, -o_cov_sum, -start_time, -end_time, -crew) |> 
+  rename(channel_geomorphic_unit = CGU) |> glimpse()
+  
+# HOW many have fish 
+# joined_fish_obs |> filter(count >= 0) |> nrow()
+```
+
+```{r}
+# minisnorkdb3
+
+# For different database tables, combine here
+# 2001/2002 data: 
+joined_fish_obs_2002 <- microhabitat_2002 |> 
+  left_join(fish_data_2002, by = c("TCode" = "TCode", "PDatID" = "PDatID")) |> 
+  left_join(species_code_lookup_2002, by = c("Species" = "SpeciesCodeID")) |> # all codes are in the lookup
+  select(-c(SpeciesCode, Species)) |>
+  rename(species = Species.y, 
+         percent_fine_substrate = Sub1, 
+         percent_sand_substrate = Sub2, 
+         percent_small_gravel_substrate = Sub3, 
+         percent_large_gravel_substrate = Sub4, 
+         percent_cobble_substrate = Sub5, 
+         percent_boulder_substrate = Sub6,
+         percent_no_cover_inchannel = IcovA, 
+         percent_small_woody_cover_inchannel = IcovB, 
+         percent_large_woody_cover_inchannel = IcovC, 
+         percent_submerged_aquatic_veg_inchannel = IcovE, 
+         percent_undercut_bank = IcovF,
+         percent_no_cover_overhead = Ocov0,
+         percent_cover_half_meter_overhead = Ocov1, 
+         percent_cover_more_than_half_meter_overhead = Ocov2)|> 
+  # Clean in separate file
+  left_join(location_table_2002, by = c("PDatID" = "PhysDataTblID")) |> 
+  left_join(weather_code_lookup_2002, by = c("Weather" = "WeatherCodeLookUpID")) |> # all codes are in the lookup
+  select(-WeatherCode, -Weather) |> 
+  rename(weather = Weather.y) |> 
+  # note that there are 0 channel types which do not map to the lookup
+  left_join(channel_lookup_2002, by = c("ChannelType" = "ChannelTypeCode")) |> 
+  select(-ChannelType, -ChannelTypeCodeID) |> 
+  rename(channel_type = ChannelType.y) |> 
+  janitor::clean_names() |> 
+  # fixes issues with the codes so the CGU lookup will work
+  mutate(cgu = tolower(cgu),
+         cgu = case_when(cgu == "rm`" ~ "rm",
+                         cgu == "gm." ~ "gm",
+                         cgu == "" ~ NA,
+                         T ~ cgu)) |> 
+  left_join(cgu_code_lookup_2002 |> mutate(CGUCode = tolower(CGUCode)), by = c("cgu" = "CGUCode")) |> 
+  select(-cgu, -CGUCodeID, -sub_sum, -i_cov_sum, -o_cov_sum, -start_time, -end_time, -crew) |> 
+  rename(channel_geomorphic_unit = CGU) |> 
+  filter(!is.na(date)) |> 
+  write_csv('2002_fish_obs_tmp.csv') # annoying workaround to remove labeled date column 
+
+joined_fish_obs_2002 <- read_csv('2002_fish_obs_tmp.csv') |> glimpse()
+
+```
+
+### Checking Overlap Between Two Databases
+
+-   2001 dataset (`MiniSnorkelDTB.mdb`) goes from
+    `r min(joined_fish_obs$date)` to `r max(joined_fish_obs$date)`
+
+-   new 2001/2002 (\``minisnorkdb3.mdb`) dataset goes from
+    `r min(joined_fish_obs_2002$date, na.rm = TRUE)` to
+    `r max(joined_fish_obs_2002$date, na.rm = TRUE)`
+
+The following figure shows that the `minisnorkdb3` database is the only
+database that includes 2002 data.
+
+```{r}
+ggplot(data = joined_fish_obs_2002 |> mutate(database = "minisnorkdb3.mdb")) +
+  geom_point(aes(x = date, y = count, color = as.factor(year(date))), size = 4, alpha = .8) + 
+  geom_point(data = joined_fish_obs |> mutate(database = "MiniSnorkelDTB.mdb"), 
+             aes(x=date, y = count, color = as.factor(year(date))), size = 4, alpha = .8)+
+  theme_minimal()+
+  labs(title = "Count over Time with Both Databases",
+       y = "Number of Fish Observations") + 
+    theme(legend.position = "top", legend.title = element_blank()) + 
+  facet_grid(~ database) 
+```
+
+### View differences between databases
+
+First, let's filter the minisnorkdb3 database to the time period that
+exists in the MiniSnorkDb to see if there are differences in the 2001
+data.
+
+```{r}
+only_2001_data <- joined_fish_obs_2002 |> 
+  filter(date <= max(joined_fish_obs$date)) 
+
+```
+
+-   Number of rows in `minisnorkdb3` (filtered to 2001 data):
+    `r nrow(only_2001_data)`
+
+-   Number of rows in `MiniSnorkDBT`: `r nrow(joined_fish_obs)`
+
+Based off the number of rows in each of the datasets, there are two
+additional rows in the `minisnorkdb3` 2001 data.
+
+Let's now look at each date to see if that is where the inconsistencies
+are found.
+
+```{r}
+joined_fish_obs |> 
+  group_by(date) |> 
+  summarise(n_obs_MiniSnorkelDTB = n(),
+            sum_count_MiniSnorkelDTB = sum(count, na.rm = TRUE)) |> 
+  full_join(
+    only_2001_data |> 
+      group_by(date) |> 
+      summarise(n_obs_minisnorkdb3 = n(),
+                sum_count_minisnorkdb3 = sum(count, na.rm = TRUE)) 
+  ) |> 
+  mutate(same_value_obs = ifelse(n_obs_MiniSnorkelDTB == n_obs_minisnorkdb3, "TRUE", "FALSE"), # The only date with differences is 5/21/2001
+         same_value_count = ifelse(sum_count_minisnorkdb3 == sum_count_MiniSnorkelDTB, "TRUE", "FALSE")) |> 
+  filter(same_value_obs == FALSE | same_value_count == FALSE) |>
+  knitr::kable()
+
+```
+
+Based on the information in the table above, 5/21/2001 is where there
+two additional rows come from.
+
+Aside from the inconsistency on 5/21/2001, are the data the same? Doing
+an `anti_join` allows us to see which rows are different between the two
+datasets.
+
+```{r}
+anti_join_2001_data <- only_2001_data |> 
+  select(colnames(joined_fish_obs)) |>
+  anti_join(joined_fish_obs)
+
+ggplot() +
+  geom_point(data = joined_fish_obs, aes(x=date, y = count, color = "MiniSnorkDBT (2001 data)"), size = 4, alpha = .5) +
+  geom_point(data = anti_join_2001_data, aes(x = date, y = count, color = 'Data that is different in the minisnorkdb3 (2001 data)'), alpha = 0.5, size = 4) + 
+  theme_minimal()+
+  labs(title = "Data that Exists in minisnorkdb3 dataset and NOT in MiniSnorkDBT",
+       y = "Number of Fish Observations") +   
+  theme(legend.position = "top")
+
+
+```
+
+There are `r nrow(anti_join_2001_data)` rows in the `anti_join` implying
+that at least one value is inconsistent for each of those rows. The
+figure above shows a visual of the data that is different.
+
+The main differences are within the `dist_to_bottom` variable where the
+new database has values that are an order of magnitude lower (0.5 vs 5)
+than the older 2001 database. Other minor differences are in the
+location coordinates/names. The table below highlights the major
+differences between the two databases.
+
+```{r}
+# The main differences are within the `dist_to_bottom` variable where the new database has values that are an order 
+# of magnitude lower (0.5 vs 5) than the older 2001 database 
+
+library(compareDF)
+
+new_data <- only_2001_data |> 
+  select(colnames(joined_fish_obs)) |> 
+  mutate(database = "minisnorkdb3") |> 
+  filter(micro_hab_data_tbl_id %in% anti_join_2001_data$micro_hab_data_tbl_id)
+
+old_data <- joined_fish_obs |> 
+  mutate(database = "MiniSnorkDTB") |> 
+  filter(micro_hab_data_tbl_id %in% anti_join_2001_data$micro_hab_data_tbl_id)
+
+comp <- compare_df(new_data, old_data, group_col = c('micro_hab_data_tbl_id', 'date', 'database'), keep_unchanged_cols = FALSE)
+
+create_output_table(comp)
+
+```
+
+### Other differences between the datasets:
+
+-   The following columns exist in the new 2001/2002 dataset and not the
+    2001 dataset:
+    `r paste0(setdiff(colnames(only_2001_data), colnames(joined_fish_obs)), collapse = ", ")`
