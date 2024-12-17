@@ -27,8 +27,8 @@ colors_full <-  c("#9A8822", "#F5CDB4", "#F8AFA8", "#FDDDA0", "#74A089", #Royal 
 colfunc <- colorRampPalette(c("#02401B", "white"))
 gradient <- colfunc(100)
 
-mini_locations_raw <- read_csv("mini_locations_raw.csv")
-mini_fish_raw <- read_csv("mini_fish_raw.csv")
+mini_locations_raw <- read_csv(here::here("mini-snorkel-app", "mini_locations_raw.csv"))
+mini_fish_raw <- read_csv(here::here("mini-snorkel-app", "mini_fish_raw.csv"))
 # orders locations from upstream to downstream. 
 # TODO we are missing coordinates for some locations
 location_order <- tibble(location = c("hatchery ditch", "hour bars", "hatchery riffle", "trailer park", 
@@ -176,7 +176,10 @@ click_marker <- eventReactive(input$mapfilter_marker_click, {
 filtered_data <- reactive({
   
   return(feather_cover |> 
-           filter(location_table_id %in% click_marker()))
+           filter(location_table_id %in% click_marker()) |> 
+           mutate(transect_code = as.factor(transect_code)) |> 
+           group_by(transect_code, cover_type, fish_presence, location_table_id) |> 
+           summarize(percent_cover = if(all(is.na(percent_cover))) NA_real_ else(mean(percent_cover, na.rm = T))))
   
 })
 
@@ -193,18 +196,19 @@ renderPlot({
   } else {
     
     ggplot(filtered_data(),
-           aes(y = cover_type, x = micro_hab_data_tbl_id, fill = percent_cover)) + 
+           aes(y = transect_code, x = cover_type, fill = percent_cover)) + 
       geom_tile(aes(color = as.character(fish_presence)), size = 1) + 
       scale_color_manual(values = fish_pres_cols, name = "Fish Presence") +
       scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Percent Cover") +
       labs(
-        x = "Micro Habitat Data Table ID",   
-        y = ""                     
+        x = "",   
+        y = "Microhabitat Unit"                     
       ) +
       theme_minimal() +
       theme(
         axis.title = element_text(size = 16),
         axis.text = element_text(size = 10, face = "bold"),
+        axis.text.x = element_text(angle = 30),
         legend.title = element_text(size = 14, face = "bold"),
         legend.text = element_text(size = 10, face = "bold"),
         legend.position = "top"
@@ -339,19 +343,24 @@ observeEvent(c(input$location_filter, input$location_id), {
 
 renderPlot({
   if (input$location_filter != "all locations" && input$location_id != "" && input$location_id != "-") {
-    ggplot(feather_cover |> filter(location_table_id  == input$location_id),
-           aes(y = cover_type, x = micro_hab_data_tbl_id, fill = percent_cover)) + 
+    ggplot(feather_cover |> 
+             filter(location_table_id  == input$location_id) |> 
+             mutate(transect_code = as.factor(transect_code)) |> 
+             group_by(transect_code, cover_type, fish_presence, location_table_id) |> 
+             summarize(percent_cover = if(all(is.na(percent_cover))) NA_real_ else(mean(percent_cover, na.rm = T))),
+           aes(x = cover_type, y = transect_code, fill = percent_cover)) + 
       geom_tile(aes(color = fish_presence), size = 1) + 
       scale_color_manual(values = fish_pres_cols, name = "Fish Presence") +
       scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Percent Cover") +
       labs(
-        x = "Micro Habitat Data Table ID",   
-        y = ""                     
+        x = "",   
+        y = "Microhabitat Unit"                     
       ) +
       theme_minimal() +
       theme(
         axis.title = element_text(size = 16),
         axis.text = element_text(size = 10, face = "bold"),
+        axis.text.x = element_text(angle = 30),
         legend.title = element_text(size = 14, face = "bold"),
         legend.text = element_text(size = 10, face = "bold"),
         legend.position = "top"
