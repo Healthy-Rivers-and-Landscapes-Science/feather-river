@@ -89,6 +89,30 @@ filtered_location_id <- reactiveValues(
 )
 ```
 
+About the Data
+========================================================================
+
+# Summary
+
+- *Who:* California Department of Water Resources (DWR), Ryon Kurth
+- *What:* Snorkel surveys of microhabitat (1m x 1m units) and fish observations
+- *When:* March-August 2001-2002
+- *Where:* Feather River
+- *Why:* This study was used in the Oroville Facilities FERC Relicensing
+
+# Methods
+
+In 2001 and 2002, the California Department of Water Resources (DWR) conducted snorkel surveys between March and August at 29 sampling locations in the Feather River (13 in the Low Flow Channel, 16 in the High Flow Channel). Each survey location covered an area of 25 meters long and four meters wide and ran parallel to one riverbank. Two divers surveyed the reach by swimming upstream and marking the location of fish observations and the number, species and size of the fish observed. The divers would then measure water depth, average velocity, substrate, cover, and habitat types at 36 points (e.g. the microhabitat unit), each representing one square meter within the reach. The divers also returned to the locations where fish were observed and measured depth and focal velocity associated with each fish observation. Water temperature was continuously monitored through a network of StowAway electronic thermistors. 
+
+Insert diagram of methods.
+
+# Resources for Data Use
+
+- Data and metadata were prepared for publication and all code is published on [GitHub](https://github.com/Healthy-Rivers-and-Landscapes-Science/feather-river/tree/main/edi-mini-snorkel).
+- Data and metadata are published on the [Environmental Data Initiative (EDI)](https://portal.edirepository.org/nis/mapbrowse?packageid=edi.1705.2) in csv format. These data can be downloaded directly from the EDI Data Portal or via an API.
+- All code associated with this dashboard is published on [GitHub](https://github.com/Healthy-Rivers-and-Landscapes-Science/feather-river/tree/add-shiny-app/mini-snorkel-app). Note to update link when this is merged to main.
+
+
 Habitat Summary
 ========================================================================
 
