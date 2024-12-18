@@ -22,7 +22,7 @@ colors_full <-  c("#9A8822", "#F5CDB4", "#F8AFA8", "#FDDDA0", "#74A089", #Royal 
                   "#798E87", "#C27D38", "#CCC591", "#29211F", # moonrise 2
                   "#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B" ) # moonrise 3 
 
- fish_pres_cols <- c('Yes' = "#E6A0C4", 'No' = "#D5D5D3")
+fish_pres_cols <- c('Yes' = "#E6A0C4", 'No' = "#D5D5D3")
 
 colfunc <- colorRampPalette(c("#02401B", "white"))
 gradient <- colfunc(100)
@@ -155,71 +155,194 @@ summary_cover |>
 
 
 
-Map Filter
+Filter and View Data {data-orientation=rows}
 ========================================================================
 
-Column
+There are two possible ways to filter the data: 1) `Attribute Filter` will allow user to filter by a specific location and location table Id; 2) `Map Filter` allows user to select a point on the map to view the the associated heatmap. Each option displays a heatmap of percent cover by type for each microhabitat unit. When a fish was present during the sampling, it is shown in a pink outline. 
+
+
+Row {data-height=100}
+------------------------------------------------------------------------
+
+```{r}
+radioButtons("which_view", tags$strong("Choose how to filter the data:"), choices = c("Attribute Filter", "Map Filter"),
+             selected = "Attribute Filter")
+
+```
+
+```{r}
+conditionalPanel(
+  condition = "input.which_view == 'Attribute Filter'",
+  div(
+    style = "display: flex; align-items: flex-start; gap: 10px;", # Flexbox for horizontal layout
+    selectInput(
+      "location_filter",
+      label = tags$strong("Filter by Location:"),
+      choices = c("all locations", unique(locations_sf$location)),
+      selected = "all locations"
+    ),
+    output$location_id_ui <- renderUI({
+      selectInput("location_id", label = tags$strong("Filter by Location Table Id:"),
+                  choices = c("", filtered_location_id()), selected = "-")
+    })
+  )
+)
+
+```
+
+Row
 ------------------------------------------------------------------------
 
 ### Habitat Map
 
-Each circle represents a unique habitat location. Each location may have multiple `location_ids` and each `location_id` represents an array of microhabitat grids that were sampled for cover. Note that there are duplicate coordinates for some `location_ids`.
-
 ```{r}
-output$mapfilter <- renderLeaflet({
-  leaflet(locations_sf) |> 
-    addProviderTiles(providers$Esri.WorldImagery, group = "Aerial Imagery") |> 
-    addProviderTiles(providers$OpenStreetMap, group = "Street Map") |> 
+
+output$map <- renderLeaflet({
+  leaflet(locations_sf) |>
+    addProviderTiles(providers$Esri.WorldImagery, group = "Aerial Imagery") |>
+    addProviderTiles(providers$OpenStreetMap, group = "Street Map") |>
     addCircleMarkers(layerId = ~location_table_id,
                      color = ~color,
                      radius = 6,
                      fill = TRUE,
                      fillOpacity = 0.2,
                      opacity = 0.6,
-                     popup = paste0("Location Name: ", locations_sf$location, 
+                     popup = paste0("Location Name: ", locations_sf$location,
                                     "<br>",
                                     "Location ID: ", locations_sf$location_table_id,
                                     "<br>",
-                                    "Channel Type: ", locations_sf$channel_type)) |> 
+                                    "Channel Type: ", locations_sf$channel_type)) |>
     addLayersControl(
       baseGroups = c("Aerial Imagery", "Street Map"),
       options = layersControlOptions(collapsed = FALSE)
     )
 })
 
-leafletOutput("mapfilter")
+leafletOutput("map")
 
-```
-
-Column
-------------------------------------------------------------------------
-
-### Heat Map
-
-```{r}
-click_marker <- eventReactive(input$mapfilter_marker_click, {
+observeEvent(c(input$location_filter, input$location_id), {
+  req(input$which_view == "Attribute Filter")
   
-  click <- input$mapfilter_marker_click
+  req(input$location_filter, input$location_id)
   
-  return(click$id)
+  if (input$location_filter != "all locations" && input$location_id != "" && input$location_id != "-") {
+    
+    selected_location <- locations_sf |>
+      filter(location == input$location_filter) |>
+      group_by(geometry, location, channel_type, color) |>
+      summarise(location_table_id = paste0(unique(location_table_id), collapse = "; ")) |>
+      ungroup() |>
+      filter(str_detect(location_table_id, paste0("\\b", input$location_id, "\\b")))
+    
+    if (nrow(selected_location) > 0) {
+      
+      coords <- sf::st_coordinates(selected_location)
+      
+      leafletProxy("map") |>
+        setView(
+          lng = coords[1],
+          lat = coords[2],
+          zoom = 15
+        ) |>
+        clearGroup("highlighted") |>
+        addCircleMarkers(
+          data = selected_location,
+          lng = coords[1],
+          lat = coords[2],
+          fillOpacity = 0.2,
+          opacity = 0.6,
+          fill = TRUE,
+          radius = 6,
+          stroke = TRUE,
+          weight = 4,
+          popup = paste0("Location Name: ", selected_location$location,
+                         "<br>",
+                         "Location ID: ", selected_location$location_table_id,
+                         "<br>",
+                         "Channel Type: ", selected_location$channel_type),
+          group = "highlighted"
+        )
+    }
+  }
   
 })
 
-filtered_data <- reactive({
+
+```
+
+
+### Heat Map
+
+
+```{r}
+output$attribute_plot <- renderPlot({
+  req(input$which_view == "Attribute Filter")
   
-  return(feather_cover |> 
-           filter(location_table_id %in% click_marker()) |> 
-           mutate(transect_code = as.factor(transect_code)) |> 
-           group_by(transect_code, cover_type, fish_presence, location_table_id) |> 
+  if (input$location_filter != "all locations" && input$location_id != "" && input$location_id != "-") {
+  
+    filter_feather_cover <- feather_cover |>
+             filter(location_table_id  == input$location_id) |>
+             mutate(transect_code = as.factor(transect_code)) |>
+             group_by(transect_code, cover_type, fish_presence, location_table_id) |>
+             summarize(percent_cover = if(all(is.na(percent_cover))) NA_real_ 
+                       else(mean(percent_cover, na.rm = T))) |> glimpse()
+    
+    ggplot(data = filter_feather_cover,
+           aes(x = cover_type, y = transect_code, fill = percent_cover)) +
+      geom_tile(aes(color = fish_presence), size = 1) +
+      scale_color_manual(values = fish_pres_cols, name = "Fish Presence") +
+      scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Percent Cover") +
+      labs(
+        x = "",
+        y = "Microhabitat Unit"
+      ) +
+      theme_minimal() +
+      theme(
+        axis.title = element_text(size = 16),
+        axis.text = element_text(size = 10, face = "bold"),
+        axis.text.x = element_text(angle = 30),
+        legend.title = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size = 10, face = "bold"),
+        legend.position = "top"
+      )
+  } else {
+    
+    ggplot() +
+      annotate("text", x = 0.5, y = 0.5, label = "Choose a sampling location name and \nlocation ID to populate map",
+               size = 6, hjust = 0.5, vjust = 0.5) +
+      theme_void() +
+      theme(
+        plot.title = element_text(size = 16, face = "bold", hjust = 0.5)
+      )
+  }
+  
+  
+})
+
+```
+
+```{r}
+click_marker <- eventReactive(input$map_marker_click, {
+  req(input$which_view == "Map Filter")
+  click <- input$map_marker_click
+  return(click$id)
+})
+
+filtered_data <- reactive({
+  req(input$which_view == "Map Filter")
+  return(feather_cover |>
+           filter(location_table_id %in% click_marker()) |>
+           mutate(transect_code = as.factor(transect_code)) |>
+           group_by(transect_code, cover_type, fish_presence, location_table_id) |>
            summarize(percent_cover = if(all(is.na(percent_cover))) NA_real_ else(mean(percent_cover, na.rm = T))))
   
 })
 
-renderPlot({
-  
-  if (is.null(input$mapfilter_marker_click)) {
+output$map_plot <- renderPlot({
+  req(input$which_view == "Map Filter")
+  if (is.null(input$map_marker_click)) {
     ggplot() +
-      annotate("text", x = 0.5, y = 0.5, label = "Click on a Sampling Location\nin Map View to Populate Plot", 
+      annotate("text", x = 0.5, y = 0.5, label = "Click on a Sampling Location\nin Map View to Populate Plot",
                size = 6, hjust = 0.5, vjust = 0.5) +
       theme_void() +
       theme(
@@ -228,13 +351,13 @@ renderPlot({
   } else {
     
     ggplot(filtered_data(),
-           aes(y = transect_code, x = cover_type, fill = percent_cover)) + 
-      geom_tile(aes(color = as.character(fish_presence)), size = 1) + 
+           aes(y = transect_code, x = cover_type, fill = percent_cover)) +
+      geom_tile(aes(color = as.character(fish_presence)), size = 1) +
       scale_color_manual(values = fish_pres_cols, name = "Fish Presence") +
       scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Percent Cover") +
       labs(
-        x = "",   
-        y = "Microhabitat Unit"                     
+        x = "",
+        y = "Microhabitat Unit"
       ) +
       theme_minimal() +
       theme(
@@ -249,162 +372,27 @@ renderPlot({
 })
 ```
 
-Attribute Filter {data-orientation=rows}
-========================================================================
-
-Row {data-height=100}
-------------------------------------------------------------------------
-
-```{r}
-selectInput("location_filter", label = "Filter by Location:",
-            choices = c("all locations", unique(locations_sf$location)), selected = "all locations")
-# TODO: figure out best way to integrate this component 
-# selectInput("channel_type_filter", label = "Filter by Channel Type:",
-#             choices = c("LFC", "HFC"))
-```
-
 ```{r}
 filtered_location_id <- reactive({
+  req(input$which_view == "Attribute Filter")
   locations_sf |>
     filter(location == input$location_filter) |>
-    pull(location_table_id) |> 
+    pull(location_table_id) |>
     unique()
 })
 ```
 
 ```{r}
-output$location_id_ui <- renderUI({
-  selectInput("location_id", label = "Filter by Location Table Id:",
-              choices = c("", filtered_location_id()), selected = "-")
-})
-```
-
-```{r}
-uiOutput("location_id_ui")
-```
-
-Row
-------------------------------------------------------------------------
-
-### Habitat Map
-
-Each circle represents a unique habitat location. Each location has multiple `location_ids` and each `location_id` represents an array of microhabitat grids that were sampled for cover. Note that there are duplicate coordinates for some `location_ids`.
-
-```{r}
-output$map <- renderLeaflet({
-  leaflet(locations_sf) |> 
-    addProviderTiles(providers$Esri.WorldImagery, group = "Aerial Imagery") |> 
-    addProviderTiles(providers$OpenStreetMap, group = "Street Map") |> 
-    addCircleMarkers(color = ~color,
-                     radius = 6,
-                     fill = TRUE, 
-                     fillOpacity = 0.2,
-                     opacity = 0.6,
-                     popup = paste0("Location Name: ", locations_sf$location, 
-                                    "<br>",
-                                    "Location ID: ", locations_sf$location_table_id,
-                                    "<br>",
-                                    "Channel Type: ", locations_sf$channel_type)) |> 
-    addLayersControl(
-      baseGroups = c("Aerial Imagery", "Street Map"),
-      options = layersControlOptions(collapsed = FALSE)
-    ) 
-})
-
-leafletOutput("map")
-
-observeEvent(c(input$location_filter, input$location_id), {
-  
-  req(input$location_filter, input$location_id) 
-  
-  print(input$location_filter)
-  print(input$location_id)
-  
-  if (input$location_filter != "all locations" && input$location_id != "" && input$location_id != "-") {
-    
-    selected_location <- locations_sf |> 
-      filter(location == input$location_filter) |> 
-      group_by(geometry, location, channel_type, color) |> 
-      summarise(location_table_id = paste0(unique(location_table_id), collapse = "; ")) |> 
-      ungroup() |> 
-      filter(str_detect(location_table_id, paste0("\\b", input$location_id, "\\b")))
-    
-    if (nrow(selected_location) > 0) {
-      
-      coords <- sf::st_coordinates(selected_location)
-      
-      leafletProxy("map") |> 
-        setView(
-          lng = coords[1],  
-          lat = coords[2],  
-          zoom = 15         
-        ) |> 
-        clearGroup("highlighted") |>  
-        addCircleMarkers(
-          data = selected_location,
-          lng = coords[1],
-          lat = coords[2],
-          fillOpacity = 0.2,
-          opacity = 0.6,     
-          fill = TRUE,
-          radius = 6,
-          stroke = TRUE,  
-          weight = 4,      
-          popup = paste0("Location Name: ", selected_location$location, 
-                         "<br>",
-                         "Location ID: ", selected_location$location_table_id,
-                         "<br>",
-                         "Channel Type: ", selected_location$channel_type),
-          group = "highlighted"  
-        )
-    }
-  }
-  
-})
-
-```
-
-### Heat Map
-
-
-
-```{r}
-# c(input$location_filter, input$location_id)
-
-
-
-renderPlot({
-  if (input$location_filter != "all locations" && input$location_id != "" && input$location_id != "-") {
-    ggplot(feather_cover |> 
-             filter(location_table_id  == input$location_id) |> 
-             mutate(transect_code = as.factor(transect_code)) |> 
-             group_by(transect_code, cover_type, fish_presence, location_table_id) |> 
-             summarize(percent_cover = if(all(is.na(percent_cover))) NA_real_ else(mean(percent_cover, na.rm = T))),
-           aes(x = cover_type, y = transect_code, fill = percent_cover)) + 
-      geom_tile(aes(color = fish_presence), size = 1) + 
-      scale_color_manual(values = fish_pres_cols, name = "Fish Presence") +
-      scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Percent Cover") +
-      labs(
-        x = "",   
-        y = "Microhabitat Unit"                     
-      ) +
-      theme_minimal() +
-      theme(
-        axis.title = element_text(size = 16),
-        axis.text = element_text(size = 10, face = "bold"),
-        axis.text.x = element_text(angle = 30),
-        legend.title = element_text(size = 14, face = "bold"),
-        legend.text = element_text(size = 10, face = "bold"),
-        legend.position = "top"
-      )
+output$dynamic_plot <- renderUI({
+  if (input$which_view == "Map Filter") {
+    plotOutput("map_plot")
   } else {
-     ggplot() +
-      annotate("text", x = 0.5, y = 0.5, label = "Choose a sampling location name and \nlocation ID to populate map",
-               size = 6, hjust = 0.5, vjust = 0.5) +
-      theme_void() +
-      theme(
-        plot.title = element_text(size = 16, face = "bold", hjust = 0.5)
-      )
+    plotOutput("attribute_plot")
   }
 })
+
+uiOutput("dynamic_plot")
+
 ```
+
+
