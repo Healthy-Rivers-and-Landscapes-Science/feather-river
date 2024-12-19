@@ -158,7 +158,7 @@ summary_cover |>
 Filter and View Data {data-orientation=rows}
 ========================================================================
 
-There are two possible ways to filter the data: 1) `Attribute Filter` will allow user to filter by a specific location and location table Id; 2) `Map Filter` allows user to select a point on the map to view the the associated heatmap. Each option displays a heatmap of percent cover by type for each microhabitat unit. When a fish was present during the sampling, it is shown in a pink outline. 
+There are two possible ways to filter the data: 1) `Attribute Filter` will allow user to filter by a specific location and location table Id; 2) `Map Filter` allows user to select a point on the map to view the the associated heatmap. Each option displays a heatmap of percent cover by type for each microhabitat unit. When a fish was present during the sampling, it is shown in a dark red outline. 
 
 
 Row {data-height=100}
@@ -279,19 +279,25 @@ output$attribute_plot <- renderPlot({
   req(input$which_view == "Attribute Filter")
   
   if (input$location_filter != "all locations" && input$location_id != "" && input$location_id != "-") {
-  
+    
     filter_feather_cover <- feather_cover |>
-             filter(location_table_id  == input$location_id) |>
-             mutate(transect_code = as.factor(transect_code)) |>
-             group_by(transect_code, cover_type, fish_presence, location_table_id) |>
-             summarize(percent_cover = if(all(is.na(percent_cover))) NA_real_ 
-                       else(mean(percent_cover, na.rm = T))) |> glimpse()
+      filter(location_table_id  == input$location_id) |>
+      mutate(transect_code = as.factor(transect_code)) |>
+      group_by(transect_code, cover_type, fish_presence, location_table_id) |>
+      summarize(percent_cover = if(all(is.na(percent_cover))) NA_real_ 
+                else(mean(percent_cover, na.rm = T))) |> glimpse()
     
     ggplot(data = filter_feather_cover,
            aes(x = cover_type, y = transect_code, fill = percent_cover)) +
-      geom_tile(aes(color = fish_presence), size = 1) +
-      scale_color_manual(values = fish_pres_cols, name = "Fish Presence") +
+      geom_tile(aes(fill = percent_cover), color = "white", size = 0.5) +
+      geom_tile(
+        data = filter_feather_cover |> filter(fish_presence == "Yes"),
+        aes(color = factor(fish_presence)), 
+        fill = NA, 
+        size = 0.5
+      ) +
       scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Percent Cover") +
+      scale_color_manual(values = c("darkred"), name = "Fish Presence", labels = c("Yes")) +
       labs(
         x = "",
         y = "Microhabitat Unit"
@@ -300,7 +306,7 @@ output$attribute_plot <- renderPlot({
       theme(
         axis.title = element_text(size = 16),
         axis.text = element_text(size = 10, face = "bold"),
-        axis.text.x = element_text(angle = 30),
+        axis.text.x = element_text(angle = 30, hjust = 1),
         legend.title = element_text(size = 14, face = "bold"),
         legend.text = element_text(size = 10, face = "bold"),
         legend.position = "top"
@@ -352,9 +358,15 @@ output$map_plot <- renderPlot({
     
     ggplot(filtered_data(),
            aes(y = transect_code, x = cover_type, fill = percent_cover)) +
-      geom_tile(aes(color = as.character(fish_presence)), size = 1) +
-      scale_color_manual(values = fish_pres_cols, name = "Fish Presence") +
+      geom_tile(aes(fill = percent_cover), color = "white", size = 0.5) +
+      geom_tile(
+        data = filtered_data() |> filter(fish_presence == "Yes"),
+        aes(color = factor(fish_presence)), 
+        fill = NA, 
+        size = 0.5
+      ) +
       scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Percent Cover") +
+      scale_color_manual(values = c("darkred"), name = "Fish Presence", labels = c("Yes")) +
       labs(
         x = "",
         y = "Microhabitat Unit"
@@ -363,7 +375,7 @@ output$map_plot <- renderPlot({
       theme(
         axis.title = element_text(size = 16),
         axis.text = element_text(size = 10, face = "bold"),
-        axis.text.x = element_text(angle = 30),
+        axis.text.x = element_text(angle = 30, hjust = 1),
         legend.title = element_text(size = 14, face = "bold"),
         legend.text = element_text(size = 10, face = "bold"),
         legend.position = "top"
