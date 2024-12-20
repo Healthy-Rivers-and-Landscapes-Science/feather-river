@@ -92,7 +92,18 @@ filtered_location_id <- reactiveValues(
 About the Data
 ========================================================================
 
-**Summary**
+Column
+------------------------------------------------------------------------
+
+This project, through the Healthy Rivers and Landscapes Program, showcases Findable,
+Accessible, Interoperable, and Reusable (FAIR) data principles ([Wilkinson et al. 2016](https://www.nature.com/articles/sdata201618)). We focus on three phases of
+the data lifecycle: data description, storage and access (Figure 1, below).
+
+```{r picture, echo = F, fig.cap = "Figure 1. Diagram of the data lifecycle highlighting the focus areas of this project", out.width = '75%', align = "center"}
+knitr::include_graphics("data_lifecycle_image.png")
+```
+
+**Data Summary**
 
 - **Who:** California Department of Water Resources (DWR), Ryon Kurth
 - **What:** Snorkel surveys of microhabitat (1m x 1m units) and fish observations
