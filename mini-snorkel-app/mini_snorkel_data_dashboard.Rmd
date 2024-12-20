@@ -27,8 +27,8 @@ fish_pres_cols <- c('Yes' = "#E6A0C4", 'No' = "#D5D5D3")
 colfunc <- colorRampPalette(c("#02401B", "white"))
 gradient <- colfunc(100)
 
-mini_locations_raw <- read_csv(here::here("mini-snorkel-app", "mini_locations_raw.csv"))
-mini_fish_raw <- read_csv(here::here("mini-snorkel-app", "mini_fish_raw.csv"))
+mini_locations_raw <- read_csv("mini_locations_raw.csv")
+mini_fish_raw <- read_csv("mini_fish_raw.csv")
 # orders locations from upstream to downstream. 
 # TODO we are missing coordinates for some locations
 location_order <- tibble(location = c("hatchery ditch", "hour bars", "hatchery riffle", "trailer park", 
