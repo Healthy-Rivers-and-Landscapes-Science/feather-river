@@ -57,12 +57,13 @@ feather_cover <- mini_fish_raw |>
          aquatic_veg = percent_submerged_aquatic_veg_inchannel, 
          overhanging_veg = percent_cover_half_meter_overhead + percent_cover_more_than_half_meter_overhead) |> 
   select(micro_hab_data_tbl_id, location_table_id, transect_code, location,
-         woody_debris:overhanging_veg, count) |>
+         woody_debris:overhanging_veg, count, date) |>
   pivot_longer(cols = c(woody_debris, boulder, cobble, undercut_bank, aquatic_veg, overhanging_veg), names_to = "cover_type", 
                values_to = "percent_cover") |>  
   distinct() |> 
   left_join(location_order) |> 
-  mutate(fish_presence = ifelse(count > 0, "Yes", "No")) |> select(-count)
+  mutate(fish_presence = ifelse(count > 0, "Yes", "No")) |> select(-count) |> 
+  mutate(location_table_id = paste0(date, " (location id: ", location_table_id, ")")) |> glimpse()
 
 summary_cover <- feather_cover |> 
   group_by(location, cover_type, order, fish_presence) |> 
@@ -75,7 +76,8 @@ summary_cover <- feather_cover |>
 locations_sf <- sf::st_as_sf(mini_locations_raw |> 
                                distinct(location_table_id, date, channel_location, .keep_all = T) |> 
                                na.omit(), coords = c('longitude', 'latitude')) |> 
-  select(location_table_id, location, channel_type) |> 
+  select(location_table_id, location, channel_type, date) |> 
+  mutate(location_table_id = paste0(date, " (location id: ", location_table_id, ")")) |> 
   mutate(color = colors_full[match(location, location)]) 
 # group_by(geometry, location, channel_type, color) |> 
 # summarise(location_table_id = paste0(unique(location_table_id), collapse = "; ")) |> glimpse()
@@ -169,7 +171,7 @@ summary_cover |>
 Filter and View Data {data-orientation=rows}
 ========================================================================
 
-There are two possible ways to filter the data: 1) `Attribute Filter` will allow user to filter by a specific location and location table Id; 2) `Map Filter` allows user to select a point on the map to view the the associated heatmap. Each option displays a heatmap of percent cover by type for each microhabitat unit. When a fish was present during the sampling, it is shown in a dark red outline. 
+There are two possible ways to filter the data: 1) `Attribute Filter` will allow user to filter by a specific location and sampling date; 2) `Map Filter` allows user to select a point on the map to view the the associated heatmap. Each option displays a heatmap of percent cover by type for each microhabitat unit. When a fish was present during the sampling, it is shown in a dark red outline. 
 
 
 Row {data-height=100}
