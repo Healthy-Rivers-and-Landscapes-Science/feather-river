@@ -1,0 +1,1169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:stmml="http://www.xml-cml.org/schema/stmml-1.2" packageId="edi.1705.3" system="EDI" xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://eml.ecoinformatics.org/eml-2.2.0/eml.xsd">
+  <access authSystem="https://pasta.edirepository.org/authentication" order="allowFirst" scope="document">
+    <allow>
+      <principal>public</principal>
+      <permission>read</permission>
+    </allow>
+    <allow>
+      <principal>cvpia</principal>
+      <permission>write</permission>
+    </allow>
+  </access>
+  <dataset>
+    <shortName>Feather Mini Snorkel Survey</shortName>
+    <title>Distribution and habitat use of juvenile steelhead and other fishes of the lower Feather River</title>
+    <creator>
+      <individualName>
+        <givenName>Ryon</givenName>
+        <surName>Kurth</surName>
+      </individualName>
+      <organizationName>California Department of Water Resources</organizationName>
+      <electronicMailAddress>Ryon.Kurth@water.ca.gov </electronicMailAddress>
+    </creator>
+    <associatedParty>
+      <individualName>
+        <givenName>Brad</givenName>
+        <surName>Cavallo</surName>
+      </individualName>
+      <organizationName>Cramer Fish Sciences</organizationName>
+      <electronicMailAddress>bcavallo@fishsciences.net</electronicMailAddress>
+      <role>associate</role>
+    </associatedParty>
+    <pubDate>2024-12-26</pubDate>
+    <abstract>
+      <para>
+    Understanding how fish presence is related to habitat features is
+    useful in restoration planning and monitoring as better information
+    about how fish use habitat may lead to more impactful restoration
+    projects. The California Department of Water Resources (DWR),
+    conducted a two-year study of microhabitat and mesohabitat in
+    Feather River. The goal of this study was to identify relationships
+    between habitat conditions (depth, substrate, velocity, and cover)
+    and where juvenile Chinook salmon and steelhead occur. Snorkel
+    surveys were conducted monthly March through August in 2001 and 2002
+    across 29 different sites, which were selected at random (13 in Low
+    Flow Channel, and 16 in High Flow Channel). Each sampling section
+    covered an area 25 meters long by 4 meters wide, running parallel to
+    riverbank. These data were published to support the Healthy Rivers
+    and Landscapes Science Program.
+  </para>
+    </abstract>
+    <keywordSet>
+      <keyword>spring run</keyword>
+      <keyword>fall run</keyword>
+      <keyword>Oncorhynchus tshawytscha</keyword>
+      <keyword>California</keyword>
+      <keyword>Central Valley</keyword>
+      <keyword>chinook</keyword>
+      <keyword>Steelhead trout</keyword>
+      <keyword>microhabitat</keyword>
+      <keyword>cover</keyword>
+      <keyword>Healthy Rivers and Landscapes</keyword>
+      <keyword>tule perch</keyword>
+      <keyword>speckled dace</keyword>
+      <keyword>sacramento pikeminnow</keyword>
+    </keywordSet>
+    <intellectualRights>
+      <para>This information is released under the Creative Commons license - Attribution - CC BY (https://creativecommons.org/licenses/by/4.0/). The consumer of these data ("Data User" herein) is required to cite it appropriately in any publication that results from its use. The Data User should realize that these data may be actively used by others for ongoing research and that coordination may be necessary to prevent duplicate publication. The Data User is urged to contact the authors of these data if any questions about methodology or results occur. Where appropriate, the Data User is encouraged to consider collaboration or co-authorship with the authors. The Data User should realize that misinterpretation of data may occur if used out of context of the original study. While substantial efforts are made to ensure the accuracy of data and associated documentation, complete accuracy of data sets cannot be guaranteed. All data are made available "as is." The Data User should be aware, however, that data are updated periodically and it is the responsibility of the Data User to check for new versions of the data. The data authors and the repository where these data were obtained shall not be liable for damages resulting from any use or misinterpretation of the data. Thank you.</para>
+    </intellectualRights>
+    <licensed>
+      <licenseName>Creative Commons Attribution 4.0 International</licenseName>
+      <url>https://spdx.org/licenses/CC-BY-4.0.html</url>
+      <identifier>CC-BY-4.0</identifier>
+    </licensed>
+    <coverage>
+      <geographicCoverage>
+        <geographicDescription>Feather river</geographicDescription>
+        <boundingCoordinates>
+          <westBoundingCoordinate>-121.6326</westBoundingCoordinate>
+          <eastBoundingCoordinate>-121.6046</eastBoundingCoordinate>
+          <northBoundingCoordinate>39.4621</northBoundingCoordinate>
+          <southBoundingCoordinate>39.2122</southBoundingCoordinate>
+        </boundingCoordinates>
+      </geographicCoverage>
+      <temporalCoverage>
+        <rangeOfDates>
+          <beginDate>
+            <calendarDate>2001-03-13</calendarDate>
+          </beginDate>
+          <endDate>
+            <calendarDate>2002-08-20</calendarDate>
+          </endDate>
+        </rangeOfDates>
+      </temporalCoverage>
+      <taxonomicCoverage>
+        <taxonomicClassification>
+          <taxonRankName>kingdom</taxonRankName>
+          <taxonRankValue>Animalia</taxonRankValue>
+          <taxonomicClassification>
+            <taxonRankName>phylum</taxonRankName>
+            <taxonRankValue>Chordata</taxonRankValue>
+            <taxonomicClassification>
+              <taxonRankName>class</taxonRankName>
+              <taxonRankValue>Teleostei</taxonRankValue>
+              <taxonomicClassification>
+                <taxonRankName>order</taxonRankName>
+                <taxonRankValue>Salmoniformes</taxonRankValue>
+                <taxonomicClassification>
+                  <taxonRankName>family</taxonRankName>
+                  <taxonRankValue>Salmonidae</taxonRankValue>
+                  <taxonomicClassification>
+                    <taxonRankName>genus</taxonRankName>
+                    <taxonRankValue>Oncorhynchus</taxonRankValue>
+                    <taxonomicClassification>
+                      <taxonRankName>species</taxonRankName>
+                      <taxonRankValue>Oncorhynchus tshawytscha</taxonRankValue>
+                      <commonName>Chinook Salmon</commonName>
+                      <taxonId provider="https://itis.gov">161980</taxonId>
+                    </taxonomicClassification>
+                  </taxonomicClassification>
+                </taxonomicClassification>
+              </taxonomicClassification>
+            </taxonomicClassification>
+          </taxonomicClassification>
+        </taxonomicClassification>
+      </taxonomicCoverage>
+      <taxonomicCoverage>
+        <taxonomicClassification>
+          <taxonRankName>Animalia</taxonRankName>
+          <taxonRankValue>Animalia</taxonRankValue>
+          <taxonomicClassification>
+            <taxonRankName>Chordata</taxonRankName>
+            <taxonRankValue>Chordata</taxonRankValue>
+            <taxonomicClassification>
+              <taxonRankName>Actinopterygii</taxonRankName>
+              <taxonomicClassification>
+                <taxonRankName>Cypriniformes</taxonRankName>
+                <taxonomicClassification>
+                  <taxonRankName>Cyprinidae</taxonRankName>
+                  <taxonomicClassification>
+                    <taxonRankName>Rhinichthys</taxonRankName>
+                    <taxonomicClassification>
+                      <taxonRankName>osculus</taxonRankName>
+                      <commonName>speckled dace</commonName>
+                      <taxonId provider="https://itis.gov"/>
+                    </taxonomicClassification>
+                  </taxonomicClassification>
+                </taxonomicClassification>
+              </taxonomicClassification>
+            </taxonomicClassification>
+          </taxonomicClassification>
+        </taxonomicClassification>
+      </taxonomicCoverage>
+      <taxonomicCoverage>
+        <taxonomicClassification>
+          <taxonRankName>Animalia</taxonRankName>
+          <taxonRankValue>Animalia</taxonRankValue>
+          <taxonomicClassification>
+            <taxonRankName>Chordata</taxonRankName>
+            <taxonRankValue>Chordata</taxonRankValue>
+            <taxonomicClassification>
+              <taxonRankName>Actinopterygii</taxonRankName>
+              <taxonomicClassification>
+                <taxonRankName>Salmoniformes</taxonRankName>
+                <taxonomicClassification>
+                  <taxonRankName>Salmonidae</taxonRankName>
+                  <taxonomicClassification>
+                    <taxonRankName>Oncorhynchus</taxonRankName>
+                    <taxonomicClassification>
+                      <taxonRankName>mykiss</taxonRankName>
+                      <commonName>steelhead trout</commonName>
+                      <taxonId provider="https://itis.gov"/>
+                    </taxonomicClassification>
+                  </taxonomicClassification>
+                </taxonomicClassification>
+              </taxonomicClassification>
+            </taxonomicClassification>
+          </taxonomicClassification>
+        </taxonomicClassification>
+      </taxonomicCoverage>
+      <taxonomicCoverage>
+        <taxonomicClassification>
+          <taxonRankName>Animalia</taxonRankName>
+          <taxonRankValue>Animalia</taxonRankValue>
+          <taxonomicClassification>
+            <taxonRankName>Chordata</taxonRankName>
+            <taxonRankValue>Chordata</taxonRankValue>
+            <taxonomicClassification>
+              <taxonRankName>Actinopterygii</taxonRankName>
+              <taxonomicClassification>
+                <taxonRankName>Perciformes</taxonRankName>
+                <taxonomicClassification>
+                  <taxonRankName>Embiotocidae</taxonRankName>
+                  <taxonomicClassification>
+                    <taxonRankName>Hysterocarpus</taxonRankName>
+                    <taxonomicClassification>
+                      <taxonRankName>traskii</taxonRankName>
+                      <commonName>tule perch</commonName>
+                      <taxonId provider="https://itis.gov"/>
+                    </taxonomicClassification>
+                  </taxonomicClassification>
+                </taxonomicClassification>
+              </taxonomicClassification>
+            </taxonomicClassification>
+          </taxonomicClassification>
+        </taxonomicClassification>
+      </taxonomicCoverage>
+    </coverage>
+    <maintenance>
+      <description>complete</description>
+    </maintenance>
+    <contact>
+      <individualName>
+        <givenName>Ryon</givenName>
+        <surName>Kurth</surName>
+      </individualName>
+      <organizationName>California Department of Water Resources</organizationName>
+      <electronicMailAddress>Ryon.Kurth@water.ca.gov </electronicMailAddress>
+    </contact>
+    <methods>
+      <methodStep>
+        <description>
+          <section>
+            <title>Objectives</title>
+            <para>
+      The objectives of this study included determining the seasonal
+      distribution of rearing juvenile salmonids and other fishes, and
+      direct and indirect effects of water temperatures, habitat, flow,
+      and interspecific interactions on juvenile salmonids.
+    </para>
+          </section>
+          <section>
+            <title>Sampling Protocol</title>
+            <para>
+      This study was conducted using a hierarchical sampling design
+      where the survey location represented the general location where a
+      survey was done and a survey section represented the specific area
+      within the survey location that was sampled, and finally the
+      microhabitat plot represented the specific area within the section
+      that was sampled.
+    </para>
+            <para>
+      Level 1: Location
+    </para>
+            <para>
+      Level 2: Section
+    </para>
+            <para>
+      Level 3: Microhabitat plot
+    </para>
+            <para>
+      Snorkel surveys were conducted between March and August at 24
+      sampling locations selected at random (12 in Low Flow Channel, 12
+      in High Flow Channel). Each section covered an area of 25 meters
+      long and four meters wide and ran parallel to one riverbank. Two
+      divers surveyed the reach by swimming upstream and marking the
+      location of fish observations and the number, species and size of
+      the fish observed. The divers would then measure water depth,
+      average velocity, substrate, cover, and habitat types at 36 points
+      (e.g. the microhabitat plot), each representing one square meter
+      within the reach. The divers also returned to the locations where
+      fish were observed and measured depth and focal velocity
+      associated with each fish observation. Water temperature was
+      continuously monitored through a network of StowAway electronic
+      thermistors.
+    </para>
+          </section>
+          <section>
+            <title>Caveats</title>
+            <para>
+      Coordinates were not recorded for every survey section.
+      Coordinates were obtained using a handheld GPS unit with a
+      measurement error of about 20 meters. Coordinates were not
+      consistently recorded at the top or bottom of a survey section.
+      Coordinates were not obtained for each microhabitat plot as the
+      measurement error was too large. In order, to fill in missing
+      coordinates for survey sections we relied on location information
+      at the next level up in the hierarchy, the survey location. Survey
+      location names were not standardized and were cleaned to group all
+      locations with common names. For survey sections that were missing
+      coordinates or had assumed incorrect coordinates (located outside
+      of the river or inconsistent coordinate and location name), a
+      random coordinate from the appropriate survey location was
+      selected. Coordinates that were filled in using this method are
+      labelled in the dataset.
+    </para>
+          </section>
+        </description>
+      </methodStep>
+    </methods>
+    <project>
+      <title>Distribution and habitat use of juvenile steelhead and other fishes of the lower Feather River</title>
+      <personnel>
+        <individualName>
+          <givenName>Ryon</givenName>
+          <surName>Kurth</surName>
+        </individualName>
+        <organizationName>California Department of Water Resources</organizationName>
+        <electronicMailAddress>Ryon.Kurth@water.ca.gov </electronicMailAddress>
+        <role>Project Lead</role>
+      </personnel>
+      <award>
+        <funderName>California Department of Water Resources</funderName>
+        <funderIdentifier>NA</funderIdentifier>
+        <awardNumber>NA</awardNumber>
+        <title>NA</title>
+      </award>
+    </project>
+    <dataTable>
+      <entityName>survey_locations.csv</entityName>
+      <entityDescription>Feather river mini snorkel survey locations data</entityDescription>
+      <physical>
+        <objectName>survey_locations.csv</objectName>
+        <size unit="bytes">35177</size>
+        <authentication method="MD5">2b31114e832dbe7c56dd7c3a2413b4ec</authentication>
+        <dataFormat>
+          <textFormat>
+            <numHeaderLines>1</numHeaderLines>
+            <recordDelimiter>\n</recordDelimiter>
+            <attributeOrientation>column</attributeOrientation>
+            <simpleDelimited>
+              <fieldDelimiter>,</fieldDelimiter>
+            </simpleDelimited>
+          </textFormat>
+        </dataFormat>
+        <distribution>
+          <online>
+            <url function="download">https://raw.githubusercontent.com/FlowWest/feather-mini-snorkel/main/data/survey_locations.csv</url>
+          </online>
+        </distribution>
+      </physical>
+      <attributeList>
+        <attribute>
+          <attributeName>location_table_id</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Identification number of survey location table representing a unique survey</attributeDefinition>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Identification number of survey location table representing a unique survey</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>date</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Date snorkel data was collected</attributeDefinition>
+          <measurementScale>
+            <dateTime>
+              <formatString>YYYY-MM-DD</formatString>
+              <dateTimeDomain>
+                <bounds>
+                  <minimum exclusive="false">36963</minimum>
+                  <maximum exclusive="false">37488</maximum>
+                </bounds>
+              </dateTimeDomain>
+            </dateTime>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>location</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Location where mini snorkel data was collected. Locations include = c("aleck riffle", "auditorium riffle", "bedrock riffle", "big bar", &#13;
+"big hole", "eye riffle", "eye side channel", "g95", "goose riffle", &#13;
+"gridley riffle", "hatchery ditch", "hatchery riffle", "herringer riffle", &#13;
+"hour bars", "hour riffle", "junkyard riffle", "lower big hole", &#13;
+"lower hour", "macfarland riffle", "matthews riffle", "robinson riffle", &#13;
+"shallow riffle", "steep riffle", "trailer park", "upper big hole", &#13;
+"vance avenue", "weir riffle")</attributeDefinition>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Location where mini snorkel data was collected. Locations include = c("aleck riffle", "auditorium riffle", "bedrock riffle", "big bar", &#13;
+"big hole", "eye riffle", "eye side channel", "g95", "goose riffle", &#13;
+"gridley riffle", "hatchery ditch", "hatchery riffle", "herringer riffle", &#13;
+"hour bars", "hour riffle", "junkyard riffle", "lower big hole", &#13;
+"lower hour", "macfarland riffle", "matthews riffle", "robinson riffle", &#13;
+"shallow riffle", "steep riffle", "trailer park", "upper big hole", &#13;
+"vance avenue", "weir riffle")</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>water_temp</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Temperature of water in degrees Fahrenheit measured continuously with StowAway electronic thermistors</attributeDefinition>
+          <measurementScale>
+            <interval>
+              <unit>
+                <standardUnit>fahrenheit</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">85</maximum>
+                </bounds>
+              </numericDomain>
+            </interval>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>weather</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Weather conditions during survey. Conditions = c("direct sunlight", "overcast")</attributeDefinition>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Weather conditions during survey. Conditions = c("direct sunlight", "overcast")</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>river_mile</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>River mile where survey was conducted. River mile was based on observation of surveyors when collecting data.</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <customUnit>river mile</customUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">66.9</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>flow</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Flow in cfs</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>cubicFeetPerSecond</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">6100</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>number_of_divers</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Number of divers during mini-snorkel survey</attributeDefinition>
+          <measurementScale>
+            <interval>
+              <unit>
+                <customUnit>number of divers</customUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">4</maximum>
+                </bounds>
+              </numericDomain>
+            </interval>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>reach_length</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Survey reach length</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>meter</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">25</minimum>
+                  <maximum exclusive="false">25</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>reach_width</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Survey reach width</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>meter</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">4</minimum>
+                  <maximum exclusive="false">4</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>channel_width</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Width of channel at water line which may vary and is dependent on discharge.</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>meter</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">160</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>channel_type</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Feather River channel type where survey was conducted. Levels = c("mainchannel", "mainchannel branch", "sidechannel")</attributeDefinition>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Feather River channel type where survey was conducted. Levels = c("mainchannel", "mainchannel branch", "sidechannel")</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>longitude</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Longitude of the survey location reported in decimal degress</attributeDefinition>
+          <measurementScale>
+            <interval>
+              <unit>
+                <customUnit>decimal degrees</customUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">-121.639</minimum>
+                  <maximum exclusive="false">-121.5535</maximum>
+                </bounds>
+              </numericDomain>
+            </interval>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>latitude</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Latitude of the survey location reported in decimal degress</attributeDefinition>
+          <measurementScale>
+            <interval>
+              <unit>
+                <customUnit>decimal degrees</customUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">39.3167</minimum>
+                  <maximum exclusive="false">39.516</maximum>
+                </bounds>
+              </numericDomain>
+            </interval>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>channel_location</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Section of the Feather River where data were collected. Levels = c("HFC", "LFC"). HFC stands for High Flow Channel (below the Thermalito Afterbay outlet). LFC stands for Low Flow Channel (between Oroville Dam and the Thermalito Afterbay outlet)</attributeDefinition>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Section of the Feather River where data were collected. Levels = c("HFC", "LFC"). HFC stands for High Flow Channel (below the Thermalito Afterbay outlet). LFC stands for Low Flow Channel (between Oroville Dam and the Thermalito Afterbay outlet)</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>coordinate_method</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Description of the method used to assign latitude and longitude. Coordinates were not reported for all survey locations. Those that were reported are labelled as "reported in database." For those that were missing or were determined to be incorrect, a coordinate from a location with the same name was selected at random and are labelled as "assigned based on similar location." Location information was collected while in the field using a handheld unit. These units are known to have measurement error of plus or minus 20 meters. Coordinates were not consistently collected at the start or end of the survey transect meaning another 25 feet (length of transect) should be added to this range. For those where a proxy location was used, the range of error is much greater and can be assumed to be anywhere within the general location.</attributeDefinition>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Description of the method used to assign latitude and longitude. Coordinates were not reported for all survey locations. Those that were reported are labelled as "reported in database." For those that were missing or were determined to be incorrect, a coordinate from a location with the same name was selected at random and are labelled as "assigned based on similar location." Location information was collected while in the field using a handheld unit. These units are known to have measurement error of plus or minus 20 meters. Coordinates were not consistently collected at the start or end of the survey transect meaning another 25 feet (length of transect) should be added to this range. For those where a proxy location was used, the range of error is much greater and can be assumed to be anywhere within the general location.</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+        </attribute>
+      </attributeList>
+      <numberOfRecords>267</numberOfRecords>
+    </dataTable>
+    <dataTable>
+      <entityName>microhabitat_observations.csv</entityName>
+      <entityDescription>Feather river mini snorkel survey microhabitat data</entityDescription>
+      <physical>
+        <objectName>microhabitat_observations.csv</objectName>
+        <size unit="bytes">920182</size>
+        <authentication method="MD5">9ea3fa9378464b270e04bee0f631abc9</authentication>
+        <dataFormat>
+          <textFormat>
+            <numHeaderLines>1</numHeaderLines>
+            <recordDelimiter>\n</recordDelimiter>
+            <attributeOrientation>column</attributeOrientation>
+            <simpleDelimited>
+              <fieldDelimiter>,</fieldDelimiter>
+            </simpleDelimited>
+          </textFormat>
+        </dataFormat>
+        <distribution>
+          <online>
+            <url function="download">https://raw.githubusercontent.com/FlowWest/feather-mini-snorkel/main/data/microhabitat_observations.csv</url>
+          </online>
+        </distribution>
+      </physical>
+      <attributeList>
+        <attribute>
+          <attributeName>micro_hab_data_tbl_id</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Identification number of microhabitat data table representing unique observation of 1m2 plot within the survey location.</attributeDefinition>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Identification number of microhabitat data table representing unique observation of 1m2 plot within the survey location.</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>location_table_id</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Identification number of survey location table representing unique survey associated with the microhabitat observation</attributeDefinition>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Identification number of survey location table representing unique survey associated with the microhabitat observation</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>transect_code</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Code to identify specific one-meter transect surveyed within the survey location (see attached map)</attributeDefinition>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Code to identify specific one-meter transect surveyed within the survey location (see attached map)</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>fish_data_id</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Unique identifier number for fish observations. This field only exists for fish observations.</attributeDefinition>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Unique identifier number for fish observations. This field only exists for fish observations.</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>date</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Date mini snorkel data was collected</attributeDefinition>
+          <measurementScale>
+            <dateTime>
+              <formatString>YYYY-MM-DD</formatString>
+              <dateTimeDomain>
+                <bounds>
+                  <minimum exclusive="false">36963</minimum>
+                  <maximum exclusive="false">37488</maximum>
+                </bounds>
+              </dateTimeDomain>
+            </dateTime>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>count</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Number of fish observed</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <customUnit>count of fish</customUnit>
+              </unit>
+              <numericDomain>
+                <numberType>integer</numberType>
+                <bounds>
+                  <minimum exclusive="false">1</minimum>
+                  <maximum exclusive="false">1500</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>species</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Fish species. Species = c("chinook salmon", "sacramento pikeminnow", "speckled dace", &#13;
+"steelhead trout (wild)", "steelhead trout, (clipped)", "tule perch")</attributeDefinition>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Fish species. Species = c("chinook salmon", "sacramento pikeminnow", "speckled dace", &#13;
+"steelhead trout (wild)", "steelhead trout, (clipped)", "tule perch")</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>fl_mm</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Fork length of fish (mm) based on visual observation</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>millimeter</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>whole</numberType>
+                <bounds>
+                  <minimum exclusive="false">20</minimum>
+                  <maximum exclusive="false">1000</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>dist_to_bottom</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Measurement of distance to bottom where fish observation was observed</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>meter</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">110</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>depth</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Depth of water in meters at the centerpoint of the plot</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>meter</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">316</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>focal_velocity</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Velocity specific to where fish was observed</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>feetPerSecond</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">3.44</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>velocity</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Measured stream velocity (ft/s) at the centerpoint of the plot</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>feetPerSecond</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>integer</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">5.73</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>surface_turbidity</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Turbidity measured within microhabitat plot</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <customUnit>NTU</customUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">100</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>percent_fine_substrate</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Percentage of  fine substrate within microhabitat plot (less than 0.05mm)</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>percent</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">100</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>percent_sand_substrate</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Percentage of  sand substrate within microhabitat plot (0.05-2mm)</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>percent</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">100</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>percent_small_gravel_substrate</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Percentage of small gravel substrate within microhabitat plot (2-50mm)</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>percent</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">100</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>percent_large_gravel_substrate</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Percentage of large gravel substrate within microhabitat plot (50-150mm)</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>percent</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">100</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>percent_cobble_substrate</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Percentage of cobble substrate within microhabitat plot (150-300mm)</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>percent</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">100</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>percent_boulder_substrate</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Percentage of boulder substrate within microhabitat plot (greater than 300mm)</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>percent</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">100</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>percent_no_cover_inchannel</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Percentage of where there is no cover within microhabitat plot</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>percent</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">100</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>percent_small_woody_cover_inchannel</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Percentage of small woody cover within microhabitat plot. Small wood is generally considered to be less than 10 cm diameter at breast height.</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>percent</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">100</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>percent_large_woody_cover_inchannel</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Percentage of large woody cover within microhabitat plot. Large wood is generally considered to be more than 10 cm at breat height and consists of tree trunks or a large branch.</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>percent</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">100</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>percent_submerged_aquatic_veg_inchannel</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Percentage of submerged aquatic vegetation cover within microhabitat plot</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>percent</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">100</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>percent_undercut_bank</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Percentageof undercut bank cover within microhabitat plot</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>percent</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">75</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>percent_no_cover_overhead</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Percentage where there is no overhead cover within microhabitat plot</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>percent</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">100</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>percent_cover_half_meter_overhead</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Percentage of overhead cover half a meter within microhabitat plot</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>percent</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">100</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>percent_cover_more_than_half_meter_overhead</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Percentage of overhead cover more than half a meter above microhabitat plot</attributeDefinition>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>percent</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">100</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+        </attribute>
+        <attribute>
+          <attributeName>channel_geomorphic_unit</attributeName>
+          <attributeLabel>mini-snorkel-survey</attributeLabel>
+          <attributeDefinition>Geomorphic features of stream designated through visual observation. Features include = c("glide", "glide margin", "pool", "riffle", "riffle margin", "backwater"). A glide is characterized by its smooth, uniform flow and relatively shallow depth. A riffle is a shallow section where the flow of water is faster and more turbulent. A pool is characterized by deeper depth, slower flow, and relatively calm water. A backwater area is characterized by stagnant or slow-moving water often found in area where the main flow is obstructed. Riffle or glide margins are transitions between these geomorphic units.</attributeDefinition>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Geomorphic features of stream designated through visual observation. Features include = c("glide", "glide margin", "pool", "riffle", "riffle margin", "backwater"). A glide is characterized by its smooth, uniform flow and relatively shallow depth. A riffle is a shallow section where the flow of water is faster and more turbulent. A pool is characterized by deeper depth, slower flow, and relatively calm water. A backwater area is characterized by stagnant or slow-moving water often found in area where the main flow is obstructed. Riffle or glide margins are transitions between these geomorphic units.</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+        </attribute>
+      </attributeList>
+      <numberOfRecords>9827</numberOfRecords>
+    </dataTable>
+  </dataset>
+  <additionalMetadata>
+    <metadata>
+      <unitList>
+        <unit id="number of divers" name="number of divers" unitType="dimensionless">
+          <description>number of divers</description>
+        </unit>
+        <unit id="river mile" name="river mile" unitType="dimensionless">
+          <description>river mile</description>
+        </unit>
+        <unit id="decimal degrees" name="decimal degrees" unitType="dimensionless">
+          <description>decimal degrees</description>
+        </unit>
+        <unit id="count of fish" name="count of fish" unitType="dimensionless">
+          <description>count of fish</description>
+        </unit>
+        <unit id="NTU" name="NTU" unitType="dimensionless">
+          <description>NTU</description>
+        </unit>
+      </unitList>
+    </metadata>
+  </additionalMetadata>
+</eml:eml>
