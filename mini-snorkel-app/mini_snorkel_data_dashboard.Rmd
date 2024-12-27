@@ -101,7 +101,7 @@ This project, through the Healthy Rivers and Landscapes Program, showcases Finda
 Accessible, Interoperable, and Reusable (FAIR) data principles ([Wilkinson et al. 2016](https://www.nature.com/articles/sdata201618)). We focus on three phases of
 the data lifecycle: data description, storage and access (Figure 1, below).
 
-```{r picture, echo = F, fig.cap = "Figure 1. Diagram of the data lifecycle highlighting the focus areas of this project", out.width = '75%', align = "center"}
+```{r picture, echo = F, fig.cap = "Figure 1. Diagram of the data lifecycle highlighting the focus areas of this project", out.width = '50%', align = "center"}
 knitr::include_graphics("data_lifecycle_image.png")
 ```
 
@@ -121,11 +121,11 @@ Insert diagram of methods.
 
 **Relevant Data Definitions**
 
-Complete metadata are available on the [Environmental Data Initiative](https://portal.edirepository.org/nis/mapbrowse?packageid=edi.1705.2). Below are data definitions relevant to focus of this dashboard.
+Complete metadata are available on the [Environmental Data Initiative](https://portal.edirepository.org/nis/mapbrowse?packageid=edi.1705.3). Below are data definitions relevant to this dashboard.
 
-- **Location** refers to the area in the river that was snorkeled. This is the most coarse spatial category.
-- **Location Table ID** refers to the specific section within the location that was snorkeled representing 25 meters by 4 meters. Locations have names and unique 
-- **Transect Code**
+- **Location** refers to the area in the river that was snorkeled. There are 29 sampling locations. This is the most coarse spatial category.
+- **Location Table ID** refers to the specific section within the location that was snorkeled representing 25 meters by 4 meters. Each location was surveyed once a month during the survey and the specific section was chosen at random and may or may not be the same between months. 
+- **Transect Code** refers to the 1m by 1m microhabit unit within the survey section (e.g. location table ID). For each survey section there are 36 microhabitat units where the lowest ID numbers mean upstream and the highest mean downstream.
 
 **Resources for Data Use**
 
