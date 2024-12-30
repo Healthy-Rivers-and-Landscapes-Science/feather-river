@@ -27,8 +27,8 @@ fish_pres_cols <- c('Yes' = "#E6A0C4", 'No' = "#D5D5D3")
 colfunc <- colorRampPalette(c("#02401B", "white"))
 gradient <- colfunc(100)
 
-mini_locations_raw <- read_csv("mini_locations_raw.csv")
-mini_fish_raw <- read_csv("mini_fish_raw.csv")
+mini_locations_raw <- read_csv(here::here("mini-snorkel-app", "mini_locations_raw.csv"))
+mini_fish_raw <- read_csv(here::here("mini-snorkel-app","mini_fish_raw.csv"))
 # orders locations from upstream to downstream. 
 # TODO we are missing coordinates for some locations
 location_order <- tibble(location = c("hatchery ditch", "hour bars", "hatchery riffle", "trailer park", 
@@ -84,10 +84,10 @@ locations_sf <- sf::st_as_sf(mini_locations_raw |>
 
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 filtered_location_id <- reactiveValues(
   selected_points = NULL,
-  filtered_data = feather_cover
+  filtered_data_map_view = feather_cover
 )
 ```
 
@@ -139,7 +139,7 @@ summary_cover |>
 Filter and View Data {data-orientation=rows}
 ========================================================================
 
-There are two possible ways to filter the data: 1) `Attribute Filter` will allow the user to filter by a specific location and sampling date; 2) `Map Filter` allows the user to select a point on the map to view the the associated heatmap. Each option displays a heatmap of percent cover by type for each microhabitat unit. When a fish was present during the sampling, it is shown in a dark red outline. 
+There are two possible ways to filter the data: 1) `Attribute Filter` will allow the user to filter by a specific location and sampling date; 2) `Map Filter` allows the user to select a point on the map to view the the associated heatmap. Each option displays a heatmap of percent cover by type for each transect. When a fish was present during the sampling, it is shown in a dark red outline. 
 
 
 Row {data-height=100}
@@ -152,6 +152,7 @@ radioButtons("which_view", tags$strong("Choose how to filter the data:"), choice
 ```
 
 ```{r}
+# attribute view conditional panel 
 conditionalPanel(
   condition = "input.which_view == 'Attribute Filter'",
   div(
@@ -163,8 +164,24 @@ conditionalPanel(
       selected = "all locations"
     ),
     output$location_id_ui <- renderUI({
-      selectInput("location_id", label = tags$strong("Filter by Location Table Id:"),
+      selectInput("location_id", label = tags$strong("Filter by Date & Location Id:"),
                   choices = c("", filtered_location_id()), selected = "-")
+    })
+  )
+)
+
+```
+
+```{r}
+# map view conditional panel 
+conditionalPanel(
+  condition = "input.which_view == 'Map Filter'",
+  div(
+    style = "display: flex; align-items: flex-start; gap: 10px;", 
+    output$location_id_ui <- renderUI({
+      selectInput("location_id_map", label = tags$strong("Filter by Date & Location Id:"),
+                  choices = c("", map_view_location_ids()), selected = "-")
+      
     })
   )
 )
@@ -182,15 +199,13 @@ output$map <- renderLeaflet({
   leaflet(locations_sf) |>
     addProviderTiles(providers$Esri.WorldImagery, group = "Aerial Imagery") |>
     addProviderTiles(providers$OpenStreetMap, group = "Street Map") |>
-    addCircleMarkers(layerId = ~location_table_id,
+    addCircleMarkers(layerId = ~location, #~location_table_id,
                      color = ~color,
                      radius = 6,
                      fill = TRUE,
                      fillOpacity = 0.2,
                      opacity = 0.6,
                      popup = paste0("Location Name: ", locations_sf$location,
-                                    "<br>",
-                                    "Location ID: ", locations_sf$location_table_id,
                                     "<br>",
                                     "Channel Type: ", locations_sf$channel_type)) |>
     addLayersControl(
@@ -203,19 +218,17 @@ leafletOutput("map")
 
 observeEvent(c(input$location_filter, input$location_id), {
   req(input$which_view == "Attribute Filter")
-  
   req(input$location_filter, input$location_id)
   
   if (input$location_filter != "all locations" && input$location_id != "" && input$location_id != "-") {
     
     selected_location <- locations_sf |>
       filter(location == input$location_filter) |>
-      group_by(geometry, location, channel_type, color) |>
-      summarise(location_table_id = paste0(unique(location_table_id), collapse = "; ")) |>
-      ungroup() |>
-      filter(str_detect(location_table_id, paste0("\\b", input$location_id, "\\b")))
+      filter(location_table_id == input$location_id)
     
     if (nrow(selected_location) > 0) {
+      
+      print("yes")
       
       coords <- sf::st_coordinates(selected_location)
       
@@ -266,7 +279,7 @@ output$attribute_plot <- renderPlot({
       mutate(transect_code = as.factor(transect_code)) |>
       group_by(transect_code, cover_type, fish_presence, location_table_id) |>
       summarize(percent_cover = if(all(is.na(percent_cover))) NA_real_ 
-                else(mean(percent_cover, na.rm = T))) |> glimpse()
+                else(mean(percent_cover, na.rm = T))) 
     
     ggplot(data = filter_feather_cover,
            aes(x = cover_type, y = transect_code, fill = percent_cover)) +
@@ -312,17 +325,30 @@ output$attribute_plot <- renderPlot({
 click_marker <- eventReactive(input$map_marker_click, {
   req(input$which_view == "Map Filter")
   click <- input$map_marker_click
+  print(click)
   return(click$id)
 })
 
-filtered_data <- reactive({
+filtered_data_map_view <- reactive({
   req(input$which_view == "Map Filter")
   return(feather_cover |>
-           filter(location_table_id %in% click_marker()) |>
+           filter(location %in% click_marker()) |> 
+           #filter(location_table_id %in% click_marker()) |>
            mutate(transect_code = as.factor(transect_code)) |>
            group_by(transect_code, cover_type, fish_presence, location_table_id) |>
            summarize(percent_cover = if(all(is.na(percent_cover))) NA_real_ else(mean(percent_cover, na.rm = T))))
-  
+})
+
+map_view_location_ids <- reactive({
+  req(filtered_data_map_view())
+  return(filtered_data_map_view() |> 
+    pull(unique(location_table_id)))
+})
+
+filtered_data_for_map_display <- reactive({
+  req(input$location_id_map)
+  return(filtered_data_map_view() |> 
+    filter(location_table_id %in% input$location_id_map) |> glimpse())
 })
 
 output$map_plot <- renderPlot({
@@ -337,11 +363,11 @@ output$map_plot <- renderPlot({
       )
   } else {
     
-    ggplot(filtered_data(),
+    ggplot(filtered_data_for_map_display(),
            aes(y = transect_code, x = cover_type, fill = percent_cover)) +
       geom_tile(aes(fill = percent_cover), color = "white", size = 0.5) +
       geom_tile(
-        data = filtered_data() |> filter(fish_presence == "Yes"),
+        data = filtered_data_for_map_display() |> filter(fish_presence == "Yes"),
         aes(color = factor(fish_presence)), 
         fill = NA, 
         size = 0.5
