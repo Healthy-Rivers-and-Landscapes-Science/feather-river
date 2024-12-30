@@ -228,8 +228,6 @@ observeEvent(c(input$location_filter, input$location_id), {
     
     if (nrow(selected_location) > 0) {
       
-      print("yes")
-      
       coords <- sf::st_coordinates(selected_location)
       
       leafletProxy("map") |>
