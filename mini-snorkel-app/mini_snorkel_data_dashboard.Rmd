@@ -1,0 +1,442 @@
+---
+title: "Feather Mini Snorkel Cover Data Visualization"
+output: 
+  flexdashboard::flex_dashboard:
+    theme: readable
+  font_family: "Roboto"
+  google_fonts: true
+runtime: shiny
+---
+
+```{r global, include=FALSE}
+library(tidyverse)
+library(leaflet)
+
+colors_full <-  c("#9A8822", "#F5CDB4", "#F8AFA8", "#FDDDA0", "#74A089", #Royal 2
+                  "#899DA4", "#C93312", "#DC863B", # royal 1 (- 3)
+                  "#F1BB7B", "#FD6467", "#5B1A18", "#D67236",# Grand Budapest 1 (-4)
+                  "#D8B70A", "#02401B", "#A2A475", # Cavalcanti 1
+                  "#E6A0C4", "#C6CDF7", "#D8A499", "#7294D4", #Grand Budapest 2
+                  "#9986A5", "#EAD3BF", "#AA9486", "#B6854D", "#798E87", # Isle of dogs 2 altered slightly
+                  "#F3DF6C", "#CEAB07", "#D5D5D3", "#24281A", # Moonriese 1, 
+                  "#798E87", "#C27D38", "#CCC591", "#29211F", # moonrise 2
+                  "#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B" ) # moonrise 3 
+
+fish_pres_cols <- c('Yes' = "#E6A0C4", 'No' = "#D5D5D3")
+
+colfunc <- colorRampPalette(c("#02401B", "white"))
+gradient <- colfunc(100)
+
+mini_locations_raw <- read_csv(here::here("mini-snorkel-app", "mini_locations_raw.csv"))
+mini_fish_raw <- read_csv(here::here("mini-snorkel-app","mini_fish_raw.csv"))
+# orders locations from upstream to downstream. 
+# TODO we are missing coordinates for some locations
+location_order <- tibble(location = c("hatchery ditch", "hour bars", "hatchery riffle", "trailer park", 
+                                      "bedrock riffle", "steep riffle", "robinson riffle", "upper big hole", 
+                                      "lower big hole", "g95", "gridley riffle", "big bar", "goose riffle", 
+                                      "macfarland riffle", "shallow riffle", "herringer riffle", "junkyard riffle", 
+                                      "auditorium riffle", "eye side channel", "matthews riffle", "eye riffle", 
+                                      "lower hour", "aleck riffle", "weir riffle", "vance avenue", 
+                                      "big hole", "hour riffle", "cox riffle", "gateway riffle"),
+                         order = c(2,19,1,5,
+                                   4,9,8,15,
+                                   16,17,23,21,20,
+                                   22,25,26,24,
+                                   3,11,6,12,
+                                   18,7,10,13,
+                                   14,NA,NA,NA))
+
+feather_cover <- mini_fish_raw |> 
+  left_join(mini_locations_raw |> 
+              distinct(location_table_id, date, channel_location, location)) |> 
+  # create cover variables that are more consistent with strategic plan categories
+  mutate(woody_debris = percent_small_woody_cover_inchannel + percent_large_woody_cover_inchannel,
+         boulder = percent_boulder_substrate,
+         cobble = percent_cobble_substrate, 
+         undercut_bank = percent_undercut_bank, 
+         aquatic_veg = percent_submerged_aquatic_veg_inchannel, 
+         overhanging_veg = percent_cover_half_meter_overhead + percent_cover_more_than_half_meter_overhead) |> 
+  select(micro_hab_data_tbl_id, location_table_id, transect_code, location,
+         woody_debris:overhanging_veg, count, date) |>
+  pivot_longer(cols = c(woody_debris, boulder, cobble, undercut_bank, aquatic_veg, overhanging_veg), names_to = "cover_type", 
+               values_to = "percent_cover") |>  
+  distinct() |> 
+  left_join(location_order) |> 
+  mutate(fish_presence = ifelse(count > 0, "Yes", "No")) |> select(-count) |> 
+  mutate(location_table_id = paste0(date, " (location id: ", location_table_id, ")")) |> glimpse()
+
+summary_cover <- feather_cover |> 
+  group_by(location, cover_type, order, fish_presence) |> 
+  summarize(percent_cover = mean(percent_cover)) |> 
+  mutate(percent_cover = ifelse(is.na(percent_cover), 0, percent_cover))
+
+# added distinct statement because there seem to be duplicates in the location table (we should fix this on EDI)
+
+# TODO - The color setting isn't quite working
+locations_sf <- sf::st_as_sf(mini_locations_raw |> 
+                               distinct(location_table_id, date, channel_location, .keep_all = T) |> 
+                               na.omit(), coords = c('longitude', 'latitude')) |> 
+  select(location_table_id, location, channel_type, date) |> 
+  mutate(location_table_id = paste0(date, " (location id: ", location_table_id, ")")) |> 
+  mutate(color = colors_full[match(location, location)]) 
+# group_by(geometry, location, channel_type, color) |> 
+# summarise(location_table_id = paste0(unique(location_table_id), collapse = "; ")) |> glimpse()
+
+```
+
+```{r eval=FALSE, include=FALSE}
+filtered_location_id <- reactiveValues(
+  selected_points = NULL,
+  filtered_data_map_view = feather_cover
+)
+```
+
+# About the Data
+
+```{r, echo=F}
+# output$about <- renderUI({
+#   htmltools::includeHTML('mini-snorkel-app/about.html')
+# })
+# 
+# uiOutput("about")
+
+tags$iframe(src = "about.html", height = "100%", width = "100%", frameborder = "0")
+```
+
+# Habitat Summary
+
+## Column
+
+### Feather River locations are ordered from most upstream (closest to Oroville Dam) to the most downstream. Percent cover is averaged across all microhabitat plots within each location. See the Map Filter or Attribute Filter for more detailed summaries of habitat by microhabitat.
+
+```{r, fig.width=11}
+summary_cover |> 
+  filter(!is.na(order)) |> 
+  group_by(cover_type) |> 
+  arrange(desc(order)) |> 
+  mutate(location = factor(location, levels=unique(location), ordered = T)) |> 
+  ggplot(aes(x = cover_type, y = location, fill = percent_cover)) + 
+  #scale_y_reverse() +
+  geom_tile(color = "white") + 
+  scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Mean Percent Cover") +
+  labs(
+    x = "",   
+    y = ""                     
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 10, face = "bold"),
+    legend.title = element_text(size = 14, face = "bold"),
+    legend.text = element_text(size = 10, face = "bold"),
+    legend.position = "top"
+  )
+```
+
+# Filter and View Data {data-orientation="rows"}
+
+## Row {data-height="100"}
+
+```{r}
+# Add the radio buttons with a help icon
+tags$div(
+  tags$strong("Choose how to filter the data:"),
+  tags$span(
+    class = "help-icon", 
+    shiny::icon("question-circle"), 
+    style = "cursor: pointer; color: #007BFF; margin-left: 5px;",
+    onclick = "document.getElementById('instructions_modal').style.display='block'; 
+               document.getElementById('modal_overlay').style.display='block';"
+  ),
+  radioButtons(
+    inputId = "which_view", 
+    label = NULL, 
+    choices = c("Attribute Filter", "Map Filter"), 
+    selected = "Attribute Filter"
+  )
+)
+
+# Hidden modal for instructions
+tags$div(
+  id = "modal_overlay",
+  style = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0, 0, 0, 0.5); z-index:999;",
+  onclick = "document.getElementById('instructions_modal').style.display='none'; 
+             document.getElementById('modal_overlay').style.display='none';"
+)
+
+tags$div(
+  id = "instructions_modal",
+  style = "display:none; position:fixed; z-index:1000; left:50%; top:50%; transform:translate(-50%, -50%); background-color:white; padding:20px; border:1px solid #ccc; box-shadow:0px 4px 8px rgba(0,0,0,0.2);",
+  tags$div(
+    style = "text-align:right;",
+    tags$button("Close", 
+                onclick = "document.getElementById('instructions_modal').style.display='none'; 
+                           document.getElementById('modal_overlay').style.display='none';", 
+                style = "background:none; border:none; color:#007BFF; font-weight:bold; cursor:pointer;")
+  ),
+  tags$h4("Instructions"),
+  tags$p("Attribute Filter - Select a monitoring location by name on the drop down. This will populate which transects were monitored at that monitoring location. Each transect is associated with a specific monitoring date and ID. Once selected, a heat map of percent cover along the transect will be visible. If a fish was present during monitoring, it will be highlighted with a red outline."),
+  tags$p("Map Filter - Find a monitoring location of interest within the map and click on it. Once clicked, a drop down will populate showing all possible transects and monitoring dates that were done at that location. When a transect/date is selected, a heat map of percent cover along the transect will be visible. If a fish was present during monitoring, it will be highlighted with a red outline.")
+)
+
+
+```
+
+```{r}
+# attribute view conditional panel 
+conditionalPanel(
+  condition = "input.which_view == 'Attribute Filter'",
+  div(
+    style = "display: flex; align-items: flex-start; gap: 10px;", # Flexbox for horizontal layout
+    selectInput(
+      "location_filter",
+      label = tags$strong("Filter by Location:"),
+      choices = c("all locations", unique(locations_sf$location)),
+      selected = "all locations"
+    ),
+    output$location_id_ui <- renderUI({
+      selectInput("location_id", label = tags$strong("Filter by Date & Transect:"),
+                  choices = c("", filtered_location_id()), selected = "-")
+    })
+  )
+)
+
+```
+
+```{r}
+# map view conditional panel 
+conditionalPanel(
+  condition = "input.which_view == 'Map Filter'",
+  div(
+    style = "display: flex; align-items: flex-start; gap: 10px;", 
+    output$location_id_ui <- renderUI({
+      selectInput("location_id_map", label = tags$strong("Filter by Date & Transect:"),
+                  choices = c("", map_view_location_ids()), selected = "-")
+      
+    })
+  )
+)
+
+```
+
+## Row
+
+### Habitat Map
+
+```{r}
+
+output$map <- renderLeaflet({
+  leaflet(locations_sf) |>
+    addProviderTiles(providers$Esri.WorldImagery, group = "Aerial Imagery") |>
+    addProviderTiles(providers$OpenStreetMap, group = "Street Map") |>
+    addCircleMarkers(layerId = ~location, #~location_table_id,
+                     color = ~color,
+                     radius = 6,
+                     fill = TRUE,
+                     fillOpacity = 0.2,
+                     opacity = 0.6,
+                     popup = paste0("Location Name: ", locations_sf$location,
+                                    "<br>",
+                                    "Channel Type: ", locations_sf$channel_type)) |>
+    addLayersControl(
+      baseGroups = c("Aerial Imagery", "Street Map"),
+      position = "topleft",
+      options = layersControlOptions(collapsed = FALSE)
+    )
+})
+
+leafletOutput("map")
+
+observeEvent(c(input$location_filter, input$location_id), {
+  req(input$which_view == "Attribute Filter")
+  req(input$location_filter, input$location_id)
+  
+  if (input$location_filter != "all locations" && input$location_id != "" && input$location_id != "-") {
+    
+    selected_location <- locations_sf |>
+      filter(location == input$location_filter) |>
+      filter(location_table_id == input$location_id)
+    
+    if (nrow(selected_location) > 0) {
+      
+      coords <- sf::st_coordinates(selected_location)
+      
+      leafletProxy("map") |>
+        setView(
+          lng = coords[1],
+          lat = coords[2],
+          zoom = 15
+        ) |>
+        clearGroup("highlighted") |>
+        addCircleMarkers(
+          data = selected_location,
+          lng = coords[1],
+          lat = coords[2],
+          fillOpacity = 0.2,
+          opacity = 0.6,
+          fill = TRUE,
+          radius = 6,
+          stroke = TRUE,
+          weight = 4,
+          popup = paste0("Location Name: ", selected_location$location,
+                         "<br>",
+                         "Location ID: ", selected_location$location_table_id,
+                         "<br>",
+                         "Channel Type: ", selected_location$channel_type),
+          group = "highlighted"
+        )
+    }
+  }
+  
+})
+
+
+```
+
+### Heat Map
+
+```{r}
+output$attribute_plot <- renderPlot({
+  req(input$which_view == "Attribute Filter")
+  
+  if (input$location_filter != "all locations" && input$location_id != "" && input$location_id != "-") {
+    
+    filter_feather_cover <- feather_cover |>
+      filter(location_table_id  == input$location_id) |>
+      mutate(transect_code = as.factor(transect_code)) |>
+      group_by(transect_code, cover_type, fish_presence, location_table_id) |>
+      summarize(percent_cover = if(all(is.na(percent_cover))) NA_real_ 
+                else(mean(percent_cover, na.rm = T))) 
+    
+    ggplot(data = filter_feather_cover,
+           aes(x = cover_type, y = transect_code, fill = percent_cover)) +
+      geom_tile(aes(fill = percent_cover), color = "white", size = 0.5) +
+      geom_tile(
+        data = filter_feather_cover |> filter(fish_presence == "Yes"),
+        aes(color = factor(fish_presence)), 
+        fill = NA, 
+        size = 0.5
+      ) +
+      scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Percent Cover") +
+      scale_color_manual(values = c("darkred"), name = "Fish Presence", labels = c("Yes")) +
+      labs(
+        x = "",
+        y = "Microhabitat Unit"
+      ) +
+      theme_minimal() +
+      theme(
+        axis.title = element_text(size = 16),
+        axis.text = element_text(size = 10, face = "bold"),
+        axis.text.x = element_text(angle = 30, hjust = 1),
+        legend.title = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size = 10, face = "bold"),
+        legend.position = "top"
+      )
+  } else {
+    
+    ggplot() +
+      annotate("text", x = 0.5, y = 0.5, label = "Choose a sampling location name and \nlocation ID to populate map",
+               size = 6, hjust = 0.5, vjust = 0.5) +
+      theme_void() +
+      theme(
+        plot.title = element_text(size = 16, face = "bold", hjust = 0.5)
+      )
+  }
+  
+  
+})
+
+```
+
+```{r}
+click_marker <- eventReactive(input$map_marker_click, {
+  req(input$which_view == "Map Filter")
+  click <- input$map_marker_click
+  print(click)
+  return(click$id)
+})
+
+filtered_data_map_view <- reactive({
+  req(input$which_view == "Map Filter")
+  return(feather_cover |>
+           filter(location %in% click_marker()) |> 
+           #filter(location_table_id %in% click_marker()) |>
+           mutate(transect_code = as.factor(transect_code)) |>
+           group_by(transect_code, cover_type, fish_presence, location_table_id) |>
+           summarize(percent_cover = if(all(is.na(percent_cover))) NA_real_ else(mean(percent_cover, na.rm = T))))
+})
+
+map_view_location_ids <- reactive({
+  req(filtered_data_map_view())
+  return(filtered_data_map_view() |> 
+    pull(unique(location_table_id)))
+})
+
+filtered_data_for_map_display <- reactive({
+  req(input$location_id_map)
+  return(filtered_data_map_view() |> 
+    filter(location_table_id %in% input$location_id_map) |> glimpse())
+})
+
+output$map_plot <- renderPlot({
+  req(input$which_view == "Map Filter")
+  if (is.null(input$map_marker_click)) {
+    ggplot() +
+      annotate("text", x = 0.5, y = 0.5, label = "Click on a Sampling Location\nin Map View to Populate Plot",
+               size = 6, hjust = 0.5, vjust = 0.5) +
+      theme_void() +
+      theme(
+        plot.title = element_text(size = 16, face = "bold", hjust = 0.5)
+      )
+  } else {
+    
+    ggplot(filtered_data_for_map_display(),
+           aes(y = transect_code, x = cover_type, fill = percent_cover)) +
+      geom_tile(aes(fill = percent_cover), color = "white", size = 0.5) +
+      geom_tile(
+        data = filtered_data_for_map_display() |> filter(fish_presence == "Yes"),
+        aes(color = factor(fish_presence)), 
+        fill = NA, 
+        size = 0.5
+      ) +
+      scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Percent Cover") +
+      scale_color_manual(values = c("darkred"), name = "Fish Presence", labels = c("Yes")) +
+      labs(
+        x = "",
+        y = "Microhabitat Unit"
+      ) +
+      theme_minimal() +
+      theme(
+        axis.title = element_text(size = 16),
+        axis.text = element_text(size = 10, face = "bold"),
+        axis.text.x = element_text(angle = 30, hjust = 1),
+        legend.title = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size = 10, face = "bold"),
+        legend.position = "top"
+      )
+  }
+})
+```
+
+```{r}
+filtered_location_id <- reactive({
+  req(input$which_view == "Attribute Filter")
+  locations_sf |>
+    filter(location == input$location_filter) |>
+    pull(location_table_id) |>
+    unique()
+})
+```
+
+```{r}
+output$dynamic_plot <- renderUI({
+  if (input$which_view == "Map Filter") {
+    plotOutput("map_plot")
+  } else {
+    plotOutput("attribute_plot")
+  }
+})
+
+uiOutput("dynamic_plot")
+
+```
