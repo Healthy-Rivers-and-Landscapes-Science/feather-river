@@ -150,7 +150,8 @@ renderPlot({
     legend.title = element_text(size = 12, face = "bold"),
     legend.text = element_text(size = 10, face = "bold"),
     legend.position = "top",
-    plot.caption = element_text(size = 12, face = "italic")
+    plot.caption = element_text(size = 12, face = "italic"),
+    strip.text = element_text(size = 14, face = "bold")
   ) +
   facet_wrap(~fish_presence, ncol = 2)
 
