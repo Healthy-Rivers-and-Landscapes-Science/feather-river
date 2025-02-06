@@ -66,10 +66,12 @@ feather_cover <- mini_fish_raw |>
   mutate(location_table_id = paste0(date, " (location id: ", location_table_id, ")")) |> glimpse()
 
 summary_cover <- feather_cover |> 
-  group_by(location, cover_type, order, fish_presence) |> 
-  summarize(percent_cover = mean(percent_cover)) |> 
+  mutate(month = month(date, label = T)) |> 
+  group_by(location, cover_type, order, fish_presence, month) |> 
+  summarize(percent_cover = mean(percent_cover, na.rm = T)) |> 
   mutate(percent_cover = ifelse(is.na(percent_cover), 0, percent_cover))
-
+  
+ # pivot_wider(id_cols = c(location, cover_type, order), names_from = "fish_presence", values_from = "percent_cover")
 # added distinct statement because there seem to be duplicates in the location table (we should fix this on EDI)
 
 # TODO - The color setting isn't quite working
@@ -103,37 +105,61 @@ filtered_location_id <- reactiveValues(
 tags$iframe(src = "about.html", height = "100%", width = "100%", frameborder = "0")
 ```
 
-# Habitat Summary
+# Habitat Summary {data-orientation="rows"}
 
-## Column
+## Row {data-height="25"}
 
-### Feather River locations are ordered from most upstream (closest to Oroville Dam) to the most downstream. Percent cover is averaged across all microhabitat plots within each location. See the Map Filter or Attribute Filter for more detailed summaries of habitat by microhabitat.
+Feather River locations are arranged from the most upstream (nearest to Oroville Dam) to the most downstream. Percent cover is averaged across all microhabitat plots within each location and month. For plots where a fish was observed during a given month, the average percent cover is displayed. Similarly, for plots where no fish were observed, the average percent cover for each location is shown. Refer to the Map Filter or Attribute Filter on the [Filter and View Data](#view-data) for more detailed summaries of habitat by microhabitat.
 
-```{r, fig.width=11}
-summary_cover |> 
+## Row {data-height="50"}
+
+```{r}
+selectInput(
+  "month_filter",
+  label = tags$strong("Filter by Month:"),
+  choices = c(unique(summary_cover$month)),
+  selected = "Mar"
+)
+```
+
+## Row
+
+```{r}
+renderPlot({
+  summary_cover |> 
+  filter(month  == input$month_filter) |>
   filter(!is.na(order)) |> 
   group_by(cover_type) |> 
   arrange(desc(order)) |> 
-  mutate(location = factor(location, levels=unique(location), ordered = T)) |> 
+  mutate(location = factor(location, levels=unique(location), ordered = T),
+         fish_presence = ifelse(fish_presence == "No", "No fish observed", "Fish observed")) |> 
+  filter(cover_type != "undercut_bank") |> 
   ggplot(aes(x = cover_type, y = location, fill = percent_cover)) + 
   #scale_y_reverse() +
-  geom_tile(color = "white") + 
+  geom_tile(color = "white",  size = 0.5) + 
   scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Mean Percent Cover") +
   labs(
     x = "",   
-    y = ""                     
+    y = "",
+    caption = "Undercut bank was removed because this cover type only occurs at the margins and therefore\ncannot be compared with other cover types when summarizing at the location level."
   ) +
   theme_minimal() +
   theme(
-    axis.title = element_text(size = 16),
-    axis.text = element_text(size = 10, face = "bold"),
-    legend.title = element_text(size = 14, face = "bold"),
+    axis.title = element_text(size = 20, face = "bold"),
+    axis.text = element_text(size = 13, face = "bold"),
+    legend.title = element_text(size = 12, face = "bold"),
     legend.text = element_text(size = 10, face = "bold"),
-    legend.position = "top"
-  )
+    legend.position = "top",
+    plot.caption = element_text(size = 12, face = "italic"),
+    strip.text = element_text(size = 14, face = "bold")
+  ) +
+  facet_wrap(~fish_presence, ncol = 2)
+
+})
+
 ```
 
-# Filter and View Data {data-orientation="rows"}
+# Filter and View Data  {#view-data data-orientation="rows"}
 
 ## Row {data-height="100"}
 
