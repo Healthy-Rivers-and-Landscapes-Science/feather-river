@@ -114,11 +114,11 @@ Feather River locations are arranged from the most upstream (nearest to Oroville
 ## Row {data-height="50"}
 
 ```{r}
-selectInput(
+shinyWidgets::sliderTextInput(
   "month_filter",
   label = tags$strong("Filter by Month:"),
-  choices = c(unique(summary_cover$month)),
-  selected = "Mar"
+  choices = unique(summary_cover$month),
+  animate = T
 )
 ```
 
