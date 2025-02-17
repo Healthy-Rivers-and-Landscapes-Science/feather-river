@@ -1,0 +1,183 @@
+---
+title: "Feather River Habitat Suitability Index Development"
+author: "Maddee Rubenson (FlowWest)"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+```
+
+### Adapted Mark Gard 1998 HSC process to Cover and Substrate
+
+*adapted from https://github.com/FlowWest/va-feather-river-analysis/blob/mini-snorkel/analysis/feather_river_mini_snorkel_hsi_analysis_exploration.md* 
+
+Mark Gard’s 1998 paper identified a method to developing HSC for presence and absence of redds in different substrate classes. I will follow the same methodology using fish presence/absence and total fish count instead of redds and also apply to cover.
+
+1.  Determine number of fish with each substrate-size class
+
+2.  Calculate the proportion of fish with each substrate size class
+
+3.  Calculate the HSC value for each substrate size class by dividing the proportion of fish in each substrate class by the proportion of fish with the most frequent substrate class
+
+To convert from percent to discrete:
+
+-   Cover decision: 20% or greater is considered present, which is consistent with the Strategic Plan (table 27, TODO include citation)
+
+Cover includes (table 28 of the Strategic Plan):
+
+-   small woody debris
+
+-   large woody debris
+
+-   boulder
+
+-   cobble
+
+-   grass/herbaceous - emergent vegetation
+
+-   aquatic vegetation - non-emergent
+
+-   willow and other riparian vegetation
+
+-   undercut bank
+
+-   overhanging vegetation
+
+### Case Study - Feather River Mini Snorkel Data 
+
+Data was collected as percent cover for the following cover types. This crosswalk was applied to create consistent cover types across the mini snorkel data.
+
+| Mini Snorkel Data Type                                                          | Applied Data Type                     |
+|---------------------------------------------------------------------------------|---------------------------------------|
+| percent large woody debris                                                      | large woody cover                     |
+| percent small wood                                                              | small woody cover                     |
+| percent boulder substrate                                                       | boulder                               |
+| percent cobble substrate                                                        | cobble                                |
+| percent undercut bank                                                           | undercut bank                         |
+| percent submerged aquatic vegetation inchannel                                  | aquatic vegetation                    |
+| percent cover half meter overhead + percent cover more than half meter overhead | overhanging vegetation                |
+| NA                                                                              | grass/herbaceous                      |
+| NA                                                                              | willow and other riparian vegetation  |
+
+**Discussion**
+
+Substrate:
+
+-   Sand has a stronger HSI when looking at number of fish vs. presence/absence
+
+-   Presence/absence results are consistent with logistic regression
+
+Cover:
+
+-   More consistent results when looking at number of fish vs. presence/absence
+
+```{r}
+
+mark_gard_1998_hsi <- function(data, percent_presence = 20, cols = c()) {
+  data_tidy <- data |> 
+    select(count, cols) |> 
+    mutate(fish_presence = ifelse(count > 0, 1, 0)) |> 
+    pivot_longer(cols = cols, names_to = "type", values_to = "percent") |> 
+    mutate(presence = ifelse(percent >= percent_presence, 1, 0)) |> 
+    filter(presence == 1) |> 
+    group_by(type) |>
+    summarise(n_fish_presence = sum(as.numeric(fish_presence)),
+              n_fish_total = sum(count)) |> 
+    mutate(prop_fish_presence = n_fish_presence/sum(n_fish_presence),
+           prop_fish_total = n_fish_total/sum(n_fish_total)) |> 
+    ungroup()
+  
+     most_freq_total <- data_tidy |> 
+      arrange(desc(prop_fish_total)) |> 
+      slice(1) 
+ 
+     most_freq_presence <- data_tidy |> 
+      arrange(desc(prop_fish_presence)) |> 
+      slice(1) 
+  
+  
+  data_tidy_final <- data_tidy |> 
+    mutate(hsc_presence = prop_fish_presence/most_freq_presence$prop_fish_presence,
+           hsc_total = prop_fish_total/most_freq_total$prop_fish_total)
+  
+  return(data_tidy_final)
+
+}
+
+```
+
+```{r}
+
+mini_locations_raw <- read_csv(here::here("mini-snorkel-app", "mini_locations_raw.csv"))
+mini_fish_raw <- read_csv(here::here("mini-snorkel-app","mini_fish_raw.csv"))
+
+feather_cover <- mini_fish_raw |> 
+  left_join(mini_locations_raw |> 
+              distinct(location_table_id, date, channel_location, location)) |> 
+  # create cover variables that are more consistent with strategic plan categories
+  mutate(small_woody_debris = percent_small_woody_cover_inchannel,
+        large_woody_debris = percent_large_woody_cover_inchannel,
+         boulder = percent_boulder_substrate,
+         cobble = percent_cobble_substrate, 
+         undercut_bank = percent_undercut_bank, 
+         aquatic_veg = percent_submerged_aquatic_veg_inchannel, 
+         overhanging_veg = percent_cover_half_meter_overhead + percent_cover_more_than_half_meter_overhead) |> 
+  select(micro_hab_data_tbl_id, location_table_id, transect_code, location,
+         small_woody_debris:overhanging_veg, count, date) |>
+  distinct() 
+```
+
+```{r}
+cols <- c('small_woody_debris', 'large_woody_debris', 'boulder', 'cobble', 'undercut_bank', 'aquatic_veg', 'overhanging_veg')
+
+mark_gard_1998_hsi(data = feather_cover, percent_presence = 20, cols = cols) |> 
+  pivot_longer(cols = c(hsc_presence, hsc_total), names_to = "HSI", values_to = "values") |> 
+  ggplot() + 
+  geom_col(aes(y = values, x = type, fill = HSI), position = "dodge") +
+  coord_flip() +
+  ggtitle('Mark Gard 1998: HSI Comparison') + 
+  theme_minimal()
+
+
+```
+```{r}
+
+feather_cover |> 
+    select(count, cols) |> 
+    mutate(fish_presence = ifelse(count > 0, 1, 0)) |> 
+    pivot_longer(cols = cols, names_to = "type", values_to = "percent") |> 
+    mutate(presence = ifelse(percent >= 20, 1, 
+                             ifelse(percent <20 & percent > 0, 0, NA))) |> 
+    group_by(type, presence) |> 
+    #filter(percent >= 20) |> 
+    tally()
+    
+```
+
+```{r}
+
+feather_cover |> 
+    select(count, cols) |> 
+    mutate(fish_presence = ifelse(count > 0, 1, 0)) |> 
+    pivot_longer(cols = cols, names_to = "type", values_to = "percent") |> 
+    mutate(presence = ifelse(percent >= 20, 1, 
+                             ifelse(percent <20 & percent > 0, 0, NA))) |> 
+    group_by(type, presence) |> 
+    filter(percent >= 20) |> 
+    tally() |> 
+    ungroup() |> 
+    mutate(sum_n = sum(n),
+           weighting_factor = 1-(n/sum_n))
+
+```
+
+### Questions/Next steps 
+
+* How do HSI's compare across sites? Do we want an HSI per site?
+* Does it make sense to weight cover variables given some are just inherently less common (ie., undercut bank)
+
+
