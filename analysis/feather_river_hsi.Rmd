@@ -63,6 +63,10 @@ Data was collected as percent cover for the following cover types. This crosswal
 | NA                                                                              | grass/herbaceous                     |
 | NA                                                                              | willow and other riparian vegetation |
 
+**Decisions**
+
+-   The HSI's were developed for fish presence or absence (1/0) regardless of how many fish were present. This was decided to eliminate potential challenges in counting number of fish present and with the assumption that if a fish was present, the habitat is suitable for other fish to also be present.
+
 **Discussion**
 
 Substrate:
@@ -180,3 +184,7 @@ feather_cover |>
 
 -   How do HSI's compare across sites? Do we want an HSI per site?
 -   Does it make sense to weight cover variables given some are just inherently less common (ie., undercut bank)
+
+## Site Level 
+
+Goal: compare
