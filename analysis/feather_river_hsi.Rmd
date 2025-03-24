@@ -13,7 +13,7 @@ library(tidyverse)
 
 ### Adapted Mark Gard 1998 HSC process to Cover and Substrate
 
-*adapted from <https://github.com/FlowWest/va-feather-river-analysis/blob/mini-snorkel/analysis/feather_river_mini_snorkel_hsi_analysis_exploration.md>*
+adapted from <https://github.com/FlowWest/va-feather-river-analysis/blob/mini-snorkel/analysis/feather_river_mini_snorkel_hsi_analysis_exploration.md>
 
 [Mark Gard’s 1998 paper](https://personales.upv.es/fmcapel/data/Technique%20for%20Adjusting%20Spawning%20Depth%20Habitat%20Utilization%20Curves%20for%20Availability.pdf) identified a method to developing HSC for presence and absence of redds in different substrate classes. I will follow the same methodology using fish presence/absence and total fish count instead of redds and also apply to cover.
 
@@ -105,8 +105,8 @@ mark_gard_1998_hsi <- function(data, percent_presence = 20, cols = c()) {
   
   
   data_tidy_final <- data_tidy |> 
-    mutate(hsc_presence = prop_fish_presence/most_freq_presence$prop_fish_presence,
-           hsc_total = prop_fish_total/most_freq_total$prop_fish_total)
+    mutate(hsc_presence = prop_fish_presence/most_freq_presence$prop_fish_presence)
+           #hsc_total = prop_fish_total/most_freq_total$prop_fish_total)
   
   return(data_tidy_final)
 
@@ -139,9 +139,9 @@ feather_cover <- mini_fish_raw |>
 cols <- c('small_woody_debris', 'large_woody_debris', 'boulder', 'cobble', 'undercut_bank', 'aquatic_veg', 'overhanging_veg')
 
 mark_gard_1998_hsi(data = feather_cover, percent_presence = 20, cols = cols) |> 
-  pivot_longer(cols = c(hsc_presence, hsc_total), names_to = "HSI", values_to = "values") |> 
+  pivot_longer(cols = c(hsc_presence), names_to = "HSI", values_to = "values") |> 
   ggplot() + 
-  geom_col(aes(y = values, x = type, fill = HSI), position = "dodge") +
+  geom_col(aes(y = values, x = type), position = "dodge") +
   coord_flip() +
   ggtitle('Mark Gard 1998: HSI Comparison') + 
   theme_minimal()
@@ -185,6 +185,14 @@ feather_cover |>
 -   How do HSI's compare across sites? Do we want an HSI per site?
 -   Does it make sense to weight cover variables given some are just inherently less common (ie., undercut bank)
 
-## Site Level 
+## Site Level Analysis 
 
-Goal: compare
+Goal 1) compare how site specific HSIs compare across the high and low flow channel, using hatchery ditch (low flow) and g95 (high flow)
+
+Goal 2) how does HSI compare temporally across a single site?
+
+```{r}
+
+
+
+```
