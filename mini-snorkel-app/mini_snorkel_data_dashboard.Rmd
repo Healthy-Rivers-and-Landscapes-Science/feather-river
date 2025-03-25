@@ -107,11 +107,12 @@ tags$iframe(src = "about.html", height = "100%", width = "100%", frameborder = "
 
 ## Column
 
-### Feather River locations are ordered from most upstream (closest to Oroville Dam) to the most downstream. Percent cover is averaged across all microhabitat plots within each location. See the Map Filter or Attribute Filter for more detailed summaries of habitat by microhabitat.
+### Feather River locations are ordered from most upstream (closest to Oroville Dam) to the most downstream. Percent cover is averaged across all microhabitat plots within each location. Refer to the Map Filter or Attribute Filter on the [Filter and View Data](#view-data) for more detailed summaries of habitat by microhabitat.
 
 ```{r, fig.width=11}
 summary_cover |> 
-  filter(!is.na(order)) |> 
+  filter(!is.na(order),
+         cover_type != "undercut_bank") |> 
   group_by(cover_type) |> 
   arrange(desc(order)) |> 
   mutate(location = factor(location, levels=unique(location), ordered = T)) |> 
@@ -121,7 +122,8 @@ summary_cover |>
   scale_fill_gradient(low = "#D5D5D3", high = "#02401B", name = "Mean Percent Cover") +
   labs(
     x = "",   
-    y = ""                     
+    y = "",
+    caption = "Undercut bank was removed because this cover type only occurs at the margins and therefore\ncannot be compared with other cover types when summarizing at the location level."
   ) +
   theme_minimal() +
   theme(
@@ -129,8 +131,9 @@ summary_cover |>
     axis.text = element_text(size = 10, face = "bold"),
     legend.title = element_text(size = 14, face = "bold"),
     legend.text = element_text(size = 10, face = "bold"),
-    legend.position = "top"
-  )
+    legend.position = "top",
+    plot.caption = element_text(size = 12, face = "italic")
+  ) 
 ```
 
 # Filter and View Data {data-orientation="rows"}
@@ -369,13 +372,13 @@ filtered_data_map_view <- reactive({
 map_view_location_ids <- reactive({
   req(filtered_data_map_view())
   return(filtered_data_map_view() |> 
-    pull(unique(location_table_id)))
+           pull(unique(location_table_id)))
 })
 
 filtered_data_for_map_display <- reactive({
   req(input$location_id_map)
   return(filtered_data_map_view() |> 
-    filter(location_table_id %in% input$location_id_map) |> glimpse())
+           filter(location_table_id %in% input$location_id_map) |> glimpse())
 })
 
 output$map_plot <- renderPlot({
