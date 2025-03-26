@@ -49,7 +49,7 @@ Cover includes (table 28 of the Strategic Plan):
 
 -   overhanging vegetation
 
-### Case Study - Feather River Mini Snorkel Data
+### Case Study - Feather River Mini Snorkel Data 
 
 Data was collected as percent cover for the following cover types. This crosswalk was applied to create consistent cover types across the mini snorkel data.
 
@@ -124,25 +124,29 @@ suppressWarnings({
 })
 ```
 
+When summarizing the HSI across all observations and locations, small woody debris,
+overhanging vegetation, cobble and aquatic vegetation are above HSI 0.5.
+
 ```{r echo=FALSE}
 cols <- c('small_woody_debris', 'large_woody_debris', 'boulder', 'cobble', 'undercut_bank', 'aquatic_veg', 'overhanging_veg')
 
 mark_gard_1998_hsi(data = feather_cover, percent_presence = 20, cols = cols) |> 
   pivot_longer(cols = c(hsi_presence), names_to = "HSI", values_to = "values") |> 
+  mutate(high_hsi = ifelse(values >= 0.5, "high", "low")) |> 
   ggplot() + 
-  geom_col(aes(y = values, x = type), position = "dodge") +
+  geom_col(aes(y = values, x = type, fill = high_hsi), position = "dodge") +
+  scale_fill_manual(values = c("#FD6467", "#F5CDB4")) +
   coord_flip() +
   ggtitle('Mark Gard 1998: Cover HSI for all of Feather River') + 
-  theme_minimal()
-
-
+  theme_minimal() +
+  theme(legend.position = "none") 
 ```
 
 #### Exploring uneven distribution of cover types
 
 Goal: Does it make sense to weight cover variables given some are just inherently less common (ie., undercut bank)
 
-```{r echo=FALSE}
+```{r echo=FALSE, message = F, warning = F}
 
 feather_cover |> 
     select(count, cols) |> 
@@ -158,9 +162,9 @@ feather_cover |>
     
 ```
 
-```{r echo=FALSE}
+```{r echo=FALSE, message = F, warning = F}
 
-feather_cover |> 
+weights <- feather_cover |> 
     select(count, cols) |> 
    # mutate(fish_presence = ifelse(count > 0, 1, 0)) |> 
     pivot_longer(cols = cols, names_to = "type", values_to = "percent") |> 
@@ -171,22 +175,43 @@ feather_cover |>
     tally() |> 
     ungroup() |> 
     mutate(sum_n = sum(n),
-           weighting_factor = 1-(n/sum_n)) |> 
+           weighting_factor = 1-(n/sum_n)) 
+weights |> 
   knitr::kable(caption = "This table explores potential weighting factors that could be used to achieve a more balanced weighting of each cover type in the HSI analysis")
 
 ```
 
+When weighting HSI values by the frequency of observations with a cover type (at least 20%), 
+cobble and aquatic vegetation are no longer above HSI 0.5.
 
-#### Site Level Analysis
+```{r echo=FALSE, message = F, warning = F}
+cols <- c('small_woody_debris', 'large_woody_debris', 'boulder', 'cobble', 'undercut_bank', 'aquatic_veg', 'overhanging_veg')
+
+mark_gard_1998_hsi(data = feather_cover, percent_presence = 20, cols = cols) |> 
+  pivot_longer(cols = c(hsi_presence), names_to = "HSI", values_to = "values") |> 
+  left_join(weights |> select(type, weighting_factor)) |> 
+  mutate(values = values * weighting_factor,
+         high_hsi = ifelse(values >= 0.5, "high", "low")) |> 
+  ggplot() + 
+  geom_col(aes(y = values, x = type, fill = high_hsi), position = "dodge") +
+  scale_fill_manual(values = c("#FD6467", "#F5CDB4")) +
+  coord_flip() +
+  ggtitle('Mark Gard 1998: Cover HSI for all of Feather River weighted by cover type frequency') + 
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+#### Site Level Analysis {.tabset}
 
 Goal 1) compare how site specific HSIs compare across the high and low flow channel, using hatchery ditch (low flow) and g95 (high flow)
 
 Goal 2) how does HSI compare temporally across a single site?
 
 ```{r include=FALSE}
-mark_gard_1998_hsi_by_location <- function(data, percent_presence = 20, cols = c(), location_name) {
+mark_gard_1998_hsi_by_location <- function(data, percent_presence = 20, cols = c(), location_name, month_select) {
   data_tidy <- data |> 
-    filter(location_name == location) |> 
+    mutate(month = month(date)) |> 
+    filter(location_name == location & month %in% month_select) |> 
     select(count, cols) |> 
     mutate(fish_presence = ifelse(count > 0, 1, 0)) |> 
     pivot_longer(cols = cols, names_to = "type", values_to = "percent") |> 
@@ -216,27 +241,235 @@ mark_gard_1998_hsi_by_location <- function(data, percent_presence = 20, cols = c
 }
 ```
 
-```{r echo=FALSE}
-mark_gard_1998_hsi_by_location(data = feather_cover, percent_presence = 20, cols = cols, location_name = "hatchery ditch") |> 
+##### Comparing G95 & Hatchery Ditch
+
+Small woody debris and overhanging vegetation are above HSI 0.5 in both locations
+(which corresponds to what we saw when looking across all locations when weighted),
+while cobble is above 0.5 only in G95.
+
+```{r echo=FALSE, message = F, warning = F}
+mark_gard_1998_hsi_by_location(data = feather_cover, percent_presence = 20, cols = cols, location_name = "hatchery ditch", month_select = c(3:8)) |> 
   mutate(location = "hatchery ditch") |> 
   pivot_longer(cols = c(hsi_presence), names_to = "HSI", values_to = "values") |> 
   bind_rows(mark_gard_1998_hsi_by_location(data = feather_cover, percent_presence = 20, 
-                                           cols = cols, location_name = "g95") |> 
+                                           cols = cols, location_name = "g95", month_select = c(3:8)) |> 
               mutate(location = "g95") |> 
               pivot_longer(cols = c(hsi_presence), names_to = "HSI", values_to = "values")) |> 
+  mutate(high_hsi = ifelse(values >= 0.5, "high", "low")) |> 
 ggplot() + 
-  geom_col(aes(y = values, x = type), position = "dodge") +
+  geom_col(aes(y = values, x = type, fill = high_hsi), position = "dodge") +
+  scale_fill_manual(values = c("#FD6467", "#F5CDB4")) +
   coord_flip() +
   facet_grid(~location) +
   xlab("Cover Types") + 
   ylab("HSI") + 
-  theme_minimal()
+  theme_minimal() +
+  theme(legend.position = "none")
 
 ```
+
+```{r include=FALSE}
+weighting_factor <- function(enter_location_name) {
+  feather_cover |> 
+  filter(location == enter_location_name) |> 
+    select(count, cols) |> 
+   # mutate(fish_presence = ifelse(count > 0, 1, 0)) |> 
+    pivot_longer(cols = cols, names_to = "type", values_to = "percent") |> 
+    mutate(presence = ifelse(percent >= 20, 1, 
+                             ifelse(percent < 20 & percent > 0, 0, NA))) |> 
+    group_by(type, presence) |> 
+    filter(percent >= 20) |> 
+    tally() |> 
+    ungroup() |> 
+    mutate(sum_n = sum(n),
+           weighting_factor = 1-(n/sum_n)) 
+}
+
+hatchery_ditch_weights <- weighting_factor("hatchery ditch")
+g95_weights <- weighting_factor("g95")
+
+weights <- bind_rows(hatchery_ditch_weights |> 
+                       mutate(location = "hatchery ditch"),
+                     g95_weights |> 
+                       mutate(location = "g95"))
+```
+
+When we apply the weighting factor, the results are similar except that overhanging 
+vegetation only reaches 0.4 in G95 and small woody debris only reaches 0.4 in Hatchery 
+Ditch.
+
+```{r echo=FALSE, message = F, warning = F}
+mark_gard_1998_hsi_by_location(data = feather_cover, percent_presence = 20, cols = cols, location_name = "hatchery ditch", month_select = c(3:8)) |> 
+  mutate(location = "hatchery ditch") |> 
+  pivot_longer(cols = c(hsi_presence), names_to = "HSI", values_to = "values") |> 
+  bind_rows(mark_gard_1998_hsi_by_location(data = feather_cover, percent_presence = 20, 
+                                           cols = cols, location_name = "g95", month_select = c(3:8)) |> 
+              mutate(location = "g95") |> 
+              pivot_longer(cols = c(hsi_presence), names_to = "HSI", values_to = "values")) |> 
+  left_join(weights |> select(location, type, weighting_factor)) |> 
+  mutate(values = values*weighting_factor,
+         high_hsi = ifelse(values >= 0.5, "high", "low")) |> 
+ggplot() + 
+  geom_col(aes(y = values, x = type, fill = high_hsi), position = "dodge") +
+  scale_fill_manual(values = c("#FD6467", "#F5CDB4")) +
+  coord_flip() +
+  facet_grid(~location) +
+  xlab("Cover Types") + 
+  ylab("HSI weighted by cover type frequency") + 
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+##### Comparing Hatchery Ditch & G95 across months
+
+**Hatchery Ditch**
+
+1. HSI by month
+
+Overhanging vegetation is consistently HSI 0.5, except in July when there were no
+fish observations. Small woody debris is important in April and June (even though
+there was small woody debris in March and May as well). Aquatic vegetation is only
+important in June (even though there was aquatic vegetation in March-May).
+
+```{r echo=FALSE, message = F, warning = F}
+mark_gard_1998_hsi_by_location(data = feather_cover, percent_presence = 20, cols = cols, location_name = "hatchery ditch", month_select = c(3)) |> 
+  mutate(month = "Mar") |> 
+  pivot_longer(cols = c(hsi_presence), names_to = "HSI", values_to = "values") |> 
+  bind_rows(mark_gard_1998_hsi_by_location(data = feather_cover, percent_presence = 20, cols = cols, location_name = "hatchery ditch", month_select = c(4)) |> 
+  mutate(month = "Apr") |> 
+  pivot_longer(cols = c(hsi_presence), names_to = "HSI", values_to = "values"),
+  mark_gard_1998_hsi_by_location(data = feather_cover, percent_presence = 20, cols = cols, location_name = "hatchery ditch", month_select = c(5)) |> 
+  mutate(month = "May") |> 
+  pivot_longer(cols = c(hsi_presence), names_to = "HSI", values_to = "values"),
+  mark_gard_1998_hsi_by_location(data = feather_cover, percent_presence = 20, cols = cols, location_name = "hatchery ditch", month_select = c(6)) |> 
+  mutate(month = "Jun") |> 
+  pivot_longer(cols = c(hsi_presence), names_to = "HSI", values_to = "values"),
+  mark_gard_1998_hsi_by_location(data = feather_cover, percent_presence = 20, cols = cols, location_name = "hatchery ditch", month_select = c(7)) |> 
+  mutate(month = "Jul") |> 
+  pivot_longer(cols = c(hsi_presence), names_to = "HSI", values_to = "values"),
+  mark_gard_1998_hsi_by_location(data = feather_cover, percent_presence = 20, cols = cols, location_name = "hatchery ditch", month_select = c(8)) |> 
+  mutate(month = "Aug") |> 
+  pivot_longer(cols = c(hsi_presence), names_to = "HSI", values_to = "values")) |> 
+  mutate(month = factor(month, levels = c("Mar", "Apr", "May", "Jun", "Jul", "Aug")),
+          high_hsi = ifelse(values >= 0.5, "high", "low")) |> 
+ggplot() + 
+  geom_col(aes(y = values, x = type, fill = high_hsi), position = "dodge") +
+  scale_fill_manual(values = c("#FD6467", "#F5CDB4")) +
+  coord_flip() +
+  facet_wrap(~month) +
+  xlab("Cover Types") + 
+  ylab("HSI") + 
+  ggtitle('Hatchery Ditch') + 
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+2. Check the number of microhabitat units (by month) where each cover type was greater than 20%
+
+The HSI plot is dependent on these frequencies but is not identical - the HSI 0
+may due to no cover or no fish observations. 
+
+TODO - remove cover types in the HSI plot that were not present at all
+
+This plot can be used with the HSI plot to inform the interpretation
+
+```{r, echo =FALSE, message = F, warning = F}
+feather_cover |> 
+  filter(location == "hatchery ditch") |> 
+  mutate(month = month(date)) |> 
+  pivot_longer(cols = cols, names_to = "type", values_to = "percent") |> 
+    mutate(presence = ifelse(percent >= 20, 1, 
+                             ifelse(percent < 20 & percent > 0, 0, NA))) |>
+  group_by(month, type, micro_hab_data_tbl_id) |> 
+  summarize(presence = sum(presence, na.rm =T)) |>
+  mutate(presence = ifelse(presence >= 1, 1,
+                           ifelse(presence == 0, 0, NA))) |> 
+  group_by(month, type, presence) |> 
+  tally() |>
+  filter(presence == 1) |> 
+  ggplot() + 
+  geom_col(aes(y = n, x = type), position = "dodge") +
+  coord_flip() +
+  facet_wrap(~month) +
+  xlab("Cover Types") + 
+  ylab("Number of microhabitat units with at least 20% of the cover type") + 
+  theme_minimal()
+```
+
+**G95**
+
+1. HSI by month
+
+There were no fish observations after April. Undercut bank, large woody debris, 
+and boulder were rather present in this location. Small woody debris and cobble were only important
+in March (even though present in April). Overhanging vegetation and aquatic vegetation
+were only important in April (even though present in March).
+
+```{r echo=FALSE, message = F, warning = F}
+mark_gard_1998_hsi_by_location(data = feather_cover, percent_presence = 20, cols = cols, location_name = "g95", month_select = c(3)) |> 
+  mutate(month = "Mar") |> 
+  pivot_longer(cols = c(hsi_presence), names_to = "HSI", values_to = "values") |> 
+  bind_rows(mark_gard_1998_hsi_by_location(data = feather_cover, percent_presence = 20, cols = cols, location_name = "g95", month_select = c(4)) |> 
+  mutate(month = "Apr") |> 
+  pivot_longer(cols = c(hsi_presence), names_to = "HSI", values_to = "values"),
+  mark_gard_1998_hsi_by_location(data = feather_cover, percent_presence = 20, cols = cols, location_name = "g95", month_select = c(5)) |> 
+  mutate(month = "May") |> 
+  pivot_longer(cols = c(hsi_presence), names_to = "HSI", values_to = "values"),
+  mark_gard_1998_hsi_by_location(data = feather_cover, percent_presence = 20, cols = cols, location_name = "g95", month_select = c(6)) |> 
+  mutate(month = "Jun") |> 
+  pivot_longer(cols = c(hsi_presence), names_to = "HSI", values_to = "values"),
+  mark_gard_1998_hsi_by_location(data = feather_cover, percent_presence = 20, cols = cols, location_name = "g95", month_select = c(7)) |> 
+  mutate(month = "Jul") |> 
+  pivot_longer(cols = c(hsi_presence), names_to = "HSI", values_to = "values"),
+  mark_gard_1998_hsi_by_location(data = feather_cover, percent_presence = 20, cols = cols, location_name = "g95", month_select = c(8)) |> 
+  mutate(month = "Aug") |> 
+  pivot_longer(cols = c(hsi_presence), names_to = "HSI", values_to = "values")) |> 
+  mutate(month = factor(month, levels = c("Mar", "Apr", "May", "Jun", "Jul", "Aug")),
+          high_hsi = ifelse(values >= 0.5, "high", "low")) |> 
+ggplot() + 
+  geom_col(aes(y = values, x = type, fill = high_hsi), position = "dodge") +
+  scale_fill_manual(values = c("#FD6467", "#F5CDB4")) +
+  coord_flip() +
+  facet_wrap(~month) +
+  xlab("Cover Types") + 
+  ylab("HSI") + 
+  ggtitle('G95') + 
+  theme_minimal() +
+  theme(legend.position = "none")
+
+```
+
+2. Check the number of microhabitat units (by month) where each cover type was greater than 20%
+
+```{r, echo =FALSE, message = F, warning = F}
+feather_cover |> 
+  filter(location == "g95") |> 
+  mutate(month = month(date)) |> 
+  pivot_longer(cols = cols, names_to = "type", values_to = "percent") |> 
+    mutate(presence = ifelse(percent >= 20, 1, 
+                             ifelse(percent < 20 & percent > 0, 0, NA))) |>
+  group_by(month, type, micro_hab_data_tbl_id) |> 
+  summarize(presence = sum(presence, na.rm =T)) |>
+  mutate(presence = ifelse(presence >= 1, 1,
+                           ifelse(presence == 0, 0, NA))) |> 
+  group_by(month, type, presence) |> 
+  tally() |>
+  filter(presence == 1) |> 
+  ggplot() + 
+  geom_col(aes(y = n, x = type), position = "dodge") +
+  coord_flip() +
+  facet_wrap(~month) +
+  xlab("Cover Types") + 
+  ylab("Number of microhabitat units with at least 20% of the cover type") + 
+  theme_minimal()
+```
+
+#### Next Steps
 
 **Decisions**
 
 -   The HSI's were developed for fish presence or absence (1/0) regardless of how many fish were present. This was decided to eliminate potential challenges in counting number of fish present and with the assumption that if a fish was present, the habitat is suitable for other fish to also be present.
+- Weighting by the relative frequency of each cover type does not drastically change results but should be applied because it makes sense in order to compare across cover types.
 
 **Discussion**
 
@@ -247,4 +480,5 @@ ggplot() +
 -   What is the temporal and spatial scale needed for HSI development?
 
 -   Do we want to weight cover variables to better balance HSI? 
+- There are differences in HSI across time and space. Should we spend more time to characterize these?
 
