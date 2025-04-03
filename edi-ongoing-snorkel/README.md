@@ -4,7 +4,7 @@ This guide provides step-by-step instructions to update the Feather River EDI pa
 
 ## Navigating to the Repository
 All data processing and EDI uploads are managed in the same repository.  
-1. Navigate to the [project repository](https://github.com/FlowWest/edi-feather-snorkel) and clone it to your local machine.
+1. Navigate to the [project repository](https://github.com/Healthy-Rivers-and-Landscapes-Science/feather-river/tree/main/edi-ongoing-snorkel) and clone it to your local machine.
 
 ## Adding Data
 1. After adding new data to the Microsoft Access Database (`Snorkel_Revised.mdb`), make sure updates are also located in the `data-raw/db-files` folder.
@@ -13,7 +13,7 @@ All data processing and EDI uploads are managed in the same repository.
 ## Processing Data
 Data processing is handled by one script located in the `files_for_uploading_EDI` folder: `combine_and_clean_data.R`
 
-1. Run `combine_and_clean_data.R` (located [here](https://github.com/FlowWest/edi-feather-snorkel/tree/main/data-raw/data-prep-scripts/combine_and_clean_data.R)).
+1. Run `combine_and_clean_data.R` (located [here](https://github.com/Healthy-Rivers-and-Landscapes-Science/feather-river/blob/main/edi-ongoing-snorkel/data-raw/files_for_updating_EDI/combine_and_clean_data.R)).
    - This script cleans and consolidates data to ensure consistency and accuracy across different years.
    - A lookup table (`locations_lookup.csv`) is generated to address challenges in relating data to specific locations.
    - Data duplicates and missing data are handled by filtering or categorizing appropriately.
@@ -21,7 +21,7 @@ Data processing is handled by one script located in the `files_for_uploading_EDI
      - `fish_observations.csv`
      - `survey_characteristics.csv`
    
-2. After generating the CSV files, update their metadata (located [here](https://github.com/FlowWest/edi-feather-snorkel/tree/main/data-raw/metadata)):
+2. After generating the CSV files, update their metadata (located [here](https://github.com/Healthy-Rivers-and-Landscapes-Science/feather-river/tree/main/edi-ongoing-snorkel/data-raw/files_for_updating_EDI/metadata)):
    - **Survey Characteristics** (`survey_characteristics_metadata.xlsx`): Update the minimum and maximum values for fields such as date, flow, turbidity, temperature, and visibility.
    - **Fish Observations** (`fish_observations_metadata.xlsx`): Update the minimum and maximum values for fields like date, count, fork length, depth, and velocity.
    - **Locations Lookup** will most likely not change, unless a new location is added. If so, then metadata will also need to be updated.
