@@ -24,7 +24,7 @@ the data lifecycle: data description, storage and access (Figure 1, below).
 
 In 2001 and 2002, the California Department of Water Resources (DWR) conducted snorkel surveys between March and August at 29 sampling locations in the Feather River (13 in the Low Flow Channel, 16 in the High Flow Channel). Each survey location covered an area of 25 meters long and four meters wide and ran parallel to one riverbank. Two divers surveyed the reach by swimming upstream and marking the location of fish observations and the number, species and size of the fish observed. The divers would then measure water depth, average velocity, substrate, cover, and habitat types at 36 points (e.g. the microhabitat unit), each representing one square meter within the reach. The divers also returned to the locations where fish were observed and measured depth and focal velocity associated with each fish observation. Water temperature was continuously monitored through a network of StowAway electronic thermistors. 
 
-Insert diagram of methods.
+![Figure 2. Diagram of the mini snorkel data collection design including a map of the snorkel sites on the Feather River, an aerial photo of a representative site, and an illustration of a survey section randomly selected at each site.](minisnork_methods_figure02182025.jpg)
 
 ## Relevant Data Definitions
 

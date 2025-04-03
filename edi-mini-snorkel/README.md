@@ -15,3 +15,4 @@ The data files were prepared using `data-raw/prepare_data.Rmd` which sources a q
 extract data from the appropriate databases (saved in the `databases` folder and extracted tables are saved in `database-tables`).
 
 Exploratory data analysis and QC was performed and retained in the `qc` folder.
+
