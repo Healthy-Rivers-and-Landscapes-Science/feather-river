@@ -33,8 +33,8 @@ database was provided that only contained 2001 data
 (`MiniSnorkelDTB.mdb`). Upon exploration and comparison between this new
 database and the old database, it was decided that we will move forward
 using this database for publishing on EDI. For details on the
-`MiniSnorkelDTB` database visit: `qc_mini_snorkel_data.Rmd` and for
-details on the database comparison, visit: `database_qc.Rmd`.
+`MiniSnorkelDTB` database visit: `qc/qc_mini_snorkel_data.Rmd` and for
+details on the database comparison, visit: `qc/database_qc.Rmd`.
 
 **Timeframe:** March 2001 - August 2002
 
@@ -49,7 +49,7 @@ details on the database comparison, visit: `database_qc.Rmd`.
 -   Database name: `minisnorkdb3.mdb`
 
 ```{r include=FALSE}
-source(here::here('data-raw', 'query_4mac.R'))
+source(here::here('edi-mini-snorkel','data-raw', 'query_4mac.R'))
 ```
 
 Read in data sourced from query script, glimpse raw data and domain
@@ -975,7 +975,7 @@ name list from 2001.
 
 ```{r}
 # This is created in the qc_mini_snorkel_data.Rmd
-survey_locations_2001 <- read_csv(here::here("data", "archive", "survey_locations.csv")) 
+survey_locations_2001 <- read_csv(here::here("edi-mini-snorkel", "data", "archive", "survey_locations.csv")) 
 
 # the only two names that exist in the 2002 dataset are and NOT the 2001 are: cox riffle and gateway riffle
 setdiff(sort(unique(survey_locations$location)), sort(unique(survey_locations_2001$location)))
@@ -1032,181 +1032,5 @@ write_csv(microhabitat_with_fish_detections, here::here("data", "microhabitat_ob
 ```{r}
 
 knitr::knit_exit()
-
-```
-
-# OLD location reconciliation. do not run. 
-
-```{r}
-# Ryon reviewed the list of revised locations and provided some changes
-rk_revised <- read_csv(here::here("data-raw", "check_locations_4ryon_rk.csv")) |>
-  rename(location = existing_location_name) |>
-  distinct() |>
-  filter(revised_location_name != "trailer park") |> 
-  rename(old_location_name = location, 
-         location = revised_location_name) 
-
-survey_locations_revised <- survey_locations |> 
-  left_join(rk_revised) |> 
-  select(-c(old_location_name)) 
-
-write_csv(survey_locations_revised, here::here("data-raw","survey_locations_revised.csv"))
-
-# Ashley used google to QC the coordinates- looked up coordinates by entering 39 (deg symbol) XX.XXN 121 (deg symbol) XX.XXW
-survey_locations_google <- read_csv(here::here("data-raw", "survey_locations_revised_av.csv")) |> 
-  mutate(date = lubridate::mdy(date)) |> 
-  select(location, gps_coordinate, longitude_google, latitude_google) |> 
-  filter(!is.na(gps_coordinate)) |> 
-  glimpse()
-
-# NOTE: there are still some NAs in the GPS coordinates; unsure how much of an issue this is.. 
-combined_survey_locations <- survey_locations_revised |> 
-  left_join(survey_locations_google)
-
-```
-
-```{r}
-# badhia pulled coordinates from kmz Casey provided, use this to try and associate coordinates with the locations (https://netorg629193.sharepoint.com/:u:/s/VA-FeatherRiver/EeHO1UrPtzVMiO1lFkFTBQwBhTzsveQ6d62gZv7fbxVldg?e=hSjJDR)
-# There are multiple coordinates for each location so take the average
-detach("package:Hmisc", unload = TRUE)
-coordinates_from_kmz_raw <- read_csv(here::here("data-raw", "Coordinates_Snorkel_Survey_Locations.csv"))
-
-coordinates_from_kmz <- coordinates_from_kmz_raw |> 
-  rename(location = Name) |> 
-  mutate(location = tolower(location)) |> 
-  group_by(location) |> 
-  summarize(longitude = mean(Longitude),
-            latitude = mean(Latitude)) |> 
-  # adjusting some names to match with the survey locations
-  mutate(location = case_when(location == "alec riffle" ~ "aleck riffle",
-                              location == "bedrock riffle" ~ "bedrock park riffle",
-                              location == "g95 side channel" ~ "g95",
-                              location == "gridley side channel" ~ "gridley riffle",
-                              location == "upper mcfarland" ~ "macfarland riffle",
-                              location == "vance west" ~ "vance avenue",
-                              T ~ location))
-# find an average lat/long by location name
-coordinate_from_google <- combined_survey_locations |> 
-  mutate(longitude_google = ifelse(location_table_id %in% c(25,34,112), NA, longitude_google),
-         longitude_google = as.numeric(longitude_google)) |> 
-  group_by(location) |> 
-  summarize(longitude_google = mean(longitude_google, na.rm = T),
-            latitude_google = mean(latitude_google, na.rm = T))
-
-# summary of assigning coordinates
-# 1. use the coordinates reported in the db (if when QCd the coordinate makes sense), convert to lat/long
-# 2. for missing coordinates use the average location level as provided by Casey in kmz file or the average location level as reported
-
-# following these steps we have 5 missing coordinates for sites - 
-# bedrock riffle, lower big hole, mcfarland riffle, vance riffle, cox riffle
-location_coordinates <- combined_survey_locations |> 
-  select(location_table_id, location, river_mile, longitude_google, latitude_google) |> 
-  mutate(longitude_google = ifelse(location_table_id %in% c(25,34,112), NA, longitude_google),
-         longitude_google = as.numeric(longitude_google)) |> 
-  left_join(coordinates_from_kmz) |> 
-  mutate(coordinate_method = case_when(!is.na(longitude_google) ~ "reported in database",
-                                       is.na(longitude_google) & !is.na(longitude) ~ "kmz from casey"),
-         longitude_google = case_when(is.na(longitude_google) & !is.na(longitude) ~ longitude,
-                                      T ~ longitude_google),
-         latitude_google = case_when(is.na(latitude_google) & !is.na(latitude) ~ latitude,
-                                     T ~ latitude_google)) |> 
-  select(location_table_id, location, river_mile, longitude_google, latitude_google, coordinate_method) |> 
-  rename(longitude = longitude_google,
-         latitude = latitude_google) |> 
-  left_join(coordinate_from_google) |> 
-  mutate(coordinate_method = case_when(is.na(longitude) & !is.na(longitude_google) ~ "location average",
-                                       T ~ coordinate_method),
-         longitude = case_when(is.na(longitude) & !is.na(longitude_google) ~ longitude_google,
-                               T ~ longitude),
-         latitude = case_when(is.na(latitude) & !is.na(latitude_google) ~ latitude_google,
-                              T ~ latitude)) |> 
-  select(-c(longitude_google, latitude_google))
-
-survey_locations_with_latlong <- survey_locations_revised |> 
-  select(-gps_coordinate, -river_mile) |>  # this field is messy and was converted to lat/long so removing
-  left_join(location_coordinates) 
-
-location_coordinates |> filter(is.na(coordinate_method)) |> distinct(location)
-
-write_csv(survey_locations_with_latlong, here::here("data", "survey_locations.csv"))
-```
-
-```{r}
-ryon_coordinates <- readxl::read_xlsx(here::here("data-raw", "survey_locations_name_cleanup_rk.xlsx")) |> 
-  select(-date, -location_table_id, -location) |> 
-  rename(location = location_revised) |> 
-  rename(rk_latitude = latitude,
-         rk_longitude = longitude,
-         #rk_location = location,
-         # rk_location_revised = location,
-         channel_location = channel) |> 
-  glimpse()
-
-locations_ck <- survey_locations_with_latlong |> 
-  left_join(ryon_coordinates) #|>  
-  #select(location, rk_latitude, rk_longitude, channel_location)
-
-# there are some locations where ryon updated name
-# locations_ck |> 
-#   filter(location != rk_location_revised)
-
-survey_locations_post_ryon_revisions <- locations_ck |> 
-mutate(#location = rk_location_revised,
-rk_latitude = ifelse(is.na(rk_latitude), latitude, rk_latitude),
-rk_longitude = ifelse(is.na(rk_longitude), longitude, rk_longitude),
-coordinate_method = case_when(coordinate_method %in% c("location average","kmz from casey") | 
-is.na(coordinate_method) ~ "assigned based on similar location",
-T ~ coordinate_method)) |> # assume all from ryon are assigned from similar location (these are the same ones that I tried to fill in)
-select(-c(latitude, longitude)) |> # rk_location, rk_location_revised
-rename(latitude = rk_latitude,
-longitude = rk_longitude)
-
-# i plotted these locations on the map and noticed some disconnect between the name and coordinate
-# suggested to ryon that we update these coordinates based on his method of selecting another with same name, he agreed
-#      * 79 - Location name = eye riffle. This is how name was reported on database. Coordinates were reported in the database, but when mapped it shows next to aleck riffle. Adjust coordinates to be near eye riffle?
-# * 78 - Location name = eye riffle. This is how name was reported on database. Coordinates were reported in the database, but when mapped it shows next to aleck riffle. Adjust coordinates to be near eye riffle?
-# * 68 - Location name = g95. Coordinates were reported in the database, but when mapped it shows next to lower big hole. Adjust coordinates to be near g95?
-# * 102 - Location name = g95. Coordinates were reported in the database, but when mapped it shows next to lower big hole. Adjust coordinates to be near g95?
-# * 146 - Location name = big bar. Shows up near Goose Riffle. This is one of the coordinates you changed.
-# * 30 - Location name = macfarland riffle. Shows up near Big Bar. Adjust coordinates?
-# * 27 - Location name = gridley riffle. Shows up near macfarland riffle. Adjust coordinates?
-
-coordinate_by_name <- survey_locations_post_ryon_revisions |> 
-filter(!location_table_id  %in% c(79, 78, 68, 102, 146, 30, 27)) |> 
-select(location, latitude, longitude) |> 
-group_by(location) |> 
-slice_head() |> 
-rename(loc_lat = latitude,
-loc_long = longitude) |> 
-filter(!is.na(location)) # removes one field of all NAs
-
-survey_locations_post_ryon_revisions_qc <- survey_locations_post_ryon_revisions |> 
-left_join(coordinate_by_name) |> 
-mutate(latitude = ifelse(location_table_id  %in% c(79, 78, 68, 102, 146, 30, 27), loc_lat, latitude),
-longitude = ifelse(location_table_id %in% c(79, 78, 68, 102, 146, 30, 27), loc_long, longitude),
-coordinate_method = ifelse(location_table_id %in% c(79, 78, 68, 102, 146, 30, 27), "assigned based on similar location", coordinate_method)) |> 
-select(location_table_id, date, location, channel_location, water_temp, weather, flow, number_of_divers, reach_length, reach_width, channel_width, channel_type, river_mile, coordinate_method, latitude, longitude)
-
-# these edits were mapped and there are no longer any disconnect between the location name and coordinates
-```
-
-## Save cleaned data to data/
-
-```{r}
-# Save to data folder
-# Name file [watershed]_[data type].csv
-write_csv(microhabitat_with_fish_detections, here::here("data", "microhabitat_observations.csv"))
-#write_csv(survey_locations, "data/survey_locations.csv")
-write_csv(survey_locations_post_ryon_revisions_qc, here::here("data", "survey_locations.csv"))
-
-# create list of existing locations and revised locations for casey and ryon to check
-# check_locations <- survey_locations |> 
-#   select(location, location_revised) |> 
-#   rename(existing_location_name = location,
-#          revised_location_name = location_revised)
-# write_csv(check_locations, "data-raw/check_locations_4ryon.csv")
-# TODO add coordinates for survey locations
-# From Casey kmz we have the following: aleck riffle, auditorium riffle, bedrock riffle, eye riffle, eye side channel, g95, goose riffle, gridley riffle, hatchery riffle, junkyard riffle, matthews riffle, robinson riffle, steep riffle, trailer park riffle, vance riffle
-# Missing big bar, big hole, hatchery ditch, herringer riffle, hour bars, hour riffle, lower big hole, lower hour, mcfarland riffle, shallow riffle, upper big hole, weir riffle
 
 ```
