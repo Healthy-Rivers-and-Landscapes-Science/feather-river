@@ -1,6 +1,6 @@
 ##########################################################
 # Created by: Pascale Goertler (pascale.goertler@water.ca.gov)
-# Last updated: 12/17/2025
+# Last updated: 1/21/2025
 # Description: This script pulls in data from EDI and evaluates data using diagnostics from Zuur et al. 2010
 # Intended to explore Feather River data use in Science Plan hypothesis S3
 #########################################################
@@ -11,6 +11,8 @@
 library(EDIutils)
 library(lattice)
 library(car)
+library(tidyverse)
+library(readxl)
 
 # get data
 temp <- read_data_entity_names(packageId = "edi.1802.2")
@@ -23,10 +25,11 @@ str(data)
 summary(data)
 
 # to get to redd density we need to have stream lengths and/or project area by site
-location <- unique(data$location) #49 sites
-size = NA
-ref = NA
-dat_location <- cbind(location, size, ref) # for meeting in Jan 2026
+# made for Januray 2025 discussion, no longer needed
+# location <- unique(data$location) #49 sites
+# size = NA
+# ref = NA
+# dat_location <- cbind(location, size, ref) # for meeting in Jan 2026
 # write.csv(dat_location, "need_loc_detail.csv")
 
 # add month, year and water year
@@ -101,6 +104,16 @@ vif(full_model_salmon)
 # look at space and time...
 summary <- data %>%
   group_by(location, month, water_year) %>%
+  summarise(total_num_redd = sum(number_redds, na.rm = TRUE),
+            sample = n())
+
+site_redds <- data %>%
+  group_by(location) %>%
   summarize(total_num_redd = sum(number_redds, na.rm = TRUE),
             sample = n())
 
+# add site size and restoration status data (will be added to edi soon)
+site_dat <-  read_excel("Copy of FR_Redd Survey Locations.xlsx")
+# check that the two data have the same site names
+check <- merge(site_dat, dat_location, by = "location", all=TRUE)
+# location "big" is additional to redd data, but all redd sites are included
