@@ -13,6 +13,9 @@ library(lattice)
 library(car)
 library(tidyverse)
 library(readxl)
+library(sf)
+library(leaflet)
+
 
 # get data
 temp <- read_data_entity_names(packageId = "edi.1802.2")
@@ -103,9 +106,12 @@ vif(full_model_salmon)
 
 # look at space and time...
 summary <- data %>%
-  group_by(location, month, water_year) %>%
+  group_by(location, water_year, latitude, longitude) %>%
   summarise(total_num_redd = sum(number_redds, na.rm = TRUE),
             sample = n())
+#don't have lat/lon when zero redds observed, need to make general location for map
+gen_loc <- subset(summary, total_num_redd==0)
+unique(gen_loc$location) #all of them
 
 site_redds <- data %>%
   group_by(location) %>%
@@ -117,3 +123,37 @@ site_dat <-  read_excel("Copy of FR_Redd Survey Locations.xlsx")
 # check that the two data have the same site names
 check <- merge(site_dat, dat_location, by = "location", all=TRUE)
 # location "big" is additional to redd data, but all redd sites are included
+
+# make map with restoration status and year
+dat_redds <- subset(summary, total_num_redd>=1)
+data_loc <- unique(dat_redds[,c(1:4)])
+map_dat <- merge(site_dat[,-c(1,3)], data_loc, by = "location", all=TRUE)
+map_dat_na <- map_dat[!is.na(map_dat$latitude), ]
+
+# restored/not restored as symbol, redd observed before/after restoration in color
+# Convert df to sf
+dat_4326 <- st_as_sf(map_dat_na,
+                     coords = c('longitude', 'latitude'),
+                     crs = 4326,
+                     remove = F)
+
+head(dat_4326)
+plot(dat_4326["restored"])
+
+dat_4326_res <- subset(dat_4326, latitude > 39.48)
+
+ggplot(dat_4326_bedrock,
+       aes(color = water_year, shape = when_restored))+
+  geom_sf() +
+  #ylim(39.51, 39.518) +
+  facet_wrap(~restored)
+
+dat_4326_bedrock <- subset(dat_4326, location == "bedrock") # just look at HRL site
+dat_4326_bedrock <- subset(dat_4326_bedrock, longitude < 121.564)
+
+dat_4326_ref <- subset(dat_4326_res, water_year>=2018) # possible reference sites for bedrock
+unique(dat_4326_ref$location)
+
+ggplot(dat_4326_ref,aes(color = location, shape = restored))+
+  facet_wrap(~ water_year) +
+  geom_sf()
