@@ -16,3 +16,6 @@ Snorkel surveys were conducted between March and August at 24 sampling locations
 Coordinates were not recorded for every survey section. Coordinates were obtained using a handheld GPS unit with a measurement error of about 20 meters. Coordinates were not consistently recorded at the top or bottom of a survey section. Coordinates were not obtained for each microhabitat plot as the measurement error was too large. 
 In order, to fill in missing coordinates for survey sections we relied on location information at the next level up in the hierarchy, the survey location. Survey location names were not standardized and were cleaned to group all locations with common names. For survey sections that were missing coordinates or had assumed incorrect coordinates (located outside of the river or inconsistent coordinate and location name), a random coordinate from the appropriate survey location was selected. Coordinates that were filled in using this method are labelled in the dataset.
 
+## Resources
+Code used to develop this data publication is available on GitHub: https://github.com/Healthy-Rivers-and-Landscapes-Science/feather-river/tree/main/edi-mini-snorkel.
+
