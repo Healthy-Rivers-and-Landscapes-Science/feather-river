@@ -20,6 +20,8 @@ Historically, data were collected only where redds were present. Documentation a
 
 Measurements are not available for every redd due to high numbers of redds late in the season and resource limitations.
 
-# Attachments
+# Resources
 
-Attached are the methods for this data collection effort including project maps.
+Code used to develop this data publication is available on GitHub: https://github.com/Healthy-Rivers-and-Landscapes-Science/feather-river/tree/main/edi-redd
+
+Additional documentation on methods can be found on GitHub: https://github.com/Healthy-Rivers-and-Landscapes-Science/feather-river/blob/main/edi-redd/data-raw/metadata/General_Chinook_Salmon_Redd_Survey_Methods_with_Yearly_Summaries.pdf 
