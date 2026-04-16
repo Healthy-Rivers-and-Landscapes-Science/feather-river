@@ -289,6 +289,7 @@ year,location,surveyed,start_date,end_date
 2015,upperhatchery,TRUE,2015-11-24,2015-11-24
 2015,upperhatchery,TRUE,2015-11-30,2015-11-30
 2015,upperhatchery,TRUE,2015-12-03,2015-12-04
+2015,belowbigholeeast,NA,NA,NA
 2015,bigbar,TRUE,2015-10-14,2015-10-16
 2015,bigbar,TRUE,2015-10-19,2015-10-23
 2015,bigbar,TRUE,2015-11-17,2015-11-19
@@ -329,6 +330,7 @@ year,location,surveyed,start_date,end_date
 2015,keister,TRUE,2015-10-19,2015-10-23
 2015,keister,TRUE,2015-11-17,2015-11-19
 2015,keister,TRUE,2015-12-03,2015-12-04
+2015,lowerbig,TRUE,NA,NA
 2015,lowerhour,TRUE,2015-10-14,2015-10-16
 2015,lowerhour,TRUE,2015-10-19,2015-10-23
 2015,lowerhour,TRUE,2015-11-17,2015-11-19
@@ -341,6 +343,7 @@ year,location,surveyed,start_date,end_date
 2015,lowervanceeast,TRUE,2015-10-19,2015-10-23
 2015,lowervanceeast,TRUE,2015-11-17,2015-11-19
 2015,lowervanceeast,TRUE,2015-12-03,2015-12-04
+2015,palm,TRUE,NA,NA
 2015,upperhour,TRUE,2015-10-14,2015-10-16
 2015,upperhour,TRUE,2015-10-19,2015-10-23
 2015,upperhour,TRUE,2015-11-17,2015-11-19
@@ -728,6 +731,7 @@ year,location,surveyed,start_date,end_date
 2017,aleck,TRUE,2017-11-27,2017-11-30
 2017,aleck,TRUE,2017-12-04,2017-12-07
 2017,aleck,TRUE,2017-12-11,2017-12-14
+2017,eye,TRUE,NA,NA
 2017,eyesidechannel,TRUE,2017-10-03,2017-10-06
 2017,eyesidechannel,TRUE,2017-10-10,2017-10-12
 2017,eyesidechannel,TRUE,2017-10-23,2017-10-26
@@ -1477,6 +1481,7 @@ year,location,surveyed,start_date,end_date
 2019,aleck,TRUE,2019-10-28,2019-11-01
 2019,aleck,TRUE,2019-11-04,2019-11-07
 2019,aleck,TRUE,2019-11-12,2019-11-15
+2019,eye,TRUE,NA,NA
 2019,eyesidechannel,TRUE,2019-09-23,2019-09-25
 2019,eyesidechannel,TRUE,2019-09-30,2019-10-04
 2019,eyesidechannel,TRUE,2019-10-07,2019-10-11
@@ -1517,6 +1522,7 @@ year,location,surveyed,start_date,end_date
 2019,steep,TRUE,2019-11-04,2019-11-07
 2019,steep,TRUE,2019-11-12,2019-11-15
 2019,steep,TRUE,2019-11-19,2019-11-22
+2019,steepsidechannel,TRUE,NA,NA
 2019,trailerpark,TRUE,2019-09-16,2019-09-20
 2019,trailerpark,TRUE,2019-09-23,2019-09-25
 2019,trailerpark,TRUE,2019-09-30,2019-10-04
@@ -1535,6 +1541,7 @@ year,location,surveyed,start_date,end_date
 2019,greatwestern,TRUE,2019-11-04,2019-11-07
 2019,greatwestern,TRUE,2019-11-12,2019-11-15
 2019,greatwestern,TRUE,2019-11-19,2019-11-22
+2019,uppermathews,TRUE,NA,NA
 2019,upperrobinson,TRUE,2019-09-23,2019-09-25
 2019,upperrobinson,TRUE,2019-09-30,2019-10-04
 2019,upperrobinson,TRUE,2019-10-07,2019-10-11
@@ -1868,6 +1875,7 @@ year,location,surveyed,start_date,end_date
 2021,goose,TRUE,2021-11-02,2021-11-05
 2021,keister,TRUE,2021-10-27,2021-10-28
 2021,keister,TRUE,2021-11-02,2021-11-05
+2021,lowerbig,TRUE,NA,NA
 2021,lowerhour,TRUE,2021-10-27,2021-10-28
 2021,lowerhour,TRUE,2021-11-02,2021-11-05
 2021,lowermcfarland,TRUE,2021-10-27,2021-10-28
@@ -2152,6 +2160,7 @@ year,location,surveyed,start_date,end_date
 2022,aleck,TRUE,2022-10-18,2022-10-20
 2022,aleck,TRUE,2022-11-07,2022-11-09
 2022,aleck,TRUE,2022-11-21,2022-11-23
+2022,eye,TRUE,NA,NA
 2022,eyesidechannel,TRUE,2022-09-19,2022-09-21
 2022,eyesidechannel,TRUE,2022-10-02,2022-10-06
 2022,eyesidechannel,TRUE,2022-10-25,2022-10-28
