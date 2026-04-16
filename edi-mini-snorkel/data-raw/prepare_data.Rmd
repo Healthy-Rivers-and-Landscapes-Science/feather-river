@@ -618,7 +618,7 @@ all_fish_data |>
   geom_histogram(breaks = seq(0, 75, by = 1)) +
   scale_x_continuous(breaks = seq(0, 75, by = 5)) +
   theme_minimal() +
-  labs(title = "Surface turbidity distribution") +
+  labs(title = "Surface turbulence distribution") +
   theme(
     text = element_text(size = 18),
     axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
@@ -997,7 +997,7 @@ microhabitat_with_fish_detections <- all_fish_data |>
   rename(
     transect_code = t_code,
     location_table_id = p_dat_id,
-    surface_turbidity = sur_turb
+    surface_turbulence = sur_turb
   ) |>
   mutate(
     species = tolower(species),
@@ -1033,7 +1033,7 @@ microhabitat_with_fish_detections <- all_fish_data |>
     depth,
     focal_velocity,
     velocity,
-    surface_turbidity,
+    surface_turbulence,
     percent_fine_substrate,
     percent_sand_substrate,
     percent_small_gravel_substrate,

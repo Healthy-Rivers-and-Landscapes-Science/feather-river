@@ -5,34 +5,26 @@ library(readxl)
 library(EML)
 
 datatable_metadata <-
-  dplyr::tibble(filepath = c("data/survey_locations.csv",
-                             "data/microhabitat_observations.csv"),
-                attribute_info = c("data-raw/metadata/survey_locations_metadata.xlsx",
-                                   "data-raw/metadata/microhabitat_metadata.xlsx"),
+  dplyr::tibble(filepath = c("edi-mini-snorkel/data/survey_locations.csv",
+                             "edi-mini-snorkel/data/microhabitat_observations.csv"),
+                attribute_info = c("edi-mini-snorkel/data-raw/metadata/survey_locations_metadata.xlsx",
+                                   "edi-mini-snorkel/data-raw/metadata/microhabitat_metadata.xlsx"),
                 datatable_description = c("Feather river mini snorkel survey locations data",
                                           "Feather river mini snorkel survey microhabitat data"),
-                datatable_url = paste0("https://raw.githubusercontent.com/FlowWest/feather-mini-snorkel/main/data/", # make sure to use this type of link rather than "https://github.com/FlowWest/feather-mini-snorkel/blob/main/data/microhabitat_observations.csv"
+                datatable_url = paste0("https://raw.githubusercontent.com/Healthy-Rivers-and-Landscapes-Science/feather-river/main/edi-mini-snorkel/data/", # make sure to use this type of link rather than "https://github.com/FlowWest/feather-mini-snorkel/blob/main/data/microhabitat_observations.csv"
                                        c("survey_locations.csv",
                                          "microhabitat_observations.csv")))
 
-# other_entity_metadata <- list("file_name" = c("DWR_2004_SP_F10_3A_Final_Report.pdf"),
-#                               "file_description" = c("Distribution and Habitat Use of Juvenile Steelhead and Other Fishes of the Lower Feather River"),
-#                               "file_type" = c("PDF"),
-#                               "physical" = create_physical("data-raw/metadata/DWR_2004_SP_F10_3A_Final_Report.pdf",
-#                                                            data_url = "https://raw.githubusercontent.com/FlowWest/feather-mini-snorkel/main/data-raw/metadata/DWR_2004_SP_F10_3A_Final_Report.pdf")
-# )
-# other_entity_metadata$physical$dataFormat <- list("externallyDefinedFormat" = list("formatName" = "PDF"))
-# save cleaned data to `data/`
-excel_path <- "data-raw/metadata/feather_mini_snorkel_metadata.xlsx" 
+excel_path <- "edi-mini-snorkel/data-raw/metadata/feather_mini_snorkel_metadata.xlsx"
 sheets <- readxl::excel_sheets(excel_path)
 metadata <- lapply(sheets, function(x) readxl::read_excel(excel_path, sheet = x))
 names(metadata) <- sheets
 
-abstract_docx <- "data-raw/metadata/abstract.docx"
-methods_docx <- "data-raw/metadata/methods.md"
+abstract_docx <- "edi-mini-snorkel/data-raw/metadata/abstract.docx"
+methods_docx <- "edi-mini-snorkel/data-raw/metadata/methods.md"
 
 #edi_number <- reserve_edi_id(user_id = Sys.getenv("EDI_USER_ID"), password = Sys.getenv("EDI_PASSWORD"))
-edi_number <- "edi.1705.3"
+edi_number <- "edi.1705.4"
 dataset <- list() %>%
   add_pub_date() %>%
   add_title(metadata$title) %>%
@@ -45,7 +37,6 @@ dataset <- list() %>%
   add_project(metadata$funding) %>%
   add_coverage(metadata$coverage, metadata$taxonomic_coverage) %>%
   add_datatable(datatable_metadata)
-  #add_other_entity(other_entity_metadata)
 
 # GO through and check on all units
 custom_units <- data.frame(id = c("number of divers", "river mile", "decimal degrees", "decimal degrees", "count of fish", "NTU"),
