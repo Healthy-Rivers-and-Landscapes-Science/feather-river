@@ -255,8 +255,8 @@
       <entityDescription>Redd observations from Feather River redd surveys</entityDescription>
       <physical>
         <objectName>redd_observation_w_zeros.csv</objectName>
-        <size unit="bytes">14</size>
-        <authentication method="MD5">3be7b8b182ccd96e48989b4e57311193</authentication>
+        <size unit="bytes">3884974</size>
+        <authentication method="MD5">50e6aeebcd0379ac43e836afca3f4e36</authentication>
         <dataFormat>
           <textFormat>
             <numHeaderLines>1</numHeaderLines>
@@ -269,7 +269,7 @@
         </dataFormat>
         <distribution>
           <online>
-            <url function="download">https://raw.githubusercontent.com/Healthy-River-and-Landscapes/feather-river/main/edi-redd/data/redd_observation_w_zeros.csv</url>
+            <url function="download">https://raw.githubusercontent.com/Healthy-Rivers-and-Landscapes-Science/feather-river/main/edi-redd/data/redd_observation_w_zeros.csv</url>
           </online>
         </distribution>
       </physical>
@@ -630,8 +630,8 @@
       <entityDescription>Surveyed locations and dates</entityDescription>
       <physical>
         <objectName>survey_site_dates.csv</objectName>
-        <size unit="bytes">14</size>
-        <authentication method="MD5">3be7b8b182ccd96e48989b4e57311193</authentication>
+        <size unit="bytes">109331</size>
+        <authentication method="MD5">273e7d4ed04461a6a015b3e753ff769c</authentication>
         <dataFormat>
           <textFormat>
             <numHeaderLines>1</numHeaderLines>
@@ -644,7 +644,7 @@
         </dataFormat>
         <distribution>
           <online>
-            <url function="download">https://raw.githubusercontent.com/Healthy-River-and-Landscapes/feather-river/main/edi-redd/data/survey_site_dates.csv</url>
+            <url function="download">https://raw.githubusercontent.com/Healthy-Rivers-and-Landscapes-Science/feather-river/main/edi-redd/data/survey_site_dates.csv</url>
           </online>
         </distribution>
       </physical>
@@ -736,8 +736,8 @@
       <entityDescription>Survey site areas</entityDescription>
       <physical>
         <objectName>survey_site_area.csv</objectName>
-        <size unit="bytes">14</size>
-        <authentication method="MD5">3be7b8b182ccd96e48989b4e57311193</authentication>
+        <size unit="bytes">1764</size>
+        <authentication method="MD5">8ecd421fe5234bece1fb7153ab55978d</authentication>
         <dataFormat>
           <textFormat>
             <numHeaderLines>1</numHeaderLines>
@@ -750,7 +750,7 @@
         </dataFormat>
         <distribution>
           <online>
-            <url function="download">https://raw.githubusercontent.com/Healthy-River-and-Landscapes/feather-river/main/edi-redd/data/survey_site_area.csv</url>
+            <url function="download">https://raw.githubusercontent.com/Healthy-Rivers-and-Landscapes-Science/feather-river/main/edi-redd/data/survey_site_area.csv</url>
           </online>
         </distribution>
       </physical>
