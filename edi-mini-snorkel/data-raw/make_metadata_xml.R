@@ -39,11 +39,11 @@ dataset <- list() %>%
   add_datatable(datatable_metadata)
 
 # GO through and check on all units
-custom_units <- data.frame(id = c("number of divers", "river mile", "decimal degrees", "decimal degrees", "count of fish", "NTU"),
-                           unitType = c("dimensionless", "dimensionless", "dimensionless", "dimensionless","dimensionless","dimensionless"),
-                           parentSI = c(NA, NA, NA, NA,NA,NA),
-                           multiplierToSI = c(NA, NA, NA, NA,NA,NA),
-                           description = c("number of divers", "river mile", "decimal degrees","decimal degrees","count of fish", "NTU"))
+custom_units <- data.frame(id = c("number of divers", "river mile", "decimal degrees", "decimal degrees", "count of fish"),
+                           unitType = c("dimensionless", "dimensionless", "dimensionless", "dimensionless","dimensionless"),
+                           parentSI = c(NA, NA, NA, NA,NA),
+                           multiplierToSI = c(NA, NA, NA, NA,NA),
+                           description = c("number of divers", "river mile", "decimal degrees","decimal degrees","count of fish"))
 
 
 unitList <- EML::set_unitList(custom_units)
@@ -55,10 +55,14 @@ eml <- list(packageId = edi_number,
             additionalMetadata = list(metadata = list(unitList = unitList))
 )
 edi_number
-EML::write_eml(eml, paste0(edi_number, ".xml"))
-EML::eml_validate(paste0(edi_number, ".xml"))
-# EMLaide::update_edi_package(Sys.getenv("EDI_USER_ID"),
-#                             Sys.getenv("EDI_PASSWORD"),
-#                             "edi.1705.2",
-#                             "edi.1705.3.xml",
-#                             environment = "production")
+EML::write_eml(eml, paste0("edi-mini-snorkel/", edi_number, ".xml"))
+EML::eml_validate(paste0("edi-mini-snorkel/", edi_number, ".xml"))
+EMLaide::evaluate_edi_package(Sys.getenv("EDI_USER_ID"),
+                              Sys.getenv("EDI_PASSWORD"),
+                              paste0("edi-mini-snorkel/", edi_number, ".xml"))
+
+ # EMLaide::update_edi_package(Sys.getenv("EDI_USER_ID"),
+                             # Sys.getenv("EDI_PASSWORD"),
+                             # "edi.1705.3",
+                             # paste0("edi-mini-snorkel", edi_number, ".xml"),
+                             # environment = "production")
