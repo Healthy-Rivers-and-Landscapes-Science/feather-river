@@ -30,7 +30,7 @@
       <electronicMailAddress>casey.campos@water.ca.gov</electronicMailAddress>
       <role>principal investigator</role>
     </associatedParty>
-    <pubDate>2026-04-09</pubDate>
+    <pubDate>2026-04-17</pubDate>
     <abstract>
       <para>
     Since 2014, the California Department of Water Resources (DWR) has
@@ -826,6 +826,7 @@
                 <customUnit>river mile</customUnit>
               </unit>
               <numericDomain>
+                <numberType>integer</numberType>
                 <bounds>
                   <minimum exclusive="false">52</minimum>
                   <maximum exclusive="false">66.92</maximum>
