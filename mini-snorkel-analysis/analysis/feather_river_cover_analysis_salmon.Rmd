@@ -1,0 +1,1191 @@
+---
+title: "Feather River - Mini Snorkel Data Modeling and Analysis for Chinook Salmon"
+author: "Maddee Wiggins (FlowWest)"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3      
+    toc_float: true   
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(sjPlot)
+library(pROC)
+library(glmmTMB)
+library(sf)
+library(leaflet)
+library(scales)
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE
+)
+
+theme_set(
+  theme_minimal() +
+    theme(
+      plot.title = element_text(size = 11, face = "bold"),
+      axis.title.x = element_text(size = 14),
+      axis.title.y = element_text(size = 14)
+    )
+)
+
+
+custom_colors <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+colors_full <-  c("#9A8822", "#F5CDB4", "#F8AFA8", "#FDDDA0", "#74A089", #Royal 2
+                  "#899DA4", "#C93312", "#DC863B", # royal 1 (- 3)
+                  "#F1BB7B", "#FD6467", "#5B1A18", "#D67236",# Grand Budapest 1 (-4)
+                  "#D8B70A", "#02401B", "#A2A475", # Cavalcanti 1
+                  "#E6A0C4", "#C6CDF7", "#D8A499", "#7294D4", #Grand Budapest 2
+                  "#9986A5", "#EAD3BF", "#AA9486", "#B6854D", "#798E87", # Isle of dogs 2 altered slightly
+                  "#F3DF6C", "#CEAB07", "#D5D5D3", "#24281A", # Moonriese 1, 
+                  "#798E87", "#C27D38", "#CCC591", "#29211F", # moonrise 2
+                  "#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B" ) # moonrise 3 
+
+options(scipen=999)
+
+```
+
+## Objective
+
+Develop a model that reflects the significance of cover, substrate,
+depth, and velocity on chinook salmon presence and absence.
+
+## Analysis Overview
+
+Model was developed using [Feather River Mini Snorkel
+Data](https://github.com/Healthy-Rivers-and-Landscapes-Science/feather-river/tree/main/edi-mini-snorkel) data (filtered to Chinook Salmon) which consists of numeric fish count observations that can also be expressed as a binary presence–absence response. Because the count data were highly zero-inflated, with many observations in which no fish were detected, we initially evaluated a hurdle modeling approach following the framework described in Gard (2024, in review). Hurdle models are well suited for datasets dominated by absences, as they separately model the processes governing occurrence and abundance. In this case, the hurdle model showed reasonable performance for the presence–absence (zero) component but performed poorly for the count component, indicating that fish abundance could not be reliably predicted from the available covariates.
+
+Given these limitations, subsequent analyses focused on modeling fish occurrence using logistic regression. Data were collected between March and August, a period that spans seasonal changes in habitat conditions and salmonid outmigration, resulting in strong temporal variation in fish presence. In addition, habitat conditions differ substantially between high-flow and low-flow channels. Initial exploratory analyses considered fitting separate models for each channel type; however, we ultimately adopted a unified logistic regression framework that allowed these differences to be incorporated through random effects while maintaining a single, interpretable model structure.
+
+To account for spatial and temporal structure in the data, we evaluated a series of mixed-effects logistic regression models. Random intercepts were used to capture variation among transect sites, repeated sampling within sites, and seasonal differences among months. Among the models evaluated, the best-performing model included random effects for both site and month, reflecting the importance of spatial heterogeneity and seasonal dynamics in shaping fish occurrence. Including channel type as an additional random effect did not further improve model performance. This final model provided the strongest overall performance and served as the basis for inference on habitat associations with fish presence.
+
+
+## Review Data
+
+```{r}
+source(here::here("data-raw", "pull_from_edi.R"))
+
+mini_snorkel_raw <- mini_fish_raw |> 
+  left_join(mini_locations_raw |> distinct()) |> 
+  mutate(count = ifelse(is.na(count), 0, count),
+         fish_presence = as.factor(ifelse(count < 1, "0", "1")),
+         month = month(date)) |> 
+  filter(species == "chinook salmon" | count == 0) |> 
+  glimpse()
+
+```
+
+#### Outliers
+
+`count` outliers exist, in the high flow and the low flow channel,
+however their removal did not impact the model results so they were kept
+in the dataset.
+
+```{r eval=FALSE, include=FALSE}
+# Keeping this figure out of analysis but keeping for future
+mini_snorkel_raw |>
+  ggplot() +
+  geom_boxplot(aes(x = channel_location, y = count)) +
+  geom_jitter(aes(x = channel_location, y = count), alpha = 0.5) +
+  ggtitle("Outliers of chinook salmon count")
+```
+
+We thought that by removing values greater than 250 this would limit
+overdispersion in the count model, however, it did not.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+mini_snorkel_raw |> 
+  filter(count > 0) |> 
+  ggplot() + 
+  geom_histogram(aes(count, fill = channel_location), binwidth = 50) + 
+  scale_fill_manual(values = custom_colors) + 
+  ylab("fish count") +
+  ggtitle('Figure 1. Histogram of chinook salmon count in the high and low flow channels') +facet_grid(~channel_location)
+
+mini_snorkel_model_ready <- mini_snorkel_raw
+```
+
+### High Flow vs. Low Flow Channel
+
+Table 1 and figure 2 explore whether fish presence was impacted by the
+high or low flow channels. Overall there are more salmon
+present in the low flow channel compared to the high flow channel (table
+1). There are more fish present in the high flow channel in March but
+they move quickly downstream. Fish remain in the low flow channel for
+much longer time (figure 2).
+
+<!-- do we have the same amount of sampling plots in the high flow vs. low -->
+<!-- flow? -->
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# looking at overall count data between the low flow/high flow channels
+mini_snorkel_model_ready |> 
+  group_by(channel_location) |> 
+  tally(count) |> 
+  knitr::kable(caption = "Table 1. Total count of chinook salmon between high flow and low flow channels")
+
+mini_snorkel_model_ready |> 
+  group_by(channel_location) |> 
+  summarize(n_sites = length(unique(location))) |> 
+  knitr::kable(caption = "Table 2. Number of sampling sites in the high flow and low flow channels")
+
+# This figure shows how there are more fish present in the high flow channel 
+# for less time. The fish stick around for much longer in the low flow channel. 
+mini_snorkel_model_ready |> 
+  group_by(channel_location, month = lubridate::month(date)) |> 
+  tally(count) |> 
+  ggplot() + 
+  geom_col(aes(x = as.factor(month), y = n, fill = channel_location), position = "dodge") + 
+  ylab("fish count") +
+  xlab("month") +
+  ggtitle('Figure 2. Chinook salmon presence as a function of month and high flow/low flow channel') + 
+  scale_fill_manual(values = custom_colors)
+
+```
+
+### Redd Data Integration and Exploration
+
+Feather River redd survey data were sourced from the Environmental Data Initiative (EDI) and processed for integration with the Mini Snorkel habitat dataset. Locations with zero observed redds were removed, and remaining redd points were spatially joined to the nearest Mini Snorkel transect locations to ensure consistent site alignment. Redd information was then summarized at the transect scale, including both the total number of redds and a binary presence–absence indicator for spawning activity.
+
+A key caveat is that the temporal coverage of the redd surveys (2014–2023) does not overlap with the Mini Snorkel observations (2001–2002). As a result, this exploration reflects an aggregate summary across the full redd dataset rather than a direct year-matched comparison. Rather than selecting a single “representative year” or subset of years, we chose to incorporate the entire redd record. This decision was made because no clear representative year could be identified, and summarizing across all available years allowed us to remove the temporal component while still capturing the overall spatial pattern of spawning activity when combining redd data with the Mini Snorkel habitat observations.
+
+```{r}
+# remove zero redds
+redd_data_with_redds <- redd_data |> 
+  filter(number_redds > 0)
+```
+
+**Redd data over time**
+
+This visual represents the number of redds over time at each location.
+It helps provide context on which sites generally have redds and if they
+have redds consistently over time. Qualitatively, it seems like there
+are more redds counted over time.
+
+```{r}
+redd_data_with_redds |> 
+  ggplot(aes(x = lubridate::year(date), y = location, fill = number_redds)) +
+  geom_tile(color = "white",  linewidth = 0.5) + 
+  xlab("Year")
+```
+
+Total number of redds by year
+
+```{r}
+redd_by_year <- redd_data_with_redds |> group_by(year = year(date)) |> summarise(total_redds = sum(number_redds)) 
+
+knitr::kable(redd_by_year)
+
+```
+
+Combine redd data with mini snorkel to see if redds are a spatial
+indicator or spawning potential/habitat quality.
+
+```{r}
+redd_data_by_location <- redd_data |> 
+ # group_by(longitude, latitude, location) |> 
+#  summarise(n_redds = sum(number_redds),
+ #           n_fish_on_redds = sum(number_salmon)) |>  # TODO: double check this variable is interpreted correctly. On redd or near redd?
+  #mutate(n_fish_on_redds = replace_na(n_fish_on_redds, 0)) |> 
+  rename(date_redd = date) |> 
+  filter(!is.na(longitude)) |> 
+  sf::st_as_sf(coords = c("longitude", "latitude"), crs = 4326)
+
+# chinook_raw_redds <- redd_data_by_location |> 
+#   group_by(location) |> 
+#   summarise(total_redds = sum(number_redds, na.rm = T)) |> 
+#   saveRDS(here::here("visualizations", "raw_redd_location_chinook.rds"))
+
+# redd_data_by_location |> 
+#   ggplot(aes(x = location, y = n_redds)) +
+#   geom_col() +
+#   coord_flip()
+
+mini_sf <- mini_snorkel_model_ready |> 
+  filter(!is.na(longitude)) |> 
+  sf::st_as_sf(coords = c("longitude", "latitude"), crs = 4326) 
+```
+
+Find the nearest transect location from the Mini Snorkel data to each
+redd
+
+```{r}
+dist_to_nearest <- st_distance(
+  redd_data_by_location,
+  mini_sf[st_nearest_feature(redd_data_by_location, mini_sf), ],
+  by_element = TRUE
+)
+
+redd_near <- redd_data_by_location |>
+  mutate(dist_to_nearest = as.numeric(dist_to_nearest)) |> 
+  filter(dist_to_nearest <= 50)
+
+redd_near_with_snorkel <- st_join(
+  redd_near |> select(-location),
+  mini_sf,
+  join = st_nearest_feature
+)
+```
+
+Redds are joined to the nearest mini snorkel transect location within
+50-meters. The following histogram shows the distribution of the redd
+distances; 50-meters was chosen based off of the high counts (shown as
+the red dashed line).
+
+```{r}
+redd_data_by_location |>
+  mutate(dist_to_nearest = as.numeric(dist_to_nearest)) |> 
+  ggplot(aes(x = dist_to_nearest)) +
+  geom_histogram(binwidth = 5, boundary = 0) +
+  geom_vline(xintercept = 50, linetype = 2, color = "red") +
+  labs(
+    title = "Distribution of nearest-neighbor distances"
+  ) +
+  theme_minimal(base_size = 13)
+
+# redd_summary <- redd_near_with_snorkel |>
+#   st_drop_geometry() |>
+#   group_by(location) |>
+#   summarise(
+#     redd_total = sum(n_redds),                    
+#     redd_presence = as.integer(redd_total > 0)
+#   )
+
+redd_summary <- redd_near_with_snorkel |> 
+  st_drop_geometry() |> 
+  group_by(location) |> 
+  summarise(
+    redd_total = sum(number_redds),
+    redd_mean = mean(number_redds),
+    redd_median = median(number_redds),
+    redd_presence = as.integer(redd_total > 0)
+  )
+```
+
+A visual representation of the amount of redds joined with each of the
+mini snorkel transect locations:
+
+```{r}
+
+locations_sf <- sf::st_as_sf(mini_locations_raw |> 
+                               distinct(location_table_id, date, channel_location, .keep_all = T) |> 
+                               na.omit(), 
+                             coords = c('longitude', 'latitude')) |> 
+  select(location_table_id, location, channel_type, date) |> 
+  mutate(location_table_id = paste0(date, " (location id: ", location_table_id, ")")) |> 
+  mutate(color = colors_full[match(location, location)]) |> 
+  group_by(location) |> 
+  slice(1) |> # This is a bit of a workaround since there are multiple lat/longs for reach location that are near eachother. Since this is just for a visual, I think it's fine. 
+  ungroup()
+
+redd_summary_sf <- redd_summary |> 
+  left_join(locations_sf) |> 
+  select(location, redd_presence, redd_total, geometry) |> 
+  distinct() |> 
+  sf::st_as_sf(sf_column_name = "geometry", crs = 4326)
+
+
+
+leaflet() |>
+  addProviderTiles(providers$Esri.WorldImagery, group = "Aerial Imagery") |>
+  addProviderTiles(providers$OpenStreetMap, group = "Street Map") |>
+   addCircleMarkers(data = locations_sf, 
+                     layerId = ~location, 
+                     color = ~color,
+                     radius = 6,
+                     fill = TRUE,
+                     fillOpacity = 0.2,
+                     opacity = 0.6,
+                     popup = paste0("Location Name: ", locations_sf$location,
+                                    "<br>",
+                                    "Channel Type: ", locations_sf$channel_type)) |> 
+  addCircleMarkers(data = redd_summary_sf, 
+                   color = "darkred",
+                   radius = ~rescale(redd_total, to = c(3, 20)),
+                   fill = TRUE,
+                   fillOpacity = 1,
+                   opacity = 1, 
+                   popup = paste0("Location Name: ", redd_summary_sf$location,
+                                    "<br>",
+                                    "N Redds: ", redd_summary_sf$redd_total)) |> 
+   
+  addLayersControl(
+    baseGroups = c("Aerial Imagery", "Street Map"),
+    position = "topleft",
+    options = layersControlOptions(collapsed = FALSE)
+  ) |> 
+  addLegend(colors = "darkred", labels = "Redd Locations") 
+
+```
+
+### Outmigration Analysis  
+
+**Goal**
+
+Understand timing and patterns of juvenile outmigration on the Feather
+River and compare to timing and density of fish observations in the mini
+snorkel dataset.
+
+**Insights**
+
+-   The majority of catch in RSTs on the Feather River (both LFC and
+    HFC) have passed through by March (\~80%)
+-   There are small differences in cumulative catch curves between the
+    HFC and LFC indicating that outmigration is not affecting these
+    sites differently
+-   The fish that remain in the Feather River after March and into May
+    and June are likely larger ( \> 50mm) which aligns with the fork
+    length distributions by month in the habitat data
+
+```{r eval=FALSE, include=FALSE}
+colors_small <-  c("#9A8822", "#F5CDB4", "#F8AFA8", "#FDDDA0", "#74A089", #Royal 2
+                   "#899DA4", "#C93312", "#DC863B" # royal 1 (- 3)
+)
+# Use data from SRJPEdata for the Feather River
+feather_rst <- SRJPEdata::rst_catch |> filter(stream == "feather river")
+feather_rst_daily <- feather_rst |> 
+  group_by(date, stream, site, site_group) |> 
+  summarize(count = sum(count))
+```
+
+```{r eval=FALSE, include=FALSE}
+
+cumulative <- feather_rst_daily |> 
+  mutate(water_year = ifelse(month(date) %in% 10:12, year(date) + 1, year(date)),
+         fake_date = as_date(paste(ifelse(month(date) %in% 10:12, 1999, 2000), month(date), day(date)))) |> 
+  arrange(date) |> 
+  group_by(site, water_year) |> 
+  mutate(count = ifelse(is.na(count), 0, count), 
+         total_count = sum(count, na.rm = T), 
+         cumulative_catch = cumsum(count),
+         prop_cuml_catch = cumulative_catch/total_count * 100) |> 
+  filter(site != "live oak")
+
+plotly::plot_ly(
+  filter(cumulative, water_year %in% 2001:2002),
+  x = ~ fake_date,
+  y = ~ prop_cuml_catch,
+  color = ~ site,
+  text = ~ water_year,
+  hovertemplate = paste("Water Year: %{text}"),
+  colors = colors_small,
+  type = 'scatter',
+  mode = 'lines'
+) |> 
+  plotly::layout(
+    title = "Cumulative Catch in Feather River RST (2001-2002)",
+    xaxis = list(title = "Months", tickformat = "%b"),
+    yaxis = list(title = "Percent Cumulative Catch")
+  ) 
+```
+
+### Variables of Interest
+
+The variables of interest include cover, substrate, velocity and depth
+variables known to be important for salmon rearing habitat. We are also
+including the number of redds found near each mini snorkel transect and
+whether or not there were redds nearby.
+
+-   Velocity - numeric
+-   Depth - numeric
+-   Number or Redds - numeric
+-   Redd at location - 0/1
+-   Month - categorical (3-8)
+
+Substrate and cover variables are measured as percentages are converted
+to binary presence/absence (1/0) by establishing a threshold percentage
+of 20%. Overhanging vegetation was measured at 1/2 meter overhead and
+more than 1/2 meter overhead. These categories were combined for
+simplicity and for comparison with other studies, such as those by Mark
+Gard.
+
+-   Undercut bank - 0/1
+-   Aquatic vegetation - 0/1
+-   Overhanging vegetation - 0/1
+-   Small woody cover - 0/1
+-   Large woody cover - 0/1
+-   Boulder substrate - 0/1
+-   Cobble substrate - 0/1
+
+## Build Model Data
+
+All cover variables were converted to presence/absence using a threshold
+of 20%. The following is the data structure of the model input data.
+
+```{r}
+
+percent_threshold <- 20
+
+# use a hurdle model (Gard 2024); 
+# pre-processing - all numeric values must be rounded to whole numbers
+model_data <- mini_snorkel_model_ready |>
+  select(count, location, channel_location, depth, velocity, contains("inchannel"), contains("overhead"), "percent_cobble_substrate", "percent_boulder_substrate", "percent_undercut_bank", month, fl_mm, channel_geomorphic_unit, reach_length, surface_turbidity, reach_width, channel_type, month) |>
+  # create new cover variables, based off Gard 2023
+  mutate(small_woody = percent_small_woody_cover_inchannel,
+         large_woody = percent_large_woody_cover_inchannel,
+         boulder_substrate = percent_boulder_substrate,
+         cobble_substrate = percent_cobble_substrate, 
+         undercut_bank = percent_undercut_bank, 
+         aquatic_veg = percent_submerged_aquatic_veg_inchannel, 
+         overhanging_veg = percent_cover_half_meter_overhead + percent_cover_more_than_half_meter_overhead) |>
+  # transform to presence/absence based on a defined threshold
+  mutate(cobble_substrate = ifelse(percent_cobble_substrate >= percent_threshold, 1, 0 ),
+         boulder_substrate = ifelse(percent_boulder_substrate >= percent_threshold, 1, 0 ),
+         small_woody = ifelse(small_woody >= percent_threshold, 1, 0 ),
+         large_woody = ifelse(large_woody >= percent_threshold, 1, 0 ),
+         aquatic_veg = ifelse(aquatic_veg >= percent_threshold, 1, 0),
+         undercut_bank = ifelse(undercut_bank >= percent_threshold, 1, 0),
+         no_cover_overhead = ifelse(percent_no_cover_overhead >= percent_threshold, 1, 0),
+         overhanging_veg = ifelse(overhanging_veg >= percent_threshold, 1, 0)) |>
+  #remove no cover variables (no cover overhead, no cover in channel)
+  select(-contains("no_cover")) |> 
+  distinct() |> 
+  mutate(fl_mm = ifelse(is.na(fl_mm), 0, fl_mm)) |> 
+  na.omit() |> 
+  select(-fl_mm) |> 
+  left_join(redd_summary) |> 
+  mutate(
+    redd_total = replace_na(redd_total, 0),
+    redd_presence = replace_na(redd_presence, 0),
+    month = as.factor(month), 
+  ) |> 
+  glimpse()
+
+```
+
+## Model Performance Evaluation Overview
+
+Model performance was evaluated using a combination of receiver
+operating characteristic (ROC) analysis and confusion matrix–based
+classification metrics. The area under the ROC curve (AUC) was used to
+assess the model’s ability to discriminate between presence and absence
+across all possible probability thresholds. AUC provides a
+threshold-independent measure of performance, where values near 0.5
+indicate no discrimination and higher values indicate increasing ability
+to correctly rank presences above absences.
+
+In addition, model predictions were converted to binary classifications
+using a fixed probability threshold, and a confusion matrix was used to
+summarize agreement between predicted and observed outcomes. The
+confusion matrix tabulates true positives, true negatives, false
+positives, and false negatives, allowing evaluation of classification
+behavior such as sensitivity to presences and specificity to absences.
+Because the dataset was imbalanced, with many more absences than
+presences, emphasis was placed on interpreting the confusion matrix in
+conjunction with AUC rather than relying on overall accuracy alone.
+
+Confusion matrises have the following layout where "True" fish presences
+are represented as `val1` and `val4`. "False" positives are represented
+by `val2` as cases where fish presence was predicted but not observed.
+"False" negatives are represented by `val3`.
+
+|                        | Observed Absence (0) | Observed Presence (1) |
+|------------------------|----------------------|-----------------------|
+| Predicted Absence (0)  | `val1`               | `val3`                |
+| Predicted Presence (1) | `val2`               | `val4`                |
+
+Together, these metrics provide complementary perspectives on model
+performance: AUC characterizes overall discriminatory ability
+independent of threshold choice, while the confusion matrix illustrates
+how predictions behave at a specific cutoff and highlights trade-offs
+between detecting presences and avoiding false positives.
+
+## Hurdle Model Approach
+
+### Hurdle Models and Interpretation
+
+A hurdle model was used in Gard 2024 (in-review) to test for the effects
+of cover and habitat type on the total abundance of Chinook salmon at
+both site and cell level. Here we explore the use oif a hurdle model to
+help understand the influence of velocity, depth, and cover on fish
+count and presence/absence.
+
+**Hurdle Models**
+
+Hurdle models are used when count data has an excess of zeros. These
+models can be understood as a mixture of two subset of populations. In
+one subset, we have a usual count model that may or may not generate
+zero, and the other subset only produce zero count.
+
+A hurdle model models excess zeroes separately from the rest of the
+data. The zero counts are modeled as a binary response variable and the
+positive counts are modeled using poisson distribution.
+
+*Interpreting a Hurdle Model*
+
+The binary part of the model helps identify factors that influence the
+presence/absence of fish. The coefficients of the zero part of the
+hurdle model represent the odds ratio of observing at least one fish.
+
+The count part of the model estimate the effects of predictor variables
+on the count outcome, excluding all zero counts. Coefficients of counts
+represent rate ratios of one or more fish observed.
+
+The Incidence Result Ratio (IRR) in the count part of the model (count
+\> 0) represent the multiplicative effect of a one-unit change in a
+predictor variable on the expected count of non-zero observations,
+assuming all other variables are held constant. For example, if the IRR
+for a predictor is 1.2, it means that a one-unit increase in that
+predictor is associated with a 20% increase in the expected count of
+non-zero observations, assuming all other variables remain constant. For
+the binary part of the model - if the coefficient for a predictor in the
+binary part of the hurdle model is 0.5, it means that a one-unit
+increase in the predictor is associated with a 50% increase in the odds
+of having a zero count versus a positive count, assuming all other
+variables are held constant.
+
+### Build Model
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+percent_threshold <- 20
+
+hurdle_model <- pscl::hurdle(count ~ small_woody + depth + velocity + large_woody + aquatic_veg + overhanging_veg + cobble_substrate + boulder_substrate + undercut_bank + redd_total + redd_presence + surface_turbidity, data = model_data, dist = "negbin") 
+# Negative Binomial Distribution: The Negative Binomial distribution is more flexible than the Poisson distribution and is used when the variance of the counts is greater than the mean, which is known as overdispersion. The Negative Binomial model allows for the variance to be larger than the mean, which is common in count data where there is extra variability beyond what is expected from a Poisson distribution.
+
+# zero inflated models are capable of dealing with excess zero counts
+# NOTE: Chose to not use a zero inflated model because it operates under the assumption that excess zeros are generated by a separate process from the count values. 
+# zeroinf_model <- pscl::zeroinfl(count ~ ., data = model_data) # , zero.dist = "binomial", dist = "negbin"
+
+```
+
+### Hurdle Model Results Summary
+
+```{r}
+best_model_hurdle <- MASS::stepAIC(hurdle_model)
+summary(best_model_hurdle)
+```
+
+```{r}
+plot_model(best_model_hurdle, title = "Figure 3. Hurdle Model Results Using Binary Presence/Absence for Cover and Substrate",  wrap.title = 50) + 
+  scale_color_manual(values = custom_colors[5:6])
+
+```
+
+### Hurdle Model Performance
+
+#### Evaluate the presence / absence component (classification)
+
+```{r}
+pred_presence <- predict(
+  best_model_hurdle,
+  type = "response",
+  which = "zero"
+)
+obs_presence <- as.integer(model_data$count > 0)
+
+roc_presence <- roc(obs_presence, pred_presence)
+auc(roc_presence)
+
+# Interpretation:
+# AUC = 0.5 → no better than random
+# 0.7–0.8 → acceptable
+# 0.8–0.9 → good
+# >0.9 → excellent
+
+pred_class <- ifelse(pred_presence > 0.5, 1, 0)
+table(Predicted = pred_class, Observed = obs_presence)
+
+```
+
+An AUC of `r auc(roc_presence)` detects from predictive capabilities in
+dectecting presence/absence using habitat variables but it is weak.
+However the confusion matrix implies poor predictability of presence
+which is likely due to the dataset being so heavily skewed towards
+absence. Because non-zero counts were low and weakly explained,
+abundance predictions were unreliable.
+
+#### Evaluate the count component (abundance, conditional on presence)
+
+Only evaluate sites where count \> 0.
+
+```{r}
+present_idx <- model_data$count > 0
+
+pred_count <- predict(
+  best_model_hurdle,
+  type = "response",
+  which = "count"
+)[present_idx]
+
+obs_count <- model_data$count[present_idx]
+
+rmse  <- sqrt(mean((obs_count - pred_count)^2))
+mae   <- mean(abs(obs_count - pred_count))
+r2    <- cor(obs_count, pred_count)^2
+c(rmse = rmse, mae = mae, r2 = r2)
+
+# Interpretation:
+# Lower RMSE/MAE = better fit
+# Higher R² = stronger correspondence
+
+plot(pred_count, obs_count)
+abline(0,1,col="red")
+
+```
+
+The count component of the hurdle model performed very poorly (RMSE =
+150.6, MAE = 43.0, pseudo-R² = 0.02), indicating that the model
+explained virtually none of the variation in non-zero fish counts. Given
+the structure of the dataset—characterized by a high frequency of
+absences and occasional extremely large count values—this lack of
+performance is not unexpected, as such conditions make it difficult for
+the count component of a hurdle model to reliably capture abundance
+patterns.
+
+### Hurdle Model Discussion
+
+The hurdle model showed reasonable performance for the presence–absence
+component (AUC = `r auc(roc_presence)`), indicating that the predictors
+captured meaningful structure in fish occurrence. However, the count
+component exhibited poor predictive skill, likely due to the
+distribution of fish counts, which was dominated by zeros and
+characterized by extremely high variability among non-zero observations
+(median = 0, mean = 2.8, maximum = 1500). This combination of many low
+counts and occasional extreme values violates the assumptions of a
+simple Poisson or truncated count process and limits the model’s ability
+to reliably predict abundance. As a result, we elected to focus
+subsequent analyses on habitat associations for fish occurrence using
+logistic regression, which is more consistent with the information
+content and statistical properties of the data.
+
+```{r eval=FALSE, include=FALSE}
+hist(model_data$count[model_data$count>0])
+
+summary(model)
+```
+
+## Logistic Regression Approach
+
+Because fish counts were highly zero-inflated and exhibited extreme
+variability among non-zero values, abundance models performed poorly. We
+therefore focused on modeling fish occurrence using logistic regression,
+which better matches the information content of the data and provides
+more reliable inference on habitat associations.
+
+```{r}
+log_reg_data <- model_data |> 
+  mutate(presence = as.integer(count > 0))
+```
+
+### Build Logistic Regression Model
+
+A simple logistic regression to start.
+
+```{r}
+glm_presence <- glm(
+  presence ~ small_woody + depth + velocity + large_woody +
+    aquatic_veg + overhanging_veg + cobble_substrate +
+    boulder_substrate + undercut_bank + redd_total + redd_presence + surface_turbidity,
+  data = log_reg_data,
+  family = binomial(link = "logit")
+)
+
+summary(glm_presence)
+
+```
+
+### Performance
+
+```{r}
+
+pred_prob <- predict(glm_presence, type = "response")
+obs <- log_reg_data$presence
+
+roc_glm <- roc(obs, pred_prob)
+auc(roc_glm)   # slightly better performing 
+
+# pred_class <- ifelse(pred_presence > 0.5, 1, 0)
+# table(Predicted = pred_class, Observed = obs_presence)
+```
+
+AUC of `r auc(roc_glm)` means The habitat variables explain some
+presence–absence structure, but there is still a lot of overlap/noise in
+the data.
+
+Confusion Matrix:
+
+```{r echo=FALSE}
+# confusion matrix 
+pred_class <- ifelse(pred_prob > 0.5, 1, 0)
+table(Predicted = pred_class, Observed = obs)
+```
+
+### Logistic Regression with Random Effect
+
+Because fish occurrence varied among transect sites and between
+high-flow and low-flow channels, we adopted a mixed-effects logistic
+regression framework to account for this spatial heterogeneity. The
+model estimates the probability of fish presence as a function of local
+habitat features and spawning context, while allowing baseline
+occurrence to vary among channel types and individual transect sites
+through random effects.
+
+We first fit a model that included channel type as a random effect and
+then extended this structure by nesting transect sites within channel
+type. The nested model provided a modest improvement in overall
+discriminatory performance based on AUC, while classification outcomes
+at a fixed threshold remained unchanged, indicating that the additional
+random effects improved the model’s ability to rank sites by likelihood
+of presence rather than alter binary predictions.
+
+### Random Effect of Location
+
+Using the high flow, low flow channel as the random effect:
+
+```{r}
+
+glmm_presence_location <- glmmTMB(
+  presence ~ small_woody + depth + velocity + large_woody +
+    aquatic_veg + overhanging_veg + cobble_substrate +
+    boulder_substrate + undercut_bank + redd_total + redd_presence + surface_turbidity +
+    (1 | location),                     
+  data = log_reg_data,
+  family = binomial(link = "logit")
+)
+
+summary(glmm_presence_location)
+
+pred_prob_glmm_loc <- predict(glmm_presence_location, type = "response")
+obs <- log_reg_data$presence
+
+roc_glmm_loc <- roc(obs, pred_prob_glmm_loc)
+auc(roc_glmm_loc) 
+
+# confusion matrix 
+pred_class_loc <- ifelse(pred_prob_glmm_loc > 0.5, 1, 0)
+table(Predicted = pred_class_loc, Observed = obs)
+
+```
+
+### Random Effect of Channel Location \| Location
+
+Nesting the transect location within the high flow/low flow channel as
+the random effect:
+
+```{r}
+
+glmm_presence <- glmmTMB(
+  presence ~ small_woody + depth + velocity + large_woody +
+    aquatic_veg + overhanging_veg + cobble_substrate +
+    boulder_substrate + undercut_bank + redd_total + redd_presence + surface_turbidity +
+    (1 | channel_location/location),                     
+  data = log_reg_data,
+  family = binomial(link = "logit")
+)
+
+summary(glmm_presence)
+
+```
+
+```{r}
+pred_prob_glmm <- predict(glmm_presence, type = "response")
+obs <- log_reg_data$presence
+
+roc_glmm <- roc(obs, pred_prob_glmm)
+auc(roc_glmm) # Area under the curve: 0.8337- much better (for 1|channel_location/location)
+#  # Area under the curve: 0.7597 for 1|channel_location
+
+#ranef(glmm_presence)$cond$location |>
+ # as.data.frame()
+
+# ranef(glmm_presence)$cond$channel_location |>
+#   as.data.frame()
+# Large variation → occupancy differs strongly by site beyond measured habitat.
+
+
+```
+
+```{r echo=FALSE}
+# confusion matrix 
+pred_class <- ifelse(pred_prob_glmm > 0.5, 1, 0)
+table(Predicted = pred_class, Observed = obs)
+```
+### Random Effect of Location and Month 
+
+Using the high flow, low flow channel and month as the random effect. 
+
+Including month as a random effect substantially improved model performance, increasing AUC from approximately 0.82 to 0.91. This indicates that accounting for seasonal variation greatly enhanced the model’s ability to discriminate between locations with and without fish presence. Despite this improvement, confusion matrices evaluated at a fixed probability threshold showed similar classification outcomes across models. This reflects the rarity of presence observations and the fact that many true presences receive predicted probabilities below the default classification cutoff. Thus, the month random-effects model improves probabilistic ranking and ecological realism without substantially altering threshold-based classifications.
+
+```{r}
+
+glmm_presence_location_month <- glmmTMB(
+  presence ~ small_woody + depth + velocity + large_woody +
+    aquatic_veg + overhanging_veg + cobble_substrate +
+    boulder_substrate + undercut_bank + redd_total + redd_presence + surface_turbidity + 
+    (1 | location) + (1 | month),                     
+  data = log_reg_data,
+  family = binomial(link = "logit")
+)
+
+summary(glmm_presence_location_month)
+
+pred_prob_glmm_loc_month <- predict(glmm_presence_location_month, type = "response")
+obs <- log_reg_data$presence
+
+roc_glmm_loc_month <- roc(obs, pred_prob_glmm_loc_month)
+auc(roc_glmm_loc_month) 
+
+# confusion matrix 
+pred_class_loc_month <- ifelse(pred_prob_glmm_loc_month > 0.5, 1, 0)
+table(Predicted = pred_class_loc_month, Observed = obs)
+
+```
+
+### Figures
+
+The following figure represents the overall effect of month on fish presence while keeping all other months constant. Points greater than 1 represent a higher probability of fish presence and points less
+than 1 represent a lower probability. Wider bars represent greater
+uncertainty.
+
+```{r}
+
+month_effects_df <-  broom.mixed::tidy(glmm_presence_location_month, effects = "ran_vals", conf.int = TRUE) |>
+  filter( group == "month") |> 
+  rename(unit = level, re = estimate) |>
+  mutate(
+    odds_ratio = exp(re),
+    or_low  = exp(conf.low),
+    or_high = exp(conf.high)
+  ) |>
+  arrange(odds_ratio) |>
+  distinct() |>
+  mutate(unit = factor(unit, levels = unit)) 
+
+ggplot(month_effects_df, aes(x = odds_ratio, y = unit)) +
+  geom_vline(xintercept = 1, linetype = 2, color = "gray50") +
+  geom_point(size = 2) +
+  geom_errorbarh(aes(xmin = or_low, xmax = or_high), height = 0.2) +
+  labs(
+    x = "Random-effect odds ratio (relative to global mean)",
+    y = NULL,
+    title = "Month effects on probability of presence"
+  ) +
+  scale_x_log10() +
+  theme_minimal(base_size = 13)
+
+```
+
+The following figure represents the overall effect of each of the sites
+on fish presence while keeping all other sites constant. Points greater
+than 1 represent a higher probability of fish presence and points less
+than 1 represent a lower probability. Wider bars represent greater
+uncertainty.
+
+```{r}
+re_loc <- broom.mixed::tidy(glmm_presence_location_month, effects = "ran_vals", conf.int = TRUE) |>
+  filter(group == "location") |>
+  rename(unit = level, re = estimate) |>
+  left_join(mini_snorkel_raw |> select(unit = location, channel_location),
+            by = "unit") |>
+  mutate(
+    odds_ratio = exp(re),
+    or_low  = exp(conf.low),
+    or_high = exp(conf.high)
+  ) |>
+  arrange(odds_ratio) |>
+  distinct() |>
+  mutate(unit = factor(unit, levels = unit)) 
+
+ggplot(re_loc, aes(x = odds_ratio, y = unit, color = channel_location)) +
+  geom_vline(xintercept = 1, linetype = 2, color = "gray50") +
+  geom_point(size = 2) +
+  geom_errorbarh(aes(xmin = or_low, xmax = or_high), height = 0.2) +
+  labs(
+    x = "Random-effect odds ratio (relative to global mean)",
+    y = NULL,
+    title = "Site effects on probability of presence"
+  ) +
+  scale_color_manual(
+    values = c(
+      "HFC" = "#1f78b4",   # blue
+      "LFC" = "#33a02c"    # green
+    ),
+    labels = c(
+      "HFC" = "High-flow channel",
+      "LFC" = "Low-flow channel"
+    ),
+    name = "Channel type"
+  ) +
+  scale_x_log10() +
+  theme_minimal(base_size = 13)
+
+
+
+```
+
+The following figure represents the overall effect of each of the
+predictors for fish presence when keeping all other predictors constant.
+Points greater than 1 represent a higher probability of fish presence
+and points less than 1 represent a lower probability. Wider bars
+represent greater uncertainty.
+
+Although depth and total number of redds have odds ratios close to one,
+both predictors are statistically significant, indicating small but
+consistent effects on fish presence. The magnitude of these effects is
+modest on a per-unit basis, but their significance reflects the
+precision of the estimates and the large sample size rather than a lack
+of biological relevance.
+
+```{r}
+
+effects_df <- broom::tidy(glmm_presence_location_month, conf.int = TRUE) |>
+  filter(term != "(Intercept)") |>
+  filter(term != "sd__(Intercept)") |> 
+  mutate(
+    odds_ratio = exp(estimate),
+    or_low = exp(conf.low),
+    or_high = exp(conf.high),
+    term = recode(term,
+                  small_woody = "Small woody debris",
+                  large_woody = "Large woody debris",
+                  overhanging_veg = "Overhanging vegetation*",
+                  aquatic_veg = "Aquatic vegetation*",
+                  cobble_substrate = "Cobble substrate",
+                  boulder_substrate = "Boulder substrate",
+                  undercut_bank = "Undercut bank",
+                  depth = "Depth*",
+                  velocity = "Velocity*",
+                  redd_total = "Total Number or Redds*",
+                  redd_presence = "Redds Nearby",
+                  surface_turbidity = "Surface Turbidity"
+    )
+  )
+
+ggplot(effects_df, aes(x = odds_ratio, y = reorder(term, odds_ratio))) +
+  geom_vline(xintercept = 1, linetype = 2, color = "gray50") +
+  geom_point(size = 2.7) +
+  geom_errorbarh(aes(xmin = or_low, xmax = or_high), height = 0.2) +
+  scale_x_log10() +
+  labs(
+    x = "Odds ratio (log scale)",
+    y = NULL,
+    title = "Effect sizes for predictors of fish presence", 
+    caption = "* represents model significance p<0.05"
+  ) +
+  theme_minimal(base_size = 13)
+
+```
+
+### Logistic Regression with Random Effect Discussion
+
+Chinook Salmon occurrence in the Feather River was shaped by a combination of local habitat features, spawning context, and strong spatial and seasonal structure. Incorporating random effects for both transect location and month substantially improved model performance, yielding high discriminatory ability (AUC = 0.91) and indicating that fish presence is influenced not only by measured habitat covariates but also by broader spatial and temporal processes.
+
+**Seasonal and Spatial Structure**
+
+The inclusion of month as a random effect revealed pronounced seasonal variation in baseline salmon occurrence. Month-level random intercepts varied widely, with odds of presence in early spring months (March–April) approximately 4–5 times higher than the global mean, while late-summer months exhibited substantially reduced odds. This pattern is consistent with seasonal dynamics in salmonid behavior, including outmigration earlier in the sampling period, and highlights the importance of accounting for temporal structure when modeling fish presence.
+
+Site-level random effects also indicated persistent spatial heterogeneity across transects. Several locations exhibited consistently lower baseline probabilities of fish presence (e.g., Vance Avenue and Big Bar), while others were closer to or above the global mean. These differences suggest that reach-scale or site-specific factors—such as connectivity, geomorphic context, or unmeasured hydraulic or thermal conditions—continue to influence fish distribution beyond the microhabitat variables included in the model.
+
+**Habitat Associations**
+
+After accounting for spatial and seasonal variability, several local habitat features showed strong and consistent associations with fish presence. Overhanging vegetation emerged as one of the most influential predictors, with sites containing riparian cover exhibiting more than double the odds of fish presence relative to sites without it. This finding underscores the importance of riparian structure in providing cover, refuge, and potentially favorable thermal conditions.
+
+Depth was positively associated with fish presence, although the per-unit effect was small (odds ratio ≈ 1.01). Despite its modest magnitude, this effect was highly significant. In contrast, velocity showed a strong negative association with presence, suggesting that fish were less likely to occupy faster-flowing units once other habitat features were accounted for.
+
+Aquatic vegetation was negatively associated with fish presence, indicating that areas dominated by vegetation may provide less suitable habitat in this system, potentially due to reduced hydraulic complexity or limited refuge availability. Other structural features, including small woody debris, large woody debris, undercut banks, and substrate types (cobble and boulder), did not exhibit statistically significant effects in the final model once spatial and seasonal variation were accounted for. This does not imply that these features are unimportant, but rather that their effects may be context-dependent or partially captured by correlated habitat or site-level factors.
+
+**Spawning Context**
+
+Spawning activity was positively associated with fish occurrence. The total number of nearby redds showed a significant positive relationship with fish presence, indicating that areas with greater spawning activity were more likely to support fish during snorkel surveys. The binary indicator of redd presence showed a positive but non-significant effect, suggesting that the intensity of spawning activity, rather than simple presence or absence of redds, may be more informative for predicting fish occurrence.
+
+**Synthesis and Implications**
+
+Together, these results indicate that fish distribution in the study system is governed by an interplay between fine-scale habitat conditions and broader spatial and temporal processes. Structural habitat features—particularly riparian cover and depth—play important roles in shaping local occurrence, while strong seasonal effects and persistent site-level differences underscore the influence of processes operating at larger spatial and temporal scales. The strong performance of the mixed-effects model highlights the value of accounting for repeated sampling, seasonal dynamics, and spatial heterogeneity when modeling fish occurrence in riverine systems.
+
+### Supplementatary Figures
+
+**Conallin et al. 2014 - Figure 5**
+
+```{r}
+cover_vars <- c(
+  "small_woody",
+  "large_woody",
+  "overhanging_veg",
+  "undercut_bank",
+  "aquatic_veg",
+  "boulder_substrate",
+  "cobble_substrate",
+  "surface_turbidity"
+)
+
+site_var <- "channel_location"  
+
+df_long <- log_reg_data |>
+  mutate(presence = as.integer(count > 0))  |> 
+  select(all_of(site_var), presence, all_of(cover_vars)) |> 
+  mutate(across(all_of(cover_vars), ~ as.integer(.x > 0))) |> 
+  pivot_longer(
+    cols = all_of(cover_vars),
+    names_to = "feature",
+    values_to = "feature_present"
+  )
+
+feature_summary <- df_long |> 
+  group_by(.data[[site_var]], feature) |> 
+  summarise(
+    n_all = n(),
+    n_present_feature = sum(feature_present == 1, na.rm = TRUE),
+    n_fish_present = sum(presence == 1, na.rm = TRUE),
+    n_fish_present_with_feature = sum(presence == 1 & feature_present == 1, na.rm = TRUE),
+    .groups = "drop"
+  ) |> 
+  group_by(.data[[site_var]]) |> 
+  mutate(
+    HA = n_present_feature / n_all,
+    HU = ifelse(n_fish_present > 0, n_fish_present_with_feature / n_fish_present, NA_real_),
+    P  = HU / HA,
+    HSI_raw = ifelse(is.finite(P), P / max(P, na.rm = TRUE), NA_real_)
+  ) |> 
+  ungroup()
+
+plot_df <- feature_summary |> 
+  select(.data[[site_var]], feature, HA, HU, HSI_raw) |> 
+  pivot_longer(cols = c(HA, HU, HSI_raw), names_to = "panel", values_to = "value") |> 
+  mutate(
+    panel = recode(panel,
+                   HA = "HA (availability)",
+                   HU = "HU (utilization)",
+                   HSI_raw = "HSI (preference)"),
+    feature = str_replace_all(feature, "_", " ")
+  )
+
+ggplot(plot_df, aes(x = feature, y = value)) +
+  geom_col(fill = "black", alpha = 0.8) +
+  facet_grid(panel ~ .data[[site_var]], scales = "free_y") +
+  labs(
+    x = NULL,
+    y = "Value (0–1)",
+    title = "Chinook - Habitat feature availability, use, and preference by channel location"
+  ) +
+  theme_classic(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    strip.background = element_rect(fill = "white", color = "black", linewidth = 0.5),
+    strip.text = element_text(size = 9),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    axis.line = element_blank(),
+    plot.title = element_text(size = 12)
+  )
+
+ggsave(
+  filename = here::here("figures", "chinook_hsi_lfc_hfc.png"),
+  width = 12,
+  height = 9,
+  dpi = 300,
+  bg = "white"
+)
+```
+
+
+```{r}
+cover_vars <- c(
+  "small_woody",
+  "large_woody",
+  "overhanging_veg",
+  "undercut_bank",
+  "aquatic_veg",
+  "boulder_substrate",
+  "cobble_substrate",
+  "surface_turbidity"
+)
+
+site_var <- "location"  
+
+df_long <- log_reg_data |>
+  mutate(presence = as.integer(count > 0))  |> 
+  select(all_of(site_var), presence, all_of(cover_vars)) |> 
+  mutate(across(all_of(cover_vars), ~ as.integer(.x > 0))) |> 
+  pivot_longer(
+    cols = all_of(cover_vars),
+    names_to = "feature",
+    values_to = "feature_present"
+  )
+
+feature_summary <- df_long |> 
+  group_by(.data[[site_var]], feature) |> 
+  summarise(
+    n_all = n(),
+    n_present_feature = sum(feature_present == 1, na.rm = TRUE),
+    n_fish_present = sum(presence == 1, na.rm = TRUE),
+    n_fish_present_with_feature = sum(presence == 1 & feature_present == 1, na.rm = TRUE),
+    .groups = "drop"
+  ) |> 
+  group_by(.data[[site_var]]) |> 
+  mutate(
+    HA = n_present_feature / n_all,
+    HU = ifelse(n_fish_present > 0, n_fish_present_with_feature / n_fish_present, NA_real_),
+    P  = HU / HA,
+    HSI_raw = ifelse(is.finite(P), P / max(P, na.rm = TRUE), NA_real_)
+  ) |> 
+  ungroup()
+
+plot_df <- feature_summary |> 
+  select(.data[[site_var]], feature, HA, HU, HSI_raw) |> 
+  pivot_longer(cols = c(HA, HU, HSI_raw), names_to = "panel", values_to = "value") |> 
+  mutate(
+    panel = recode(panel,
+                   HA = "HA (availability)",
+                   HU = "HU (utilization)",
+                   HSI_raw = "HSI (preference)"),
+    feature = str_replace_all(feature, "_", " ")
+  )
+
+ggplot(plot_df, aes(x = value, y = feature)) + # color = feature) +
+  geom_boxplot() + 
+  #geom_jitter(height = 0.2, alpha = 0.5, size = 1.8) +
+  #stat_summary(fun = mean, geom = "point", shape = 18, size = 4, color = "black") +
+  facet_wrap(~panel, ncol = 1) +
+  scale_color_manual(
+    values = c(
+      "aquatic veg"        = "black",
+      "boulder substrate"  = "black",
+      "cobble substrate"   = "black",
+      "fine substrate"     = "black",
+      "gravel substrate"   = "black",
+      "large wood"         = "black",
+      "pool"               = "black",
+      "riffle"             = "black",
+      "run"                = "black"
+    ),
+    guide = "none"
+  ) +
+  labs(
+    x = "Value (0–1)",
+    y = NULL,
+    title = "Chinook habitat: habitat variability across locations"
+    #subtitle = "Points = locations; diamond = mean"
+  ) +
+  theme_classic(base_size = 12) +
+  theme(
+    strip.background = element_rect(fill = "white", color = "black", linewidth = 0.5),
+    strip.text = element_text(size = 10),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    axis.line = element_blank(),
+    plot.title = element_text(size = 12),
+    plot.subtitle = element_text(size = 10, color = "grey40")
+  )
+
+ggsave(
+  filename = here::here("figures", "chinook_hsi_locations_boxplot.png"),
+  width = 12,
+  height = 9,
+  dpi = 300,
+  bg = "white"
+)
+
+```
+
+```{r}
+knitr::knit_exit()
+```
+
+

@@ -1,0 +1,688 @@
+---
+title: "Feather River - occupancy model"
+author: "Ashley Vizek (FlowWest)"
+date: "`r Sys.Date()`"
+output: 
+  html_document
+---
+
+# Overview
+
+This markdown builds off the `occupancy_model.Rmd` and tries a different grouping approach. The original uses `location` to structure the data. Here we will try a few other options:
+
+- use the results of the cluster analysis to group observations: cluster analysis based on fish observations likely won't work unless the occupancy model uses density, could try cluster analysis where fish  presence/absence is a variable
+- use another covariate such as temperature (though we would need to get that data)
+- create groups based on velocity or depth
+- LFC or HFC
+- geomorphic unit
+- combination of LFC/HFC and geomorphic unit
+- distance from spawning grounds
+- incorporate month and location - time needs to be incorporated in some way (try this first)
+
+Location is the most obvious choice as a higher level grouping variable because it is how this study was set up. Fish are observed in every site so the occupancy probability is really high which makes it challenging to use an occupancy model using this setup.
+
+```{r, include = F, message = F, warning = F}
+library(tidyverse)
+library(googleCloudStorageR)
+library(unmarked)
+knitr::opts_chunk$set(warning = F, message = F)
+
+# TODO update data connections when data are posted on EDI
+ongoing_snorkel <- read_csv(here::here("data", "ongoing_fish_observations.csv"))
+ongoing_snorkel_metadata <- read_csv(here::here("data", "ongoing_survey_characteristics.csv"))
+ongoing_snorkel_location <- read_csv(here::here("data", "ongoing_locations_lookup.csv"))
+# mini snorkel data
+mini_snorkel_raw <- read_csv(here::here("data", "microhabitat_observations.csv")) |> 
+  mutate(fish_presence = factor(ifelse(count == 0 | is.na(count), 0, 1)))
+location_raw <- read_csv(here::here("data", "survey_locations.csv"))
+```
+
+```{r, include = F}
+# Data processing of the base data files
+
+# 1. filtered to fish less than 140
+# 2. filtered to only include data from march
+
+mini_snorkel_filtered <- mini_snorkel_raw |> 
+  # associate location table so we can group by the reach if needed.
+  left_join(location_raw |> 
+              select(location_table_id, location, channel_location)) |> 
+  # Ryon thought 140 was better than 100. TODO look into this more. goal to filter to YOY
+  filter(fl_mm < 140 | is.na(fl_mm)) |> 
+  mutate(month = month(date))
+
+mini_snorkel_filtered |> 
+  group_by(month = month(date)) |> 
+  summarize(count = sum(count, na.rm = T)) |> 
+  ggplot(aes(x = month, y = count)) +
+  geom_col()
+
+mini_snorkel_filtered |> 
+  mutate(month = month(date)) |> 
+  select(location, month) |> 
+  distinct() |> 
+  group_by(location) |> 
+  tally() |> 
+  ggplot(aes(x = location, y = n)) +
+           geom_col()
+
+mini_snorkel_filtered_march <- mini_snorkel_filtered |> 
+  filter(month(date) == 3) 
+
+# summarize the number of sites sampled - looks like there is one steep riffle for 3/13 and one for 3/15. this may be due to incorrect location cateogorization. for now lets call all location_revised as one single site
+
+# summarize the number of replicates per site - as expected 35-36 for each
+
+# decide on how to categorize cover
+# woody debris, submerged aquatic, undercut, overhead - lets try this for now (select dominant)
+
+mini_snorkel_filtered_march |> 
+  distinct(location, date) |> 
+  arrange(location)
+
+mini_snorkel_filtered_march |> 
+  distinct(location, transect_code) |> 
+  group_by(location) |> 
+  tally()
+```
+
+```{r, include = F}
+# Processing of cover variables
+
+# processing cover by: 
+# 1. joining large/small woody  
+# 2. joining the two overhead levels 
+# 3. assigning highest percent 
+# 4. assigned 0 if NA
+
+four_cover_percent <- function(dat, grouping) {
+  processed_dat <- dat |> 
+  distinct() |> 
+  mutate(woody = percent_small_woody_cover_inchannel + percent_large_woody_cover_inchannel,
+         overhead = percent_cover_half_meter_overhead + percent_cover_more_than_half_meter_overhead) |> 
+  select(-c(percent_small_woody_cover_inchannel, percent_large_woody_cover_inchannel, percent_cover_half_meter_overhead, percent_cover_more_than_half_meter_overhead)) |> 
+  rename(aquatic = percent_submerged_aquatic_veg_inchannel,
+         undercut = percent_undercut_bank) |> 
+  pivot_longer(cols = c(woody, aquatic, undercut, overhead)) 
+  if(grouping == "location") {
+    processed_dat |> 
+  group_by(location, month) |> 
+  slice_max(value, with_ties = F) |> 
+  mutate(cover_type = ifelse(value == 0, "no cover", name)) |> 
+  select(-c(name, value))
+  } else {
+    processed_dat |> 
+  group_by(location, month, transect_code) |> 
+  slice_max(value, with_ties = F) |> 
+  mutate(cover_type = ifelse(value == 0, "no cover", name)) |> 
+  select(-c(name, value))
+  }
+}
+
+# If cover is greater than 20%, then cover (1), else (0)
+binary_cover <- function(dat) {
+  dat |> 
+      mutate(cover_dummy = factor(ifelse(percent_no_cover_inchannel <= 80 | percent_no_cover_overhead <= 80, 1, 0)))
+}
+
+# Assign percent cover for all cover types based on subtracting the min no cover from 1
+binary_cover_percent <- function(dat) {
+  dat |> 
+      mutate(cover_percent = case_when(percent_no_cover_inchannel >= percent_no_cover_overhead ~ 100 - percent_no_cover_overhead,
+                                                 percent_no_cover_inchannel < percent_no_cover_overhead ~ 100 - percent_no_cover_inchannel))
+}
+```
+
+## Create quadrat level observations
+
+Process covariates at the quadrat level
+
+```{r, include = F}
+# quadrat level fish observations variables
+quadrat_fish_obs <- mini_snorkel_filtered |> 
+  # decided not to do species filtering for now
+  # filter(species == "Chinook salmon" | grepl("Steelhead", species) | is.na(species)) |> 
+  select(location, month, transect_code, count) |> 
+  group_by(location, month, transect_code) |> 
+  summarize(count = sum(count, na.rm = T)) |> 
+  mutate(count = ifelse((is.na(count) | count == 0), 0, 1),
+         group_variable = paste0(location,month)) |> 
+  group_by(group_variable) |> 
+  mutate(label = row_number()) 
+
+quadrat_fish_obs_wide <- quadrat_fish_obs |> 
+  pivot_wider(id_cols = group_variable, names_from = "label", values_from = "count")
+```
+
+```{r}
+# Will end up with less observations because the snorkel data has multiple rows based on fish observed
+# We just want one row per quadrat observation
+
+# There are 3 versions of how to treat cover
+quadrat_four_cover <- mini_snorkel_filtered |> 
+  four_cover_percent(grouping = "quadrat") |> 
+  select(location, month, transect_code, cover_type) |> 
+  left_join(quadrat_fish_obs) |> 
+  pivot_wider(id_cols = group_variable, names_from = "label", values_from = "cover_type")
+
+quadrat_binary_cover <- mini_snorkel_filtered |> 
+  binary_cover() |> 
+  group_by(location, month, transect_code) |> 
+  slice_max(cover_dummy, with_ties = F) |> 
+  select(location, month, transect_code, cover_dummy) |> 
+  left_join(quadrat_fish_obs) |> 
+  pivot_wider(id_cols = group_variable, names_from = "label", values_from = "cover_dummy")
+
+quadrat_binary_cover_percent <- mini_snorkel_filtered |> 
+  binary_cover_percent() |> 
+  group_by(location, month, transect_code) |> 
+  summarize(cover_percent = mean(cover_percent)) |> # need to find mean for each location/month/transect
+  ungroup() |> 
+  mutate(mean_cover = mean(cover_percent),
+         sd_cover = sd(cover_percent),
+         cover_percent = ifelse(mean_cover==0 & sd_cover==0, 0, ((cover_percent - mean_cover)/sd_cover))) |> 
+  select(location, month, transect_code, cover_percent) |> 
+  left_join(quadrat_fish_obs) |> 
+  pivot_wider(id_cols = group_variable, names_from = "label", values_from = "cover_percent")
+
+quadrat_turbidity <- quadrat_fish_obs |> 
+  select(-count) |> 
+  left_join(mini_snorkel_filtered |> 
+              group_by(location, month, transect_code) |> 
+              summarize(turbidity = mean(surface_turbidity, na.rm = T))) |> 
+  ungroup() |> 
+  # code to normalize
+  mutate(mean_turbidity = mean(turbidity),
+         sd_turbidity = sd(turbidity),
+         turbidity = ifelse(mean_turbidity==0 & sd_turbidity==0, 0, ((turbidity - mean_turbidity)/sd_turbidity))) |> 
+  select(-c(mean_turbidity, sd_turbidity))
+
+turbidity <- quadrat_turbidity |> 
+  pivot_wider(id_cols = group_variable, names_from = "label", values_from = "turbidity")
+
+```
+
+## Create site level observations
+
+### month and location
+
+Create groups based on month and location and process group level covariates
+
+**cover**
+- average_site_four_cover: assigns cover type to each location/month
+- average_site_binary_cover: assigns cover (1) or no cover (0) to each location/month
+- average_site_binary_cover_percent: assigns percent cover to each location/month
+
+**other covariates**
+- average_site_level_covariates: scales depth and velocity and then finds the mean by location/month
+
+```{r}
+# There are 3 types of cover. For all we need to first find the mean by location/month group
+average_site_month_cover <- mini_snorkel_filtered |> 
+  select(location, month, transect_code, percent_small_woody_cover_inchannel, percent_large_woody_cover_inchannel, percent_submerged_aquatic_veg_inchannel, percent_undercut_bank, percent_cover_half_meter_overhead, percent_cover_more_than_half_meter_overhead, percent_no_cover_inchannel, percent_no_cover_overhead) |> 
+  distinct() |> 
+  group_by(location, month) |> 
+  summarise(percent_small_woody_cover_inchannel = mean(percent_small_woody_cover_inchannel),
+            percent_large_woody_cover_inchannel = mean(percent_large_woody_cover_inchannel),
+            percent_cover_half_meter_overhead = mean(percent_cover_half_meter_overhead),
+            percent_cover_more_than_half_meter_overhead = mean(percent_cover_more_than_half_meter_overhead),
+            percent_submerged_aquatic_veg_inchannel = mean(percent_submerged_aquatic_veg_inchannel),
+            percent_undercut_bank = mean(percent_undercut_bank), 
+            percent_no_cover_inchannel = mean(percent_no_cover_inchannel),
+            percent_no_cover_overhead = mean(percent_no_cover_overhead))
+
+average_site_four_cover <- average_site_cover |> 
+    four_cover_percent(grouping = "location") |> 
+  mutate(group_variable = paste0(location, month)) |> 
+  select(group_variable, cover_type)
+
+average_site_binary_cover <- average_site_cover |> 
+  binary_cover() |> 
+  select(location, month,cover_dummy) |> 
+  mutate(group_variable = paste0(location, month)) |> 
+  select(group_variable, cover_dummy)
+
+average_site_binary_cover_percent <- average_site_cover |> 
+  binary_cover_percent() |> 
+  ungroup() |> 
+  # code to scale
+  mutate(mean_cover = mean(cover_percent),
+         sd_cover = sd(cover_percent),
+         cover_percent = ifelse(mean_cover==0 & sd_cover==0, 0, ((cover_percent - mean_cover)/sd_cover))) |> 
+  select(location, month,cover_percent) |> 
+  mutate(group_variable = paste0(location, month)) |> 
+  select(group_variable, cover_percent)
+ 
+average_site_level_covariates <- mini_snorkel_filtered |> 
+  select(-c(fish_data_id, species, date, channel_geomorphic_unit, fl_mm, count, dist_to_bottom, focal_velocity)) |> 
+  distinct() |> # make sure we just have one row for each quadrat (if multiple types of fish/fl observed would be repeat rows)
+    mutate(
+         mean_velocity = mean(velocity, na.rm = T), # scale variables
+         mean_depth = mean(depth, na.rm = T),
+         sd_velocity = sd(velocity, na.rm = T),
+         sd_depth = sd(depth, na.rm = T),
+         velocity = ((velocity - mean_velocity)/sd_velocity),
+         depth = ((depth - mean_depth)/sd_depth),
+         group_variable = paste0(location, month)) |> 
+  pivot_longer(cols = c(depth:velocity), names_to = "parameter", values_to = "value") |> 
+  group_by(group_variable, parameter) |> 
+  summarize(value = mean(value, na.rm = T)) |>  # decided to do mean because there are a lot of zeros; we could also choose min or max
+  pivot_wider(id_cols = group_variable, values_from = "value", names_from = "parameter") |> glimpse()
+
+site_month <- mini_snorkel_filtered |> 
+  mutate(group_variable = paste0(location, month)) |> 
+  select(group_variable, month) |> 
+  distinct() 
+```
+
+## Set up model
+
+```{r, include = F}
+# Define data
+
+# 1. four cover
+average_site_level_covariates_full <- average_site_four_cover |> 
+  left_join(average_site_level_covariates) |> 
+  rename(cover = cover_type) |> 
+  left_join(site_month)
+
+quadrat_cover <- quadrat_four_cover |> glimpse()
+
+# 2. binary
+average_site_level_covariates_full <- average_site_binary_cover |> 
+  left_join(average_site_level_covariates) |> 
+  rename(cover = cover_dummy) |> 
+  left_join(site_month)
+
+quadrat_cover <- quadrat_binary_cover |> glimpse()
+# 3. binary percent
+average_site_level_covariates_full <- average_site_binary_cover_percent |> 
+  left_join(average_site_level_covariates) |> 
+  rename(cover = cover_percent) |> 
+  left_join(site_month)
+
+quadrat_cover <- quadrat_binary_cover_percent |> glimpse()
+  
+```
+
+```{r}
+quadrat_fish_obs_wide |> glimpse()
+y <- quadrat_fish_obs_wide[,2:37]
+
+siteCovs <- average_site_level_covariates_full[, c("depth", "velocity", "cover", "month")]
+
+obsCovs <- list(cover = quadrat_cover[,2:37],
+                turbidity = turbidity[,2:37])
+
+dat <- unmarkedFrameOccu(y = y, siteCovs = siteCovs, obsCovs = obsCovs)
+summary(dat)
+plot(dat)
+```
+
+### model exploration
+
+#### trial 1
+
+Data used for site level: depth, velocity, four cover, month
+Data used for quadrat level: four cover, turbidity
+
+- Overhead cover is significant (for both occupancy and detection). No other cover type was significant
+- Velocity is significant to detection and slightly for occupancy
+- Depth is not significant for occupancy
+- Turbidity was not significant for detection with cover but is significant when included alone
+- Month was highly signicant for occupancy
+
+#### trial 2
+
+Data used for site level: depth, velocity, binary cover, month
+Data used for quadrat level: binary cover, turbidity
+
+- Binary cover is significant for detection (cover means higher detection)
+- When turbidity is included with cover, not significant for detection; when included alone it is significant (inverse with detection)
+- Depth and velocity are not significant to occupancy
+- Binary cover and month are significant to occupancy
+
+#### trial 3
+
+Data used for site level: depth, velocity, binary cover percent, month
+Data used for quadrat level: binary cover percent, turbidity
+
+- Cover is significant for detection
+- When included with cover, turbidity is not significant; when alone significant
+- Cover is not significant to occupancy, only month is significant to occupancy
+
+```{r, include = F}
+# Null model
+fm1 <- occu(~1 ~1, dat)
+summary(fm1)
+# TODO intercept is 1, is that OK?
+# Occupancy probability is 0.48 
+backTransform(fm1, type = "state")
+# and detection probability is 0.12
+backTransform(fm1, type = "det")
+```
+
+```{r, include = F}
+# Exploring detection modeled with depth and velocity
+
+# velocity is significant, depth is not
+fm2 <- occu(~depth+velocity ~1, dat)
+fm2
+
+detection_coefs <- coef(fm2, type = "det") # pull the coeffs
+detection_coefs
+# The expected probability that a site was occupied is 0.48. This estimate applies to the hypothetical population of all possible sites, not the sites found in our sample. For a good discussion of population-level vs finite-sample inference, see Royle and Dorazio (2008) page 117. Note also that finite-sample quantities can be computed in unmarked using empirical Bayes methods as demonstrated at the end of this document.
+backTransform(fm2, type = "state")
+
+# Thus, we can say that the expected probability of detection was 0.13 when depth and velocity are fixed at their mean value. 
+backTransform(linearComb(fm2, coefficients = c(1,0,0), type = 'det'))
+# predictions increase as velocity increases but never above 0.21
+newData <- data.frame(depth = 0, velocity = -2:2)
+round(predict(fm2, type = 'det', newdata = newData, appendData=TRUE), 2)
+# predictions increase from 0.12 to 0.13 with depth (not much impact here)
+newData <- data.frame(depth = -2:2, velocity = 0)
+round(predict(fm2, type = 'det', newdata = newData, appendData=TRUE), 2)
+```
+
+```{r, include = F}
+# Exploring detection modeled with cover (using four cover) and turbidty
+
+fm3 <- occu(~cover+turbidity ~1, dat)
+fm3 # overhead is the only significant variable
+```
+
+```{r, include = F}
+# Exploring detection is modeled with turbidity
+# If turbidity held at mean detection probability is 0.12, if decreased then 0.18, if increased then 0.08
+
+fm_turbid <- occu(~turbidity ~1, dat)
+fm_turbid
+backTransform(linearComb(fm_turbid, coefficients = c(1,2), type = 'det')) # this line of code allows us to see how detection probability changes when adjust turbidity
+```
+
+```{r, include = F}
+# Exploring detection modeled with cover (four cover)
+# Similar to results with cover and turbidity, overhead is the only significant and increases detection
+fm_cover <- occu(~cover ~1, dat)
+fm_cover
+newData <- data.frame(cover = c("aquatic","no cover", "overhead", "woody", "undercut"))
+predict(fm_cover, type = 'det', newdata = newData, appendData=TRUE)
+```
+
+```{r, include = F}
+# Detection is modeled with cover and occupancy is modeled with depth and velocity
+# Neither depth or velocity is significant for occupancy
+# only overhead is significant
+fm4 <- occu(~cover ~depth+velocity, dat)
+fm4
+# how do predictions change for different cover types
+newData <- data.frame(cover = c("aquatic","no cover", "overhead", "woody", "undercut"))
+predict(fm4, type = 'det', newdata = newData, appendData=TRUE)
+# how do prediction of occupancy change based on depth/velocity
+newData <- data.frame(depth = -2:2, velocity = 0)
+newData <- data.frame(depth = 0, velocity = -2:2)
+predict(fm4, type = 'state', newdata = newData, appendData=TRUE)
+```
+
+```{r, include = F}
+# Detection modeled with cover and turbidity, occupancy modeled by depth, velocity and cover
+# occupancy - overhead is significant, velocity is close to being significant
+# detection - overhead is significant
+full_mod <- occu(~cover+turbidity ~depth+velocity+cover, dat)
+full_mod
+
+full_mod <- occu(~turbidity ~depth+velocity+cover+month, dat)
+full_mod
+```
+
+
+## Channel location and geomorphic unit
+
+```{r, include = F}
+# Creating site level variables
+
+channel_location_geomorphic_grouping <- mini_snorkel_filtered |> 
+  select(channel_geomorphic_unit, channel_location, location_table_id) |> 
+  group_by(channel_geomorphic_unit, channel_location) |> 
+  tally()
+
+location_geomorphic_grouping <- mini_snorkel_filtered |> 
+  select(channel_geomorphic_unit, location, location_table_id, transect_code) |> 
+  distinct() |> 
+  group_by(channel_geomorphic_unit, location) |> 
+  tally()
+```
+
+```{r, include = F}
+library(unmarked)
+# sets up mini snorkel data for occupancy model
+# habitat variables of interest based on literature
+# depth, velocity, substrate, cover
+
+# site level habitat variables
+# we would need to take an average for the entire site based on micro level information
+# TODO are there better site level variables to use?
+# channel geomorphic is collected at microhab level it appears
+# use average depth and velocity for now
+# including cover by taking average percent of types and then applying same dominant methodology. could do this in a different way
+
+average_site_cover <- mini_snorkel_filtered |> 
+  select(location, transect_code, percent_small_woody_cover_inchannel, percent_large_woody_cover_inchannel, percent_submerged_aquatic_veg_inchannel, percent_undercut_bank, percent_cover_half_meter_overhead, percent_cover_more_than_half_meter_overhead) |> 
+  distinct() |> 
+  group_by(location) |> 
+  summarise(percent_small_woody_cover_inchannel = mean(percent_small_woody_cover_inchannel),
+            percent_large_woody_cover_inchannel = mean(percent_large_woody_cover_inchannel),
+            percent_cover_half_meter_overhead = mean(percent_cover_half_meter_overhead),
+            percent_cover_more_than_half_meter_overhead = mean(percent_cover_more_than_half_meter_overhead),
+            percent_submerged_aquatic_veg_inchannel = mean(percent_submerged_aquatic_veg_inchannel),
+            percent_undercut_bank = mean(percent_undercut_bank)) |> 
+  mutate(woody = percent_small_woody_cover_inchannel + percent_large_woody_cover_inchannel,
+         overhead = percent_cover_half_meter_overhead + percent_cover_more_than_half_meter_overhead) |> 
+  select(-c(percent_small_woody_cover_inchannel, percent_large_woody_cover_inchannel, percent_cover_half_meter_overhead, percent_cover_more_than_half_meter_overhead)) |> 
+  rename(aquatic = percent_submerged_aquatic_veg_inchannel,
+         undercut = percent_undercut_bank) |> 
+  pivot_longer(cols = c(woody, aquatic, undercut, overhead)) |> 
+  group_by(location) |> 
+  slice_max(value, with_ties = F) |> 
+  rename(percent_cover = value) |> 
+  select(-c(name))
+ 
+average_site_level_covariates <- full_mini_snorkel_data |> 
+  select(-c(fish_data_id, species, date, channel_geomorphic_unit, fl_mm, count, dist_to_bottom, focal_velocity)) |> 
+  distinct() |> # make sure we just have one row for each quadrat (if multiple types of fish/fl observed would be repeat rows)
+    mutate(
+         mean_velocity = mean(velocity), # scale variables
+         mean_depth = mean(depth),
+         sd_velocity = sd(velocity),
+         sd_depth = sd(depth),
+         velocity = ((velocity - mean_velocity)/sd_velocity),
+         depth = ((depth - mean_depth)/sd_depth)) |> 
+  pivot_longer(cols = c(depth:velocity), names_to = "parameter", values_to = "value") |> 
+  group_by(location, parameter) |> 
+  summarize(value = mean(value, na.rm = T)) |>  # decided to do mean because there are a lot of zeros; we could also choose min or max
+  pivot_wider(id_cols = location, values_from = "value", names_from = "parameter") |> 
+  left_join(average_site_cover)
+
+# quadrat level fish observations variables
+quadrat_fish_obs <- full_mini_snorkel_data |> 
+  # decided not to do species filtering for now
+  # filter(species == "Chinook salmon" | grepl("Steelhead", species) | is.na(species)) |> 
+  select(location, transect_code, count) |> 
+  group_by(location, transect_code) |> 
+  summarize(count = sum(count, na.rm = T)) |> 
+  mutate(count = ifelse((is.na(count) | count == 0), 0, 1)) |> 
+  group_by(location) |> 
+  mutate(label = row_number()) 
+
+quadrat_fish_obs_wide <- quadrat_fish_obs |> 
+  pivot_wider(id_cols = location, names_from = "label", values_from = "count")
+
+# preparing covariates for observations. focal velocity and depth will vary by species obs. we can take the average or we can use the depth and velocity associated with the quadrat
+# decided just to use cover for now
+quadrat_cover <- quadrat_fish_obs |> 
+              select(-count) |> 
+  left_join(mini_snorkel_filtered_cover) |> 
+  mutate(cover_type = factor(cover_type))
+
+cover <- quadrat_cover |> 
+  pivot_wider(id_cols = location, names_from = "label", values_from = "cover_type")
+
+quadrat_turbidity <- quadrat_fish_obs |> 
+  select(-count) |> 
+  left_join(full_mini_snorkel_data |> 
+              group_by(location, transect_code) |> 
+              summarize(turbidity = mean(surface_turbidity, na.rm = T))) |> 
+  mutate(mean_turbidity = mean(turbidity),
+         sd_turbidity = sd(turbidity),
+         turbidity = ifelse(mean_turbidity==0 & sd_turbidity==0, 0, ((turbidity - mean_turbidity)/sd_turbidity))) |> 
+  select(-c(mean_turbidity, sd_turbidity))
+
+turbidity <- quadrat_turbidity |> 
+  pivot_wider(id_cols = location, names_from = "label", values_from = "turbidity")
+
+
+# decided to only use cover for now
+# depth <- quadrat_hab_vars  |> 
+#   select(location_table_id, label, depth) |> 
+#   ungroup() |> 
+#   mutate(label = paste0("depth.", label),
+#          mean= mean(depth),
+#          sd = sd(depth),
+#          depth = ((depth - mean)/sd)) |> 
+#   pivot_wider(id_cols = location_table_id, names_from = "label", values_from = "depth")
+
+# velocity
+# velocity <- quadrat_hab_vars  |> 
+#   select(location_table_id, label, velocity) |> 
+#   ungroup() |> 
+#   mutate(label = paste0("velocity.", label),
+#          mean = mean(velocity, na.rm = T),
+#          sd = sd(velocity, na.rm = T),
+#          velocity = ((velocity - mean)/sd)) |> 
+#   pivot_wider(id_cols = location_table_id, names_from = "label", values_from = "velocity")
+
+# # large sub
+# large_sub <- quadrat_hab_vars  |> 
+#   select(location_table_id, label, percent_large_substrate) |> 
+#   ungroup() |> 
+#   mutate(label = paste0("substrate.", label),
+#          mean = mean(percent_large_substrate),
+#          sd = sd(percent_large_substrate),
+#          percent_large_substrate = ((percent_large_substrate - mean)/sd)) |> 
+#   pivot_wider(id_cols = location_table_id, names_from = "label", values_from = "percent_large_substrate")
+
+# instream
+# instream <- quadrat_hab_vars  |> 
+#   select(location_table_id, label, percent_instream_cover) |> 
+#   ungroup() |> 
+#   mutate(label = paste0("instreamcover.", label),
+#          mean = mean(percent_instream_cover),
+#          sd = sd(percent_instream_cover),
+#          percent_instream_cover = ((percent_instream_cover - mean)/sd)) |> 
+#   pivot_wider(id_cols = location_table_id, names_from = "label", values_from = "percent_instream_cover")
+
+# overhead
+# overhead <- quadrat_hab_vars  |> 
+#   select(location_table_id, label, percent_overhead_cover) |> 
+#   ungroup() |> 
+#   mutate(label = paste0("overheadcover.", label),
+#          mean = mean(percent_overhead_cover),
+#          sd = sd(percent_overhead_cover),
+#          percent_overhead_cover = ((percent_overhead_cover - mean)/sd)) |> 
+#   pivot_wider(id_cols = location_table_id, names_from = "label", values_from = "percent_overhead_cover")
+
+y <- quadrat_fish_obs_wide[,2:37]
+siteCovs <- average_site_level_covariates[, c("depth", "velocity", "percent_cover")]
+obsCovs <- list(cover = cover[,2:37],
+                turbidity = turbidity[,2:37])
+
+dat <- unmarkedFrameOccu(y = y, siteCovs = siteCovs, obsCovs = obsCovs)
+summary(dat)
+plot(dat)
+# example datasets within unmarked package
+# https://cran.r-project.org/web/packages/unmarked/vignettes/unmarked.html
+
+# wt <- read.csv(system.file("csv","widewt.csv", package="unmarked"))
+# y <- wt[,2:4]
+# siteCovs <-  wt[,c("elev", "forest", "length")]
+# obsCovs <- list(date=wt[,c("date.1", "date.2", "date.3")],
+#     ivel=wt[,c("ivel.1",  "ivel.2", "ivel.3")])
+# wt <- unmarkedFrameOccu(y = y, siteCovs = siteCovs, obsCovs = obsCovs)
+# summary(wt)
+# wt <- read_csv(system.file("csv", "frog2001pcru.csv", package = "unmarked"))
+# pcru <- csvToUMF(system.file("csv","frog2001pcru.csv", package="unmarked"),
+#                  long = TRUE, type = "unmarkedFrameOccu")
+```
+
+```{r, eval = F, include = F}
+# TODO need to better understand detection v occupancy
+# Considerations - should this be an open model because fish could be migrating downstream
+
+# ~ detection ~ occupancy
+
+# Null model
+fm1 <- occu(~1 ~1, dat)
+fm1
+# Occupancy probability is 0.99 (nearly 1) and detection probability is 0.17
+backTransform(fm1, type = "state")
+backTransform(fm1, type = "det")
+
+# Detection is modeled with depth and velocity
+fm2 <- occu(~depth+velocity ~1, dat)
+fm2
+
+
+# The expected probability that a site was occupied is 0.99. This estimate applies to the hypothetical population of all possible sites, not the sites found in our sample. For a good discussion of population-level vs finite-sample inference, see Royle and Dorazio (2008) page 117. Note also that finite-sample quantities can be computed in unmarked using empirical Bayes methods as demonstrated at the end of this document.
+backTransform(fm2, type = "state")
+
+# Thus, we can say that the expected probability of detection was 0.17 when depth and velocity are fixed at their mean value. 
+backTransform(linearComb(fm2, coefficients = c(1,0,0), type = 'det'))
+# predictions increase as velocity increases but never above 0.3
+newData <- data.frame(depth = 0, velocity = -2:2)
+round(predict(fm2, type = 'det', newdata = newData, appendData=TRUE), 2)
+# predictions decrease as depth decreases but never above 0.28
+newData <- data.frame(depth = -2:2, velocity = 0)
+round(predict(fm2, type = 'det', newdata = newData, appendData=TRUE), 2)
+# newData <- data.frame(depth = -2:2, velocity = 0, instream_cover = 0)
+# newData <- data.frame(depth = 0, velocity = 0, instream_cover = -2:2)
+
+# Detection is modeled with cover and turbidty
+# highest prob of detection is with overhead and low turbidity
+# high turbidity decreases prob of detection
+fm3 <- occu(~cover+turbidity ~1, dat)
+fm3 # overhead is the only significant variable
+newData <- data.frame(cover = c("aquatic","no cover", "overhead", "woody", "undercut"),
+                      turbidity = 0)
+newData <- data.frame(cover = c("aquatic","no cover", "overhead", "woody", "undercut"),
+                      turbidity = -2)
+newData <- data.frame(cover = c("aquatic","no cover", "overhead", "woody", "undercut"),
+                      turbidity = 2)
+predict(fm3, type = 'det', newdata = newData, appendData=TRUE)
+
+# Detection is modeled with turbidity
+# If turbidity held at mean detection probability is 0.17, if decreased then 0.20, if increased then 0.14
+
+fm_turbid <- occu(~turbidity ~1, dat)
+fm_turbid
+backTransform(linearComb(fm_turbid, coefficients = c(1,-2), type = 'det')) # this line of code allows us to see how detection probability changes when adjust turbidity
+
+fm_cover <- occu(~cover ~1, dat)
+fm_cover
+newData <- data.frame(cover = c("aquatic","no cover", "overhead", "woody", "undercut"))
+predict(fm_cover, type = 'det', newdata = newData, appendData=TRUE)
+
+# Detection is modeled with cover and occupancy is modeled with depth and velocity
+fm4 <- occu(~cover ~depth+velocity, dat)
+fm4
+# how do predictions change for different cover types
+newData <- data.frame(cover = c("aquatic","no cover", "overhead", "woody", "undercut"))
+predict(fm4, type = 'det', newdata = newData, appendData=TRUE)
+# how do prediction of occupancy change based on depth/velocity
+newData <- data.frame(depth = -2:2, velocity = 0)
+newData <- data.frame(depth = 0, velocity = -2:2)
+predict(fm4, type = 'state', newdata = newData, appendData=TRUE)
+
+# Detection modeled with cover and turbidity, occupancy modeled by depth, velocity and cover
+full_mod <- occu(~cover+turbidity ~depth+velocity+percent_cover, dat)
+full_mod
+```

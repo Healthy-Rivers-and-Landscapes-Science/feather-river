@@ -1,0 +1,737 @@
+---
+title: "Feather River Snorkel Analysis Overview"
+author: "Ashley Vizek (FlowWest)"
+date: "`r Sys.Date()`"
+output: 
+  html_document
+---
+
+The Feather River has conducted snorkel surveys since 1999 and also did a one-year 
+microhabitat snorkel survey to identify relationships between habitat conditions
+and where salmon occur. These data are relevant to the Healthy Rivers and Landscapes
+(HR&L) program because they can be used to understand important habitat characteristics
+in the Feather River and also track changes in fish density and distribution.
+
+This document provides a high level summary of these datasets which are published
+on the Environmental Data Initiative (EDI):
+
+- Feather River ongoing snorkel survey ([EDI 1705.1](https://portal.edirepository.org/nis/mapbrowse?packageid=edi.1705.1))
+- Feather River mini snorkel survey (EDI XX, insert when published)
+
+Full summaries can be found here:
+
+- [mini snorkel QC](https://github.com/FlowWest/feather-mini-snorkel/blob/main/data-raw/qc_mini_snorkel_data.md)
+- [ongoing snorkel qc](https://github.com/SRJPE/JPE-datasets/blob/main/data-raw/qc-markdowns/seine-snorkel-data/feather-river/feather_snorkel_qc.md)
+
+```{r, include = F, message = F, warning = F}
+library(tidyverse)
+library(googleCloudStorageR)
+library(EDIutils)
+knitr::opts_chunk$set(warning = F, message = F)
+colors_small <-  c("#9A8822", "#F5CDB4", "#F8AFA8", "#FDDDA0", "#74A089", #Royal 2
+                   "#899DA4", "#C93312", "#DC863B" # royal 1 (- 3)
+)
+
+# TODO update data connections when data are posted on EDI
+ongoing_snorkel <- read_csv(here::here("data", "ongoing_fish_observations.csv"))
+ongoing_snorkel_metadata <- read_csv(here::here("data", "ongoing_survey_characteristics.csv"))
+ongoing_snorkel_location <- read_csv(here::here("data", "ongoing_locations_lookup.csv"))
+
+# mini snorkel data (on EDI)
+res <- read_data_entity_names(packageId = "edi.1705.1")
+raw <- read_data_entity(packageId = "edi.1705.1", entityId = res$entityId[2])
+mini_snorkel_raw <- readr::read_csv(file = raw) |> 
+  mutate(fish_presence = factor(ifelse(count == 0 | is.na(count), 0, 1)))
+raw <- read_data_entity(packageId = "edi.1705.1", entityId = res$entityId[1])
+location_raw <- readr::read_csv(file = raw) 
+```
+
+# Mini Snorkel Survey {.tabset}
+
+The mini snorkel data contains two tables:
+
+- fish observations and habitat data
+- survey metadata and location data
+
+The following fish and habitat data are included in the mini snorkel survey:
+
+```{r}
+mini_snorkel_raw |> select(-fish_presence) |> glimpse()
+```
+
+The following survey and location data are included in the mini snorkel survey:
+
+```{r}
+location_raw |> glimpse()
+```
+
+## Locations
+
+- 136 locations were sampled between March and August 2001 (approx 24 per month)
+- 4,891 quadrats (approx 36 per location)
+
+The 136 survey locations used inconsistent naming conventions meaning that it was
+unclear which locations were unique and which were the same. The survey locations
+were grouped into 24 standard survey locations based on similarities in name and
+river mile.
+
+Survey location or river mile could be used to group data. Other variables, such 
+as channel geomorphic unit, could also be used to group data.
+
+*Figure 1. Describes the number of surveys for each location. A survey is defined as data collected on a distinct date.*
+
+```{r}
+location_raw |> 
+  group_by(location) |> 
+  tally() |> 
+  mutate(location = factor(location),
+         location = factor(location, levels = rev(levels(location)))) |> 
+  ggplot(aes(x = location, y = n)) +
+  geom_col() +
+  labs(x = "",
+       y = "number of surveys") +
+  coord_flip() +
+  theme_bw()
+```
+
+*Figure 2. Describes the number of surveys for each river mile. A survey is defined as data collected on a distinct date.*
+
+```{r}
+location_raw |> 
+  mutate(river_mile = round(river_mile),
+         river_mile = factor(river_mile),
+         river_mile = factor(river_mile, levels = rev(levels(river_mile)))) |> 
+  group_by(river_mile) |> 
+  tally() |> 
+  ggplot(aes(x = river_mile, y = n)) +
+  geom_col() +
+  labs(x = "river mile",
+       y = "number of surveys") +
+  theme_bw() +
+  coord_flip()
+```
+
+## Fish Observations
+
+- Chinook, steelhead, tule perch, and speckeled dace are observed
+- Most observations are Chinook
+- Very few fish observations above 55mm
+- Most fish were observed in March and decreased over time
+
+*Figure 3. Number of fish observations for given fork length*
+
+```{r, echo = F}
+mini_snorkel_raw |> 
+  mutate(fl_mm = round(fl_mm),
+         fl_mm = factor(fl_mm)) |> 
+  group_by(fl_mm) |> 
+  summarize(count = sum(count, na.rm =T)) |> 
+  ggplot(aes(x = fl_mm, y = count)) +
+  geom_col() +
+  theme_bw() +
+  labs(y = "number of fish observations",
+       x = "fork length (mm)")
+
+```
+
+*Figure 4. Number of fish observations by species*
+
+```{r, echo = F}
+mini_snorkel_raw |> 
+  group_by(species) |> 
+  summarize(count = sum(count, na.rm = T)) |> 
+  filter(!is.na(species)) |> 
+  ggplot(aes(x = species, y = count)) +
+  geom_col() +
+   theme_bw() +
+  theme(axis.text.x = element_text(angle = 20, hjust = 1)) +
+  labs(x = "",
+       y = "number of fish observations")
+```
+
+*Figure 5. Number of fish observations by month*
+
+```{r}
+mini_snorkel_raw |> 
+  mutate(month = month(date),
+         month = factor(case_when(month == 3 ~ "Mar", 
+                           month == 4 ~ "Apr",
+                           month == 5 ~ "May",
+                           month == 6 ~ "Jun",
+                           month == 7 ~ "Jul",
+                           month == 8 ~ "Aug"),
+                        levels = c("Mar","Apr","May", "Jun","Jul","Aug"))) |> 
+  group_by(month) |> 
+  summarize(count = sum(count, na.rm = T)) |> 
+  ggplot(aes(x = month, y = count)) +
+  geom_col() +
+  theme_bw() +
+  labs(x = "",
+       y = "number of fish observations")
+```
+
+## Depth and Velocity
+
+Depth and velocity is collected for the 1m2 microhabitat plot as well as the focal
+values for the fish observation.
+
+- Depth of microhabitat areas is mostly between 0-75; velocity is mostly between 0-2
+- Weak correlation between number of fish observations and distance to bottom and focal velocity
+
+```{r, include = F}
+mini_snorkel_raw |> 
+  select(depth, velocity, micro_hab_data_tbl_id) |> 
+  distinct() |> 
+  pivot_longer(cols = c(depth, velocity), names_to = "parameter",values_to = "value") |> 
+  filter(parameter == "depth") |> 
+  ggplot(aes(x = parameter, y = value)) +
+  geom_boxplot()
+
+mini_snorkel_raw |> 
+  select(depth, velocity, micro_hab_data_tbl_id) |> 
+  distinct() |> 
+  pivot_longer(cols = c(depth, velocity), names_to = "parameter",values_to = "value") |> 
+  filter(parameter == "velocity") |> 
+  ggplot(aes(x = parameter, y = value)) +
+  geom_boxplot()
+```
+
+*Figure 6. Number of fish observations and distance to bottom where fish was observed*
+
+```{r}
+mini_snorkel_raw |> 
+  ggplot(aes(x = dist_to_bottom, y = count)) +
+  geom_point() +
+  theme_bw() +
+  labs(y = "number of fish observations",
+       x = "distance to bottom")
+```
+
+*Figure 7. Number of fish observations and focal velocity where fish was observed*
+
+```{r}
+mini_snorkel_raw |> 
+  ggplot(aes(x = focal_velocity, y = count)) +
+  geom_point() +
+  theme_bw() +
+  labs(y = "number of fish observations",
+       x = "focal velocity")
+```
+
+## Substrate
+
+Substrate was collected as a percentage by type: fine, sand, small gravel, large gravel, cobble, boulder.
+
+Substrate is known to be important for spawning fish and may be less important for
+fish of rearing size (which in this dataset is around 40-55mm). In some cases, cobble or boulder
+is considered a type of cover.
+
+The microhabitat areas sampled are mostly small/large gravel. There are some areas with cobble or boulder.
+Fish presence associations with gravel are likely just correlations of what was surveyed rather than a true relationship.
+
+```{r}
+mini_snorkel_raw |> 
+  select(micro_hab_data_tbl_id, 
+         percent_fine_substrate,
+         percent_sand_substrate,
+         percent_small_gravel_substrate,
+         percent_large_gravel_substrate,
+         percent_cobble_substrate,
+         percent_boulder_substrate) |> 
+  distinct() |> 
+  pivot_longer(cols = percent_fine_substrate:percent_boulder_substrate, 
+               names_to = "substrate_type", values_to = "percent") |> 
+  ggplot(aes(x = micro_hab_data_tbl_id, y = percent, fill = substrate_type)) +
+  geom_col() +
+  scale_fill_manual(values = colors_small) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+
+## Cover
+
+Cover was collected as a percentage for inchannel and overhead. 
+
+The following variables were collected for inchannel:
+
+- percent_no_cover_inchannel
+- percent_small_woody_cover_inchannel
+- percent_large_woody_cover_inchannel
+- percent_submerged_aquatic_veg_inchannel
+
+The following variables were collected for overhead:
+
+- percent_no_cover_overhead
+- percent_cover_half_meter_overhead
+- percent_cover_more_than_half_meter_overhead
+- percent_undercut_bank
+
+Cover variables can be processed in many different ways:
+
+- binary variable (cover or no cover)
+- binary variable with some threshold percentage
+- inchannel binary/binary threshold
+- overhead binary/binary threshold
+- categorical hierarchy (if large woody, then large woody else etc.)
+
+It is difficult to tease apart correlations with fish observations and cover
+when looking at each of the cover variables independently. When considering both
+inchannel and overhead cover (and all types of each) together, then it becomes
+apparent that more fish observations are made in areas with cover.
+
+
+```{r, include = F}
+mini_snorkel_raw |> 
+  ggplot(aes(x = fish_presence, y = percent_no_cover_inchannel)) +
+  geom_boxplot() +
+  labs(x = "fish presence",
+       y = "percent no cover inchannel") +
+  theme_bw()
+
+mini_snorkel_raw |> 
+  ggplot(aes(x = fish_presence, y = percent_small_woody_cover_inchannel)) +
+  geom_boxplot() +
+  labs(x = "fish presence",
+       y = "percent small woody cover inchannel") +
+  theme_bw()
+
+mini_snorkel_raw |> 
+  ggplot(aes(x = fish_presence, y = percent_large_woody_cover_inchannel)) +
+  geom_boxplot() +
+  labs(x = "fish presence",
+       y = "percent large woody cover inchannel") +
+  theme_bw()
+
+mini_snorkel_raw |> 
+  ggplot(aes(x = fish_presence, y = percent_submerged_aquatic_veg_inchannel)) +
+  geom_boxplot() +
+  labs(x = "fish presence",
+       y = "percent submerged vegetation inchannel") +
+  theme_bw()
+
+mini_snorkel_raw |> 
+  ggplot(aes(x = fish_presence, y = percent_no_cover_overhead)) +
+  geom_boxplot() +
+  labs(x = "fish presence",
+       y = "percent large woody cover inchannel") +
+  theme_bw()
+```
+
+*Figure 8. Total number of fish observations occurring with cover or no cover. Cover is defined as an area with at least 20% of inchannel or 20% overhead cover, irrespective of the type of inchannel or overhead cover*
+
+```{r}
+mini_snorkel_raw |> 
+  mutate(inchannel_cover_dummy = factor(ifelse(percent_no_cover_inchannel <= 80 | percent_no_cover_overhead <= 80, 1, 0))) |> 
+  group_by(inchannel_cover_dummy, fish_presence) |> 
+  summarize(count = sum(count, na.rm = T)) |> 
+  filter(fish_presence != 0) |> 
+  mutate(category = ifelse(inchannel_cover_dummy == 0, "no cover", "cover")) |> 
+  ggplot(aes(x = category, y = count)) +
+  geom_col() +
+  theme_bw() +
+  labs(x = "",
+       y = "total number of fish observed")
+
+```
+
+## Channel Geomorphic Unit
+
+There are six categories for channel geomorphic unit: glide, glide edgewater, 
+riffle edgewater, riffle, pool, backwater.
+
+Most fish observations occur in glide edgewater or pool areas. There are some NAs.
+
+```{r}
+mini_snorkel_raw |> 
+  group_by(channel_geomorphic_unit) |> 
+  summarize(count = sum(count, na.rm = T)) |> 
+  ggplot(aes(x = channel_geomorphic_unit, y = count)) + 
+  geom_col() +
+  theme_bw()+
+  labs(y = "total number of fish observations",
+       x = "")
+```
+
+# Ongoing Snorkel Survey {.tabset}
+
+The ongoing snorkel data contains three tables:
+
+- fish observations and habitat data
+- survey metadata
+- location metadata
+
+One of the challenges in analyzing the ongoing snorkel survey is understanding how consistently observations are made for no fish observed. 
+
+The following fish and habitat data are included in the ongoing snorkel survey:
+
+```{r}
+ongoing_snorkel |> glimpse()
+```
+
+The following survey metadata are included in the ongoing snorkel survey:
+
+```{r}
+ongoing_snorkel_metadata |> glimpse()
+```
+
+The following location metadata are included in the ongoing snorkel survey:
+
+```{r}
+ongoing_snorkel_location |> glimpse()
+```
+
+## Locations
+
+The most consistent location identifier in this dataset is unit which can only be spatially identified (currently) by river mile.
+
+- There are 463 unique units. 56 of these units have been surveyed at least 25 times.
+
+Section names are available for some of the units. Multiple units are included within a section.
+
+- There are 19 unique section names. There are 202 surveys without a section name. The 19 sections have been surveyed a max of 108 times and a min of 47 times.
+
+
+```{r, include = F}
+full_data <- ongoing_snorkel |> 
+  left_join(ongoing_snorkel_location) |> 
+  left_join(ongoing_snorkel_metadata |> 
+              distinct(survey_id, date, database))
+
+full_data |> 
+  distinct(unit) |> 
+  tally()
+
+full_data |> 
+  select(date, unit) |> 
+  distinct() |> 
+  group_by(unit) |> 
+  tally() |> 
+  filter(n > 24) |> 
+  distinct(unit) |> 
+  tally()
+
+full_data |> 
+  distinct(section_name) |> 
+  filter(!is.na(section_name)) |> 
+  tally()
+
+full_data |> 
+  select(date, section_name) |> 
+  distinct() |> 
+  #filter(!is.na(section_name)) |> 
+  group_by(section_name) |> 
+  tally() 
+```
+
+*Figure 10. Describes the number of surveys for units that were surveyed at least 25 times. A survey is defined as data collected on a distinct date.*
+
+```{r}
+full_data |> 
+  select(date, unit) |> 
+  distinct() |> 
+  group_by(unit) |> 
+  tally() |> 
+  filter(n > 24) |> 
+  mutate(unit = factor(unit),
+         unit = factor(unit, levels = rev(levels(unit)))) |> 
+  ggplot(aes(x = unit, y = n)) +
+  geom_col() +
+  labs(x = "",
+       y = "number of surveys") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 0, size = 8)) 
+```
+
+
+*Figure 10. Describes the number of surveys for sections that were surveyed. A survey is defined as data collected on a distinct date.*
+
+```{r}
+# section name
+full_data |> 
+  select(date, section_name) |> 
+  distinct() |> 
+  group_by(section_name) |> 
+  tally() |> 
+  mutate(section_name = factor(section_name),
+         section_name = factor(section_name, levels = rev(levels(section_name)))) |> 
+  ggplot(aes(x = section_name, y = n)) +
+  geom_col() +
+  labs(x = "",
+       y = "number of surveys") +
+  theme_bw() +
+  coord_flip()
+```
+*Figure 12. Describes the number of surveys for each river mile. A survey is defined as data collected on a distinct date.*
+
+```{r}
+full_data |> 
+  distinct(date, .keep_all = T) |> 
+  mutate(river_mile = round(river_mile),
+         river_mile = factor(river_mile),
+         river_mile = factor(river_mile, levels = rev(levels(river_mile)))) |> 
+  group_by(river_mile) |> 
+  tally() |> 
+  ggplot(aes(x = river_mile, y = n)) +
+  geom_col() +
+  labs(x = "river mile",
+       y = "number of surveys") +
+  theme_bw() +
+  coord_flip()
+```
+
+## Fish Observations
+
+- Chinook, steelhead, pikeminnow, sucker, tule perch, cypriniform, minnow, wakasagi
+- Most observations are Chinook
+- Very few fish observations above 100mm (260 obs greater than 600mm)
+- Most fish were observed February-June
+
+*Figure 13. Number of fish observations for given fork length. Plot excludes fork lengths greater than 200*
+
+```{r, echo = F}
+full_data |> 
+  filter(fork_length < 200) |> 
+  group_by(fork_length) |> 
+  summarize(count = sum(count, na.rm =T)) |> 
+  ggplot(aes(x = fork_length, y = count)) +
+  geom_col() +
+  theme_bw() +
+  labs(y = "number of fish observations",
+       x = "fork length (mm)")
+
+```
+
+*Figure 14. Number of fish observations by species*
+
+```{r, echo = F}
+full_data |> 
+  group_by(species) |> 
+  summarize(count = sum(count, na.rm = T)) |> 
+  filter(!is.na(species)) |> 
+  ggplot(aes(x = species, y = count)) +
+  geom_col() +
+   theme_bw() +
+  coord_flip() +
+  labs(x = "",
+       y = "number of fish observations")
+```
+
+*Figure 15. Number of fish observations by month*
+
+```{r}
+full_data |> 
+  mutate(month = month(date),
+         month = as.factor(month)) |> 
+  group_by(month) |> 
+  summarize(count = sum(count, na.rm = T)) |> 
+  ggplot(aes(x = month, y = count)) +
+  geom_col() +
+  theme_bw() +
+  labs(x = "",
+       y = "number of fish observations")
+```
+
+## Depth and Velocity
+
+Depth and velocity is collected for each fish observation.
+
+- Depth of microhabitat areas is mostly between 0-1.5; velocity is mostly between 0-4
+- No correlation between number of fish observations and dpeth and velocity
+
+```{r, include = F}
+full_data |> 
+  select(depth, velocity, observation_id, database) |> 
+  distinct() |> 
+  pivot_longer(cols = c(depth, velocity), names_to = "parameter",values_to = "value") |> 
+  filter(parameter == "depth") |> 
+  ggplot(aes(x = parameter, y = value)) +
+  geom_boxplot()
+
+full_data |> 
+  select(depth, velocity, observation_id, database) |> 
+  distinct() |> 
+  pivot_longer(cols = c(depth, velocity), names_to = "parameter",values_to = "value") |> 
+  filter(parameter == "velocity") |> 
+  ggplot(aes(x = parameter, y = value)) +
+  geom_boxplot()
+```
+
+*Figure 16. Number of fish observations and depth where fish was observed*
+
+```{r}
+full_data |> 
+  ggplot(aes(x = depth, y = count)) +
+  geom_point() +
+  theme_bw() +
+  labs(y = "number of fish observations",
+       x = "depth")
+```
+
+*Figure 17. Number of fish observations and velocity where fish was observed*
+
+```{r}
+full_data |> 
+  ggplot(aes(x = velocity, y = count)) +
+  geom_point() +
+  theme_bw() +
+  labs(y = "number of fish observations",
+       x = "velocity")
+```
+
+## Substrate
+
+Substrate was collected as presence by type: Levels = c( 1- Fine, 2- Small/medium gravel, 3- Medium/large cobble, 4- Boulder, 5- Pavement)
+
+Substrate is known to be important for spawning fish and may be less important for
+fish of rearing size. In some cases, cobble or boulder
+is considered a type of cover.
+
+The way that substrate was measured makes it difficult to analyze the relationship with fish observations. We would need to have a better representation of the substrate mapping of the areas surveyed
+
+```{r, include = F}
+substrate <- full_data |> 
+  select(observation_id,
+         database, 
+         substrate) |> 
+  distinct() |> 
+  mutate(fine = ifelse(grepl("1", substrate), 1, 0),
+         gravel = ifelse(grepl("2", substrate), 1, 0),
+         cobble = ifelse(grepl("3", substrate), 1, 0),
+         boulder = ifelse(grepl("4", substrate), 1, 0),
+         pavement = ifelse(grepl("5", substrate), 1, 0))
+
+substrate |> 
+  summarize(fine = sum(fine),
+            gravel = sum(gravel),
+            cobble = sum(cobble),
+            boulder = sum(boulder),
+            pavement = sum(pavement)) |> 
+  pivot_longer(cols = fine:pavement, names_to = "substrate_type", values_to = "number_observations") |> 
+  ggplot(aes(x = substrate_type, y = number_observations)) +
+  geom_col() +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+
+## Cover
+
+Cover was collected as presence for two categories with different levels for each: inchannel and overhead.
+
+Instream Cover
+
+Types of cover include: E - Submerged Aquatic Veg/Algae, B - Small Instream Objects/Woody Debris, C - Large Instream Objects/Woody Debris, A - No apparent Cover, F - undercut bank 
+
+Overhead Cover
+
+Types of cover include: 0 - no apparent cover, 1 - overhead object/veg 0 - 0.5 meters, 2 - overhead object/veg 0.5 - 2 meters, 3 - submerged aquatic veg/algae
+
+Cover variables can be processed in many different ways:
+
+- binary variable (cover or no cover)
+- inchannel binary
+- overhead binary
+- categorical hierarchy (if large woody, then large woody else etc.)
+
+It is difficult to tease apart correlations with fish observations and cover
+when looking at each of the cover variables independently. When considering both
+inchannel and overhead cover (and all types of each) together, then it becomes
+apparent that more fish observations are made in areas with cover.
+
+
+```{r, include = F}
+
+cover <- full_data |> 
+  select(observation_id,
+         database, 
+         instream_cover,
+         overhead_cover, count) |> 
+  distinct() |> 
+  mutate(submerged_veg = ifelse(grepl("E", instream_cover), 1, 0),
+         small_woody = ifelse(grepl("B", instream_cover), 1, 0),
+         large_woody = ifelse(grepl("C", instream_cover), 1, 0),
+         no_instream = ifelse(grepl("A", instream_cover), 1, 0),
+         undercut = ifelse(grepl("F", instream_cover), 1, 0),
+         no_overhead = ifelse(grepl("0", overhead_cover), 1, 0),
+         overhead_close = ifelse(grepl("1", overhead_cover), 1, 0),
+         overhead_far = ifelse(grepl("2", overhead_cover), 1, 0),
+         submerged_overhead = ifelse(grepl("3", overhead_cover), 1, 0)) 
+  
+cover |> 
+  ggplot(aes(y = count, x = as.factor(submerged_veg))) +
+  geom_col() +
+  labs(y = "fish count",
+       x = "presence submerged veg") +
+  theme_bw()
+
+cover |> 
+  ggplot(aes(y = count, x = as.factor(small_woody))) +
+  geom_col() +
+  labs(y = "fish count",
+       x = "presence small woody") +
+  theme_bw()
+
+cover |> 
+  ggplot(aes(y = count, x = as.factor(large_woody))) +
+  geom_col() +
+  labs(y = "fish count",
+       x = "presence large woody") +
+  theme_bw()
+
+# this doesn't really make sense
+cover |> 
+  ggplot(aes(y = count, x = as.factor(no_instream))) +
+  geom_col() +
+  labs(y = "fish count",
+       x = "presence of no instream") +
+  theme_bw()
+
+cover |> 
+  ggplot(aes(y = count, x = as.factor(undercut))) +
+  geom_col() +
+  labs(y = "fish count",
+       x = "presence undercut bank") +
+  theme_bw()
+
+cover |> 
+  ggplot(aes(y = count, x = as.factor(no_overhead))) +
+  geom_col() +
+  labs(y = "fish count",
+       x = "presence of no overhead") +
+  theme_bw()
+
+```
+
+*Figure 18. Total number of fish observations occurring with cover or no cover. Cover is defined as an area with inchannel or overhead cover, irrespective of the type of inchannel or overhead cover*
+
+```{r}
+cover |> 
+  mutate(cover_dummy = factor(ifelse(no_overhead == 0 | no_instream == 0, 1, 0))) |> 
+  group_by(cover_dummy) |> 
+  summarize(count = sum(count, na.rm = T)) |> 
+  mutate(category = ifelse(cover_dummy == 0, "no cover", "cover")) |> 
+  ggplot(aes(x = category, y = count)) +
+  geom_col() +
+  theme_bw() +
+  labs(x = "",
+       y = "total number of fish observed")
+```
+
+## Channel Geomorphic Unit
+
+There are six categories for channel geomorphic unit: glide, glide margin, 
+riffle margin, riffle, pool, backwater.
+
+Most fish observations occur in glide margin or pool areas. There are some NAs.
+
+```{r}
+full_data |> 
+  group_by(channel_geomorphic_unit) |> 
+  summarize(count = sum(count, na.rm = T)) |> 
+  ggplot(aes(x = channel_geomorphic_unit, y = count)) + 
+  geom_col() +
+  theme_bw()+
+  labs(y = "total number of fish observations",
+       x = "")
+```

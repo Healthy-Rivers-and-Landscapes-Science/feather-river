@@ -1,0 +1,1210 @@
+---
+title: "Feather River - Mini Snorkel Data Modeling and Analysis for Steelhead"
+author: "Maddee Wiggins (FlowWest)"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3      
+    toc_float: true   
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(sjPlot)
+library(pROC)
+library(glmmTMB)
+library(sf)
+library(leaflet)
+library(scales)
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE
+)
+
+theme_set(
+  theme_minimal() +
+    theme(
+      plot.title = element_text(size = 11, face = "bold"),
+      axis.title.x = element_text(size = 14),
+      axis.title.y = element_text(size = 14)
+    )
+)
+
+
+custom_colors <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+colors_full <-  c("#9A8822", "#F5CDB4", "#F8AFA8", "#FDDDA0", "#74A089", #Royal 2
+                  "#899DA4", "#C93312", "#DC863B", # royal 1 (- 3)
+                  "#F1BB7B", "#FD6467", "#5B1A18", "#D67236",# Grand Budapest 1 (-4)
+                  "#D8B70A", "#02401B", "#A2A475", # Cavalcanti 1
+                  "#E6A0C4", "#C6CDF7", "#D8A499", "#7294D4", #Grand Budapest 2
+                  "#9986A5", "#EAD3BF", "#AA9486", "#B6854D", "#798E87", # Isle of dogs 2 altered slightly
+                  "#F3DF6C", "#CEAB07", "#D5D5D3", "#24281A", # Moonriese 1, 
+                  "#798E87", "#C27D38", "#CCC591", "#29211F", # moonrise 2
+                  "#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B" ) # moonrise 3 
+
+options(scipen=999)
+
+```
+
+## Objective
+
+Develop a model that reflects the significance of cover, substrate,
+depth, and velocity on steelhead presence and absence.
+
+## Analysis Overview
+
+Model was developed using [Feather River Mini Snorkel
+Data](https://github.com/Healthy-Rivers-and-Landscapes-Science/feather-river/tree/main/edi-mini-snorkel)
+filtered to steelhead observations. The dataset consists of numeric fish
+count measurements that can also be represented as a binary
+presence–absence response. Because steelhead counts were highly
+zero‐inflated, with many transects recording no fish and a small number
+of observations containing relatively large counts, we initially
+explored abundance‐based modeling approaches (ie., Hurdle models).
+However, preliminary analyses indicated that models attempting to
+predict steelhead counts performed very poorly, reflecting the high
+variability and limited information content in the abundance data. As a
+result, abundance modeling was not pursued further and is not included
+in this document.
+
+Subsequent analyses therefore focused on modeling steelhead occurrence
+using logistic regression, which better matched the structure and signal
+contained in the data. Mini Snorkel surveys were conducted between March
+and August, a period that spans substantial seasonal changes in habitat
+conditions and steelhead outmigration, resulting in strong temporal
+variation in presence. Steelhead were observed predominantly in low-flow
+channels, reflecting differences in habitat availability, hydraulic
+conditions, and refuge opportunities between channel types. Although
+initial exploratory analyses considered fitting separate models for
+high-flow and low-flow channels, we ultimately adopted a unified
+logistic regression framework that incorporated spatial and temporal
+heterogeneity through random effects. This approach allowed us to
+account for systematic differences among sites and seasons while
+retaining a single, interpretable model structure for inference.
+
+To account for spatial and temporal structure, we evaluated a series of
+mixed‐effects logistic regression models that included random intercepts
+for transect site and month. These random effects captured persistent
+differences among sites, repeated sampling within transects, and
+seasonal shifts in steelhead presence. Among the candidate models, the
+best‐performing model included random effects for both site and month,
+highlighting the importance of spatial heterogeneity and seasonal
+dynamics in shaping steelhead occurrence. Including channel type as an
+additional random effect did not improve model performance. This final
+model provided the strongest overall fit and formed the basis for
+inference on habitat associations with steelhead presence.
+
+## Review Data
+
+```{r}
+source(here::here("data-raw", "pull_from_edi.R"))
+
+mini_snorkel_raw <- mini_fish_raw |> 
+  left_join(mini_locations_raw |> distinct()) |> 
+  mutate(count = ifelse(is.na(count), 0, count),
+         fish_presence = as.factor(ifelse(count < 1, "0", "1")),
+         month = month(date)) |> 
+  filter(species %in% c("steelhead trout (wild)", "steelhead trout (clipped)") | count == 0) |> 
+  glimpse()
+
+```
+
+## Data Exploration
+
+### High Flow vs. Low Flow Channel
+
+Most of the steelhead were found in the Low Flow channel.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+mini_snorkel_raw |> 
+  filter(count > 0) |> 
+  ggplot() + 
+  geom_histogram(aes(count, fill = channel_location), binwidth = 50) + 
+  scale_fill_manual(values = custom_colors) + 
+  ylab("steelhead count") +
+  ggtitle('Figure 1. Histogram of steelhead count in the high and low flow channels') +facet_grid(~channel_location)
+
+mini_snorkel_model_ready <- mini_snorkel_raw
+```
+
+```{r}
+
+# looking at overall count data between the low flow/high flow channels
+mini_snorkel_model_ready |> 
+  group_by(channel_location) |> 
+  tally(count) |> 
+  knitr::kable(caption = "Table 1. Total count of chinook salmon between high flow and low flow channels")
+
+mini_snorkel_model_ready |> 
+  group_by(channel_location) |> 
+  summarize(n_sites = length(unique(location))) |> 
+  knitr::kable(caption = "Table 2. Number of sampling sites in the high flow and low flow channels")
+```
+
+### Temporal exploration
+
+The majority of fish are found in the low flow channel with the highest
+counts in April.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+mini_snorkel_model_ready |> 
+  group_by(channel_location, month = lubridate::month(date)) |> 
+  tally(count) |> 
+  ggplot() + 
+  geom_col(aes(x = as.factor(month), y = n, fill = channel_location), position = "dodge") + 
+  ylab("fish count") +
+  xlab("month") +
+  ggtitle('Figure 2. Steelhead presence as a function of month and high flow/low flow channel') + 
+  scale_fill_manual(values = custom_colors)
+
+```
+
+### Redd Data Integration and Exploration
+
+**Data Question:** - for sites that include roving and transect, can I
+aggregate or is that double counting? Currently grouped by date and
+location name to get a total number of redds.
+
+```{r}
+redd_data_raw <- readxl::read_excel(here::here("data-raw", "SH Redd Survey.xlsx")) |> 
+  janitor::clean_names() 
+
+# remove zero redds
+redd_data_with_redds <- redd_data_raw |> 
+  rename(number_redds = number_of_redds) |> 
+  filter(number_redds > 0) |> 
+  mutate(lat = as.numeric(lat),
+         long = as.numeric(long)) |>  
+  filter(!is.na(lat) | !is.na(long))
+```
+
+**Redd data over time**
+
+This visual represents the number of redds over time at each location.
+It helps provide context on which sites generally have redds and if they
+have redds consistently over time.
+
+```{r}
+redd_data_with_redds |>
+  group_by(date, location, lat, long) |>
+  summarise(total_redds = sum(number_redds), .groups = "drop") |>
+  group_by(location) |>
+  summarise(
+    lat0 = median(lat, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  right_join(
+    redd_data_with_redds |>
+      group_by(date, location) |>
+      summarise(total_redds = sum(number_redds), .groups = "drop"),
+    by = "location"
+  ) |>
+  mutate(
+    location = fct_reorder(location, lat0, .desc = TRUE),  # north at top
+    year = year(date)
+  ) |>
+  ggplot(aes(x = year, y = location, fill = total_redds)) +
+  geom_tile(color = "white", linewidth = 0.5) +
+  xlab("Year") +
+  ylab("Location (ordered South to North)")
+```
+
+```{r eval=FALSE, include=FALSE}
+# QC map for locations North/South
+redd_data_by_location <- redd_data_with_redds |> 
+  rename(date_redd = date) |> 
+  filter(!is.na(lat)) |> 
+  sf::st_as_sf(coords = c("long", "lat"), crs = 4326) 
+
+# steelhead_raw_redds <- redd_data_by_location |> 
+#   group_by(location) |> 
+#   summarise(total_redds = sum(number_redds, na.rm = T)) |> 
+#   saveRDS(here::here("visualizations", "raw_redd_location_steelhead.rds"))
+
+leaflet() |> 
+  addProviderTiles(providers$Esri.WorldImagery, group = "Aerial Imagery") |>
+  addProviderTiles(providers$OpenStreetMap, group = "Street Map") |>
+  addCircleMarkers(data = redd_data_by_location, 
+                     layerId = ~location, 
+                     color = "darkblue",
+                     radius = 6,
+                     fill = TRUE,
+                     fillOpacity = 0.6,
+                     opacity = 0.8,
+                     popup = paste0("Location Name: ", redd_data_by_location$location) )
+  
+```
+
+Total number of redds by year
+
+```{r}
+redd_by_year <- redd_data_with_redds |> group_by(year = year(date)) |> summarise(total_redds = sum(number_redds)) 
+
+knitr::kable(redd_by_year)
+
+```
+
+Combine redd data with mini snorkel to see if redds are a spatial
+indicator or spawning potential/habitat quality.
+
+```{r}
+redd_data_by_location <- redd_data_with_redds |> 
+  rename(date_redd = date) |> 
+  filter(!is.na(lat)) |> 
+  sf::st_as_sf(coords = c("long", "lat"), crs = 4326)
+
+# redd_data_by_location |> 
+#   ggplot(aes(x = location, y = n_redds)) +
+#   geom_col() +
+#   coord_flip()
+
+mini_sf <- mini_snorkel_model_ready |> 
+  filter(!is.na(longitude)) |> 
+  sf::st_as_sf(coords = c("longitude", "latitude"), crs = 4326) 
+```
+
+Find the nearest transect location from the Mini Snorkel data to each
+redd
+
+```{r}
+dist_to_nearest <- st_distance(
+  redd_data_by_location,
+  mini_sf[st_nearest_feature(redd_data_by_location, mini_sf), ],
+  by_element = TRUE
+)
+
+redd_near <- redd_data_by_location |>
+  mutate(dist_to_nearest = as.numeric(dist_to_nearest)) |> 
+  filter(dist_to_nearest <= 50)
+
+redd_near_with_snorkel <- st_join(
+  redd_near |> select(-location),
+  mini_sf,
+  join = st_nearest_feature
+)
+```
+
+Redds are joined to the nearest mini snorkel transect location within
+50-meters. The following histogram shows the distribution of the redd
+distances; 50-meters was chosen based off of the high counts (shown as
+the red dashed line). Note that three outliers were removed, shown in
+the table below. The locations (which are visible as light blue circles
+in the leaflet map) look to be errors.
+
+```{r}
+redd_outliers <- redd_data_by_location |>
+  mutate(dist_to_nearest = as.numeric(dist_to_nearest)) |> 
+  filter(dist_to_nearest > 1000)
+
+knitr::kable(redd_outliers |> st_drop_geometry() |> select(date = date_redd, location, number_redds), caption = "Outliers - The following three data points seem to have incorrect coordinates")
+
+redd_data_by_location |>
+  mutate(dist_to_nearest = as.numeric(dist_to_nearest)) |> 
+  filter(dist_to_nearest < 1000) |> # removing outliers
+  ggplot(aes(x = dist_to_nearest)) +
+  geom_histogram(binwidth = 5, boundary = 0) +
+  geom_vline(xintercept = 50, linetype = 2, color = "red") +
+  labs(
+    title = "Distribution of nearest-neighbor distances"
+  ) +
+  theme_minimal(base_size = 13)
+
+redd_summary <- redd_near_with_snorkel |> 
+  st_drop_geometry() |> 
+  group_by(location) |> 
+  summarise(
+    redd_total = sum(number_redds),
+    redd_mean = mean(number_redds),
+    redd_median = median(number_redds),
+    redd_presence = as.integer(redd_total > 0)
+  )
+```
+
+A visual representation of the amount of redds joined with each of the
+mini snorkel transect locations. Outliers that have been removed are
+shown in blue.
+
+```{r}
+
+locations_sf <- sf::st_as_sf(mini_locations_raw |> 
+                               distinct(location_table_id, date, channel_location, .keep_all = T) |> 
+                               na.omit(), 
+                             coords = c('longitude', 'latitude')) |> 
+  select(location_table_id, location, channel_type, date) |> 
+  mutate(location_table_id = paste0(date, " (location id: ", location_table_id, ")")) |> 
+  mutate(color = colors_full[match(location, location)]) |> 
+  group_by(location) |> 
+  slice(1) |> # This is a bit of a workaround since there are multiple lat/longs for reach location that are near eachother. Since this is just for a visual, I think it's fine. 
+  ungroup()
+
+redd_summary_sf <- redd_summary |> 
+  left_join(locations_sf) |> 
+  select(location, redd_presence, redd_total, geometry) |> 
+  distinct() |> 
+  sf::st_as_sf(sf_column_name = "geometry", crs = 4326)
+
+leaflet() |>
+  addProviderTiles(providers$Esri.WorldImagery, group = "Aerial Imagery") |>
+  addProviderTiles(providers$OpenStreetMap, group = "Street Map") |>
+  addCircleMarkers(data = redd_outliers,
+                   popup = paste0("Outlier Location Name: ", redd_outliers$location,"<br>",
+                                  "Date: ", redd_outliers$date_redd)) |> 
+   addCircleMarkers(data = locations_sf, 
+                     layerId = ~location, 
+                     color = ~color,
+                     radius = 6,
+                     fill = TRUE,
+                     fillOpacity = 0.2,
+                     opacity = 0.6,
+                     popup = paste0("Location Name: ", locations_sf$location,
+                                    "<br>",
+                                    "Channel Type: ", locations_sf$channel_type)) |> 
+  addCircleMarkers(data = redd_summary_sf, 
+                   color = "darkred",
+                   radius = ~rescale(redd_total, to = c(3, 20)),
+                   fill = TRUE,
+                   fillOpacity = 1,
+                   opacity = 1, 
+                   popup = paste0("Location Name: ", redd_summary_sf$location,
+                                    "<br>",
+                                    "N Redds: ", redd_summary_sf$redd_total)) |> 
+   
+  addLayersControl(
+    baseGroups = c("Aerial Imagery", "Street Map"),
+    position = "topleft",
+    options = layersControlOptions(collapsed = FALSE)
+  ) |> 
+  addLegend(colors = "darkred", labels = "Redd Locations") 
+
+```
+
+### Variables of Interest
+
+The variables of interest include cover, substrate, velocity and depth
+variables known to be important for steelhead rearing habitat. We are
+also including the number of redds found near each mini snorkel transect
+and whether or not there were redds nearby.
+
+-   Velocity - numeric
+-   Depth - numeric
+-   Number of Redds - numeric
+-   Redd at location - 0/1
+-   Month - categorical (3-8)
+
+Substrate and cover variables are measured as percentages are converted
+to binary presence/absence (1/0) by establishing a threshold percentage
+of 20%. Overhanging vegetation was measured at 1/2 meter overhead and
+more than 1/2 meter overhead. These categories were combined for
+simplicity and for comparison with other studies, such as those by Mark
+Gard.
+
+-   Undercut bank - 0/1
+-   Aquatic vegetation - 0/1
+-   Overhanging vegetation - 0/1
+-   Small woody cover - 0/1
+-   Large woody cover - 0/1
+-   Boulder substrate - 0/1
+-   Cobble substrate - 0/1
+
+## Build Model Data
+
+All cover variables were converted to presence/absence using a threshold
+of 20%. The following is the data structure of the model input data.
+
+```{r}
+
+percent_threshold <- 20
+
+# use a hurdle model (Gard 2024); 
+# pre-processing - all numeric values must be rounded to whole numbers
+model_data <- mini_snorkel_model_ready |>
+  select(count, location, channel_location, depth, velocity, contains("inchannel"), contains("overhead"), "percent_cobble_substrate", "percent_boulder_substrate", "percent_undercut_bank", month, fl_mm, channel_geomorphic_unit, reach_length, reach_width, channel_type, month, surface_turbidity) |>
+  # create new cover variables, based off Gard 2023
+  mutate(small_woody = percent_small_woody_cover_inchannel,
+         large_woody = percent_large_woody_cover_inchannel,
+         boulder_substrate = percent_boulder_substrate,
+         cobble_substrate = percent_cobble_substrate, 
+         undercut_bank = percent_undercut_bank, 
+         aquatic_veg = percent_submerged_aquatic_veg_inchannel, 
+         overhanging_veg = percent_cover_half_meter_overhead + percent_cover_more_than_half_meter_overhead) |>
+  # transform to presence/absence based on a defined threshold
+  mutate(cobble_substrate = ifelse(percent_cobble_substrate >= percent_threshold, 1, 0 ),
+         boulder_substrate = ifelse(percent_boulder_substrate >= percent_threshold, 1, 0 ),
+         small_woody = ifelse(small_woody >= percent_threshold, 1, 0 ),
+         large_woody = ifelse(large_woody >= percent_threshold, 1, 0 ),
+         aquatic_veg = ifelse(aquatic_veg >= percent_threshold, 1, 0),
+         undercut_bank = ifelse(undercut_bank >= percent_threshold, 1, 0),
+         no_cover_overhead = ifelse(percent_no_cover_overhead >= percent_threshold, 1, 0),
+         overhanging_veg = ifelse(overhanging_veg >= percent_threshold, 1, 0)) |>
+  #remove no cover variables (no cover overhead, no cover in channel)
+  select(-contains("no_cover")) |> 
+  distinct() |> 
+  mutate(fl_mm = ifelse(is.na(fl_mm), 0, fl_mm)) |> 
+  na.omit() |> 
+  select(-fl_mm) |> 
+  left_join(redd_summary) |> 
+  mutate(
+    redd_total = replace_na(redd_total, 0),
+    redd_presence = replace_na(redd_presence, 0),
+    month = as.factor(month), 
+  ) |> 
+  glimpse()
+
+```
+
+## Model Performance Evaluation Overview
+
+Model performance was evaluated using a combination of receiver
+operating characteristic (ROC) analysis and confusion matrix–based
+classification metrics. The area under the ROC curve (AUC) was used to
+assess the model’s ability to discriminate between presence and absence
+across all possible probability thresholds. AUC provides a
+threshold-independent measure of performance, where values near 0.5
+indicate no discrimination and higher values indicate increasing ability
+to correctly rank presences above absences.
+
+In addition, model predictions were converted to binary classifications
+using a fixed probability threshold, and a confusion matrix was used to
+summarize agreement between predicted and observed outcomes. The
+confusion matrix tabulates true positives, true negatives, false
+positives, and false negatives, allowing evaluation of classification
+behavior such as sensitivity to presences and specificity to absences.
+Because the dataset was imbalanced, with many more absences than
+presences, emphasis was placed on interpreting the confusion matrix in
+conjunction with AUC rather than relying on overall accuracy alone.
+
+Threshold predictive probabilities into 0/1 set at `0.5`.
+
+#### Models were evaluated by the following metrics:
+
+-   **N** Total number of observations used to evaluate the model.
+
+-   **True Positives (TP)** Cases where the model predicted **presence
+    (1)** and fish were actually **present (1)**. *Correct detections.*
+
+-   **False Positives (FP)** Cases where the model predicted **presence
+    (1)** but fish were actually **absent (0)**. *False alarms.*
+
+-   **True Negatives (TN)** Cases where the model predicted **absence
+    (0)** and fish were actually **absent (0)**. *Correct
+    non-detections.*
+
+-   **False Negatives (FN)** Cases where the model predicted **absence
+    (0)** but fish were actually **present (1)**. *Missed detections.*
+
+-   **Accuracy** The overall proportion of correct predictions: (TP +
+    TN) / N Note: Accuracy can appear high when absences are much more
+    common than presences.
+
+-   **Sensitivity (Recall)** Of all true presences, the proportion
+    correctly detected: TP / (TP + FN) Measures how well the model
+    detects fish when they are present.
+
+-   **Specificity** Of all true absences, the proportion correctly
+    predicted as absent: TN / (TN + FP) Measures how well the model
+    avoids false alarms.
+
+-   **Precision (Positive Predictive Value, PPV)** Of all predicted
+    presences, the proportion that are truly present: TP / (TP + FP)
+    Indicates how trustworthy a “presence” prediction is.
+
+-   **Negative Predictive Value (NPV)** Of all predicted absences, the
+    proportion that are truly absent: TN / (TN + FN) Indicates how
+    trustworthy an “absence” prediction is.
+
+-   **Balanced Accuracy** The average of sensitivity and specificity:
+    (Sensitivity + Specificity) / 2 More informative than overall
+    accuracy when classes are imbalanced.
+
+-   **Prevalence** The proportion of observations where fish were
+    present: (TP + FN) / N Represents how common fish presence is in the
+    dataset.
+
+-   **Area Under the Curve (AUC)**AUC refers to the *Area Under the
+    Receiver Operating Characteristic (ROC) Curve*. It measures how well
+    a model can distinguish between presence (1) and absence (0) across
+    all possible probability thresholds, not just one cutoff.
+
+```{r}
+threshold <- 0.5
+```
+
+## Logistic Regression Approach
+
+Because fish counts were highly zero-inflated and exhibited extreme
+variability among non-zero values, abundance models performed poorly. We
+therefore focused on modeling fish occurrence using logistic regression,
+which better matches the information content of the data and provides
+more reliable inference on habitat associations.
+
+```{r}
+log_reg_data <- model_data |> 
+  mutate(presence = as.integer(count > 0))
+```
+
+### Build Logistic Regression Model
+
+A simple logistic regression to start.
+
+```{r}
+glm_presence <- glm(
+  presence ~ small_woody + depth + velocity + large_woody +
+    aquatic_veg + overhanging_veg + cobble_substrate +
+    boulder_substrate + undercut_bank + redd_total + redd_presence + surface_turbidity,
+  data = log_reg_data,
+  family = binomial(link = "logit")
+)
+
+summary(glm_presence)
+
+```
+
+```{r}
+
+pred_prob <- predict(glm_presence, type = "response")
+obs <- log_reg_data$presence
+
+roc_glm <- roc(obs, pred_prob)
+auc(roc_glm)   # slightly better performing 
+```
+
+AUC of `r auc(roc_glm)` means The habitat variables explain some
+presence–absence structure, but there is still a lot of overlap/noise in
+the data.
+
+Confusion Matrix:
+
+```{r echo=FALSE}
+# confusion matrix 
+pred_class <- ifelse(pred_prob > threshold, 1, 0)
+con_log <- table(Predicted = pred_class, Observed = obs)
+con_log
+```
+
+### Logistic Regression with Random Effect
+
+### Random Effect of Location
+
+Using the high flow, low flow channel as the random effect:
+
+```{r}
+
+glmm_presence_location <- glmmTMB(
+  presence ~ small_woody + depth + velocity + large_woody +
+    aquatic_veg + overhanging_veg + cobble_substrate +
+    boulder_substrate + undercut_bank + redd_total + redd_presence + surface_turbidity + 
+    (1 | location),                     
+  data = log_reg_data,
+  family = binomial(link = "logit")
+)
+
+summary(glmm_presence_location)
+
+pred_prob_glmm_loc <- predict(glmm_presence_location, type = "response")
+obs <- log_reg_data$presence
+
+roc_glmm_loc <- roc(obs, pred_prob_glmm_loc)
+auc(roc_glmm_loc) 
+
+# confusion matrix 
+pred_class_loc <- ifelse(pred_prob_glmm_loc > threshold, 1, 0)
+con_glmm_loc <- table(Predicted = pred_class_loc, Observed = obs)
+con_glmm_loc 
+```
+
+### Random Effect of Channel Location \| Location
+
+Nesting the transect location within the high flow/low flow channel as
+the random effect:
+
+```{r}
+
+glmm_presence <- glmmTMB(
+  presence ~ small_woody + depth + velocity + large_woody +
+    aquatic_veg + overhanging_veg + cobble_substrate +
+    boulder_substrate + undercut_bank + redd_total + redd_presence + surface_turbidity + 
+    (1 | channel_location/location),                     
+  data = log_reg_data,
+  family = binomial(link = "logit")
+)
+
+summary(glmm_presence)
+
+```
+
+```{r}
+pred_prob_glmm <- predict(glmm_presence, type = "response")
+obs <- log_reg_data$presence
+
+roc_glmm <- roc(obs, pred_prob_glmm)
+auc(roc_glmm) 
+
+```
+
+```{r echo=FALSE}
+# confusion matrix 
+pred_class <- ifelse(pred_prob_glmm > threshold, 1, 0)
+con_glmm_presence <- table(Predicted = pred_class, Observed = obs)
+con_glmm_presence
+```
+
+### Random Effect of Location and Month
+
+Using location and month as the random effect.
+
+Based off of the data exploration with majority of steelhead in the low
+flow channel, it is unsurprising that location is a better predictor.
+
+```{r}
+
+glmm_presence_location_month <- glmmTMB(
+  presence ~ small_woody + depth + velocity + large_woody +
+    aquatic_veg + overhanging_veg + cobble_substrate +
+    boulder_substrate + undercut_bank + redd_total + redd_presence + surface_turbidity + 
+    (1 | location) + (1 | month),                     
+  data = log_reg_data,
+  family = binomial(link = "logit")
+)
+
+summary(glmm_presence_location_month)
+
+pred_prob_glmm_loc_month <- predict(glmm_presence_location_month, type = "response")
+obs <- log_reg_data$presence
+
+roc_glmm_loc_month <- roc(obs, pred_prob_glmm_loc_month)
+auc(roc_glmm_loc_month) 
+
+# confusion matrix 
+pred_class_loc_month <- ifelse(pred_prob_glmm_loc_month > threshold, 1, 0)
+con_glmm_presence_location_month <- table(Predicted = pred_class_loc_month, Observed = obs)
+con_glmm_presence_location_month
+```
+
+### Random Effect of Location and Month (March - May)
+
+Using location and month (subset to march - may) as the random effect.
+
+The main difference in the results in the inclusion of depth as an
+important predictor. The AUC is the same as the model prior (with all
+months).
+
+```{r}
+log_data_month_subset <- log_reg_data |> 
+  filter(month %in% c('3', '4', '5', '6')) |> 
+  glimpse()
+
+# only signficant predictor difference is depth is significant whereas
+# it was not in the all-month model
+glmm_presence_location_month_subset <- glmmTMB(
+  presence ~ small_woody + depth + velocity + large_woody +
+    aquatic_veg + overhanging_veg + cobble_substrate +
+    boulder_substrate + undercut_bank + redd_total + redd_presence + surface_turbidity + 
+    (1 | location) + (1 | month),                     
+  data = log_data_month_subset,
+  family = binomial(link = "logit")
+)
+
+summary(glmm_presence_location_month_subset)
+
+pred_prob_glmm_loc_month_subset <- predict(glmm_presence_location_month_subset, type = "response")
+obs <- log_data_month_subset$presence
+
+roc_glmm_loc_month_subset <- roc(obs, pred_prob_glmm_loc_month_subset)
+auc(roc_glmm_loc_month_subset) 
+
+# confusion matrix 
+pred_class_loc_month_subset <- ifelse(pred_prob_glmm_loc_month_subset > threshold, 1, 0)
+con_glmm_presence_location_month_subset <- table(Predicted = pred_class_loc_month_subset, Observed = obs)
+con_glmm_presence_location_month_subset
+```
+
+### Model Summary Table
+
+All models showed high overall accuracy (96–97%), largely driven by the
+low prevalence of fish presence (3–5%). However, simple logistic and
+spatial-only random effects models had very low sensitivity (6–10%),
+indicating that they missed most true presences despite good
+specificity. Adding both location and month random effects substantially
+improved detection (sensitivity 20–27%) while maintaining high precision
+and excellent discrimination (AUC ≈ 0.91). The model restricted to
+biologically relevant months (3–6) performed best overall, achieving the
+highest sensitivity and balanced accuracy while retaining strong AUC.
+
+```{r include=FALSE}
+metrics_from_cm <- function(cm, model_name, auc) {
+
+  TN <- cm["0","0"]
+  FN <- cm["0","1"]
+  FP <- cm["1","0"]
+  TP <- cm["1","1"]
+
+  n <- TN + FN + FP + TP
+
+  tibble(
+    model = model_name,
+    n = n,
+    TP = TP,
+    FP = FP,
+    TN = TN,
+    FN = FN,
+
+    accuracy  = (TP + TN) / n,
+    sensitivity = TP / (TP + FN),      # the percent of true presences
+    specificity = TN / (TN + FP), # percent at identifying absences 
+    precision   = TP / (TP + FP),
+    npv         = TN / (TN + FN),
+    balanced_accuracy = ((TP / (TP + FN)) + (TN / (TN + FP))) / 2,
+    prevalence = (TP + FN) / n
+  ) |> 
+    mutate(auc = auc)
+}
+
+```
+
+```{r}
+metrics_from_cm(con_log, "simple logistic regression", round(auc(roc_glm), 3)) |> 
+  bind_rows(metrics_from_cm(con_glmm_loc, "random effect of location", round(auc(roc_glmm_loc), 3))) |> 
+  bind_rows(metrics_from_cm(con_glmm_presence, "random effect of channel_location | location", round(auc(roc_glmm), 3 ))) |> 
+  bind_rows(metrics_from_cm(con_glmm_presence_location_month, "random effect of location and month", round(auc(roc_glmm_loc_month), 3 ))) |> 
+  bind_rows(metrics_from_cm(con_glmm_presence_location_month_subset, "random effect of location and months (3-6)", round(auc(roc_glmm_loc_month_subset), 3))) |>
+  mutate(across(where(is.numeric), ~ round(.x, 3))) |>
+  rename(
+    `Model` = model,
+    `N` = n,
+    `True Positives` = TP,
+    `False Positives` = FP,
+    `True Negatives` = TN,
+    `False Negatives` = FN,
+    `Accuracy` = accuracy,
+    `Sensitivity (Recall)` = sensitivity,
+    `Specificity` = specificity,
+    `Precision (PPV)` = precision,
+    `NPV` = npv,
+    `Balanced Accuracy` = balanced_accuracy,
+    `Prevalence` = prevalence,
+    `AUC` = auc
+  ) |> knitr::kable()
+
+```
+
+### Figures
+
+The following figures are for the model using location and months 3-6 as
+the random effect.
+
+The following figure represents the overall effect of month on fish
+presence while keeping all other months constant. Points greater than 1
+represent a higher probability of fish presence and points less than 1
+represent a lower probability. Wider bars represent greater uncertainty.
+
+```{r}
+
+month_effects_df <-  broom.mixed::tidy(glmm_presence_location_month_subset, effects = "ran_vals", conf.int = TRUE) |>
+  filter( group == "month") |> 
+  rename(unit = level, re = estimate) |>
+  mutate(
+    odds_ratio = exp(re),
+    or_low  = exp(conf.low),
+    or_high = exp(conf.high)
+  ) |>
+  arrange(desc(unit)) |>
+  distinct() |>
+  mutate(unit = factor(unit, levels = unit)) 
+
+ggplot(month_effects_df, aes(x = odds_ratio, y = unit)) +
+  geom_vline(xintercept = 1, linetype = 2, color = "gray50") +
+  geom_point(size = 2) +
+  geom_errorbarh(aes(xmin = or_low, xmax = or_high), height = 0.2) +
+  labs(
+    x = "Random-effect odds ratio (relative to global mean)",
+    y = NULL,
+    title = "Month effects on probability of presence of steelhead"
+  ) +
+  scale_x_log10() +
+  theme_minimal(base_size = 13)
+
+```
+
+The following figure represents the overall effect of each of the sites
+on fish presence while keeping all other sites constant. Points greater
+than 1 represent a higher probability of fish presence and points less
+than 1 represent a lower probability. Wider bars represent greater
+uncertainty.
+
+Larger impact for low flow channel.
+
+```{r}
+re_loc <- broom.mixed::tidy(glmm_presence_location_month_subset, effects = "ran_vals", conf.int = TRUE) |>
+  filter(group == "location") |>
+  rename(unit = level, re = estimate) |>
+  left_join(mini_snorkel_raw |> select(unit = location, channel_location),
+            by = "unit") |>
+  mutate(
+    odds_ratio = exp(re),
+    or_low  = exp(conf.low),
+    or_high = exp(conf.high)
+  ) |>
+  arrange(odds_ratio) |>
+  distinct() |>
+  mutate(unit = factor(unit, levels = unit)) 
+
+ggplot(re_loc, aes(x = odds_ratio, y = unit, color = channel_location)) +
+  geom_vline(xintercept = 1, linetype = 2, color = "gray50") +
+  geom_point(size = 2) +
+  geom_errorbarh(aes(xmin = or_low, xmax = or_high), height = 0.2) +
+  labs(
+    x = "Random-effect odds ratio (relative to global mean)",
+    y = NULL,
+    title = "Site effects on probability of presence"
+  ) +
+  scale_color_manual(
+    values = c(
+      "HFC" = "#1f78b4",   # blue
+      "LFC" = "#33a02c"    # green
+    ),
+    labels = c(
+      "HFC" = "High-flow channel",
+      "LFC" = "Low-flow channel"
+    ),
+    name = "Channel type"
+  ) +
+  scale_x_log10() +
+  theme_minimal(base_size = 13)
+
+
+
+
+```
+
+The following figure represents the overall effect of each of the
+predictors for fish presence when keeping all other predictors constant.
+Points greater than 1 represent a higher probability of fish presence
+and points less than 1 represent a lower probability. Wider bars
+represent greater uncertainty. The magnitude of these effects is modest
+on a per-unit basis, but their significance reflects the precision of
+the estimates and the large sample size rather than a lack of biological
+relevance.
+
+```{r eval=FALSE, include=FALSE}
+# previous plot at log-scale x axis. It was requested to not scale the axis so that 0 is present. 
+effects_df <- broom::tidy(glmm_presence_location_month_subset, conf.int = TRUE) |>
+  filter(term != "(Intercept)") |>
+  filter(term != "sd__(Intercept)") |> 
+  mutate(
+    odds_ratio = exp(estimate),
+    or_low = exp(conf.low),
+    or_high = exp(conf.high),
+    term = recode(term,
+                  small_woody = "Small woody debris*",
+                  large_woody = "Large woody debris",
+                  overhanging_veg = "Overhanging vegetation*",
+                  aquatic_veg = "Aquatic vegetation*",
+                  cobble_substrate = "Cobble substrate",
+                  boulder_substrate = "Boulder substrate",
+                  undercut_bank = "Undercut bank",
+                  depth = "Depth*",
+                  velocity = "Velocity*",
+                  redd_total = "Total Number or Redd*",
+                  redd_presence = "Redds Nearby*",
+                  surface_turbidity = "Surface Turbulence"
+    )
+  )
+
+ggplot(effects_df, aes(x = odds_ratio, y = reorder(term, odds_ratio))) +
+  geom_vline(xintercept = 1, linetype = 2, color = "gray50") +
+  geom_point(size = 2.7) +
+  geom_errorbarh(aes(xmin = or_low, xmax = or_high), height = 0.2) +
+  scale_x_log10() +
+  labs(
+    x = "Odds ratio (log scale)",
+    y = NULL,
+    title = "Effect sizes for predictors of steelhead presence", 
+    caption = "* represents model significance p<0.05"
+  ) +
+  theme_minimal(base_size = 13)
+
+```
+
+```{r}
+# This plot is updated to not have a log-scale for the x-axis. 
+# Odds ratio are inherently on the log-scale so the label is still log odds ratio
+
+
+effects_df <- broom::tidy(glmm_presence_location_month_subset, conf.int = TRUE) |>
+  filter(!term %in% c("(Intercept)", "sd__(Intercept)")) |>
+  mutate(
+    odds_ratio = exp(estimate),
+    or_low  = exp(conf.low),
+    or_high = exp(conf.high),
+
+    log_or      = estimate,   # log(OR)
+    log_or_low  = conf.low,
+    log_or_high = conf.high,
+
+    term = recode(term,
+      small_woody       = "Small woody debris*",
+      large_woody       = "Large woody debris",
+      overhanging_veg   = "Overhanging vegetation*",
+      aquatic_veg       = "Aquatic vegetation*",
+      cobble_substrate  = "Cobble substrate",
+      boulder_substrate = "Boulder substrate",
+      undercut_bank     = "Undercut bank",
+      depth             = "Depth*",
+      velocity          = "Velocity*",
+      redd_total        = "Total Number of Redd*",
+      redd_presence     = "Redds Nearby*",
+      surface_turbidity = "Surface Turbulence"
+    )
+  )
+
+ggplot(effects_df, aes(x = log_or, y = reorder(term, log_or))) +
+  geom_vline(xintercept = 0, linetype = 2, color = "gray50") +
+  geom_point(size = 2.7) +
+  geom_errorbarh(aes(xmin = log_or_low, xmax = log_or_high), height = 0.2) +
+  labs(
+    x = "Log odds ratio",
+    y = NULL,
+    title = "Effect sizes for predictors of steelhead presence",
+    caption = "* represents model significance p<0.05"
+  ) +
+  theme_minimal(base_size = 13)
+
+```
+
+### Discussion
+
+Steelhead presence in the Feather River was strongly influenced by local
+habitat structure, spawning context, and broader spatial and seasonal
+variation. The mixed‐effects logistic regression model that included
+random intercepts for transect location and months March - May performed
+very well, underscoring the importance of accounting for both site‐level
+heterogeneity and seasonal dynamics when modeling steelhead occurrence.
+
+Structural habitat features were the most consistent predictors of
+steelhead presence. Overhanging vegetation, aquatic vegetation, and
+small woody debris were all positively associated with occurrence,
+indicating a strong preference for habitats that provide cover, refuge,
+and hydraulic complexity. These findings align with the ecology of
+juvenile steelhead, which typically select habitats that reduce
+predation risk and energetic costs. In contrast, substrate variables and
+large woody debris did not show strong independent effects once other
+habitat features were considered.
+
+Spawning context also played a key role. The presence of nearby redds
+and higher total redd counts were both associated with increased
+probabilities of steelhead presence, suggesting spatial coupling between
+spawning and rearing habitats or shared reach‐scale conditions that
+support both life stages. While these effects were strong, they were
+estimated with greater uncertainty than structural habitat predictors.
+
+Hydraulic variables had secondary influence. Velocity showed a negative
+association with steelhead presence, indicating reduced use of
+higher‐velocity habitats when suitable cover was lacking. Depth,
+however, exhibited little effect, suggesting that depth alone is less
+important than habitat complexity.
+
+Substantial unexplained variation remained at both the site and seasonal
+scales. Random‐effect estimates indicated that some transects
+consistently supported higher baseline probabilities of steelhead
+presence, while others were persistently low, reflecting the influence
+of unmeasured reach‐scale factors such as connectivity, geomorphology,
+or thermal conditions. Strong month‐level effects revealed pronounced
+seasonal structure, with higher occurrence in spring and reduced
+presence later in the season, consistent with outmigration patterns.
+Together, these results highlight the combined importance of fine‐scale
+habitat structure and broader spatial and temporal context in shaping
+steelhead distribution.
+
+### Supplementary Figures
+
+**Conallin et al. 2014 - Figure 5**
+
+```{r}
+cover_vars <- c(
+  "small_woody",
+  "large_woody",
+  "overhanging_veg",
+  "undercut_bank",
+  "aquatic_veg",
+  "boulder_substrate",
+  "cobble_substrate",
+  "surface_turbidity"
+)
+
+site_var <- "channel_location"  
+
+df_long <- log_reg_data |>
+  mutate(presence = as.integer(count > 0))  |> 
+  select(all_of(site_var), presence, all_of(cover_vars)) |> 
+  mutate(across(all_of(cover_vars), ~ as.integer(.x > 0))) |> 
+  pivot_longer(
+    cols = all_of(cover_vars),
+    names_to = "feature",
+    values_to = "feature_present"
+  )
+
+feature_summary <- df_long |> 
+  group_by(.data[[site_var]], feature) |> 
+  summarise(
+    n_all = n(),
+    n_present_feature = sum(feature_present == 1, na.rm = TRUE),
+    n_fish_present = sum(presence == 1, na.rm = TRUE),
+    n_fish_present_with_feature = sum(presence == 1 & feature_present == 1, na.rm = TRUE),
+    .groups = "drop"
+  ) |> 
+  group_by(.data[[site_var]]) |> 
+  mutate(
+    HA = n_present_feature / n_all,
+    HU = ifelse(n_fish_present > 0, n_fish_present_with_feature / n_fish_present, NA_real_),
+    P  = HU / HA,
+    HSI_raw = ifelse(is.finite(P), P / max(P, na.rm = TRUE), NA_real_)
+  ) |> 
+  ungroup()
+
+plot_df <- feature_summary |> 
+  select(.data[[site_var]], feature, HA, HU, HSI_raw) |> 
+  pivot_longer(cols = c(HA, HU, HSI_raw), names_to = "panel", values_to = "value") |> 
+  mutate(
+    panel = recode(panel,
+                   HA = "HA (availability)",
+                   HU = "HU (utilization)",
+                   HSI_raw = "HSI (preference)"),
+    feature = str_replace_all(feature, "_", " ")
+  )
+
+ggplot(plot_df, aes(x = feature, y = value)) +
+  geom_col(fill = "black", alpha = 0.8) +
+  facet_grid(panel ~ .data[[site_var]], scales = "free_y") +
+  labs(
+    x = NULL,
+    y = "Value (0–1)",
+    title = "Steelhead - Habitat feature availability, use, and preference by channel location"
+  ) +
+  theme_classic(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    strip.background = element_rect(fill = "white", color = "black", linewidth = 0.5),
+    strip.text = element_text(size = 9),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    axis.line = element_blank(),
+    plot.title = element_text(size = 12)
+  )
+
+ggsave(
+  filename = here::here("figures", "steelhead_hsi_lfc_hfc.png"),
+  width = 12,
+  height = 9,
+  dpi = 300,
+  bg = "white"
+)
+```
+
+
+```{r}
+cover_vars <- c(
+  "small_woody",
+  "large_woody",
+  "overhanging_veg",
+  "undercut_bank",
+  "aquatic_veg",
+  "boulder_substrate",
+  "cobble_substrate",
+  "surface_turbidity"
+)
+
+site_var <- "location"  
+
+df_long <- log_reg_data |>
+  mutate(presence = as.integer(count > 0))  |> 
+  select(all_of(site_var), presence, all_of(cover_vars)) |> 
+  mutate(across(all_of(cover_vars), ~ as.integer(.x > 0))) |> 
+  pivot_longer(
+    cols = all_of(cover_vars),
+    names_to = "feature",
+    values_to = "feature_present"
+  )
+
+feature_summary <- df_long |> 
+  group_by(.data[[site_var]], feature) |> 
+  summarise(
+    n_all = n(),
+    n_present_feature = sum(feature_present == 1, na.rm = TRUE),
+    n_fish_present = sum(presence == 1, na.rm = TRUE),
+    n_fish_present_with_feature = sum(presence == 1 & feature_present == 1, na.rm = TRUE),
+    .groups = "drop"
+  ) |> 
+  group_by(.data[[site_var]]) |> 
+  mutate(
+    HA = n_present_feature / n_all,
+    HU = ifelse(n_fish_present > 0, n_fish_present_with_feature / n_fish_present, NA_real_),
+    P  = HU / HA,
+    HSI_raw = ifelse(is.finite(P), P / max(P, na.rm = TRUE), NA_real_)
+  ) |> 
+  ungroup()
+
+plot_df <- feature_summary |> 
+  select(.data[[site_var]], feature, HA, HU, HSI_raw) |> 
+  pivot_longer(cols = c(HA, HU, HSI_raw), names_to = "panel", values_to = "value") |> 
+  mutate(
+    panel = recode(panel,
+                   HA = "HA (availability)",
+                   HU = "HU (utilization)",
+                   HSI_raw = "HSI (preference)"),
+    feature = str_replace_all(feature, "_", " ")
+  )
+
+ggplot(plot_df, aes(x = value, y = feature, color = feature)) +
+  geom_jitter(height = 0.2, alpha = 0.5, size = 1.8) +
+  stat_summary(fun = mean, geom = "point", shape = 18, size = 4, color = "black") +
+  facet_wrap(~panel, ncol = 1) +
+  scale_color_manual(
+    values = c(
+      "aquatic veg"        = "black",
+      "boulder substrate"  = "black",
+      "cobble substrate"   = "black",
+      "fine substrate"     = "black",
+      "gravel substrate"   = "black",
+      "large wood"         = "black",
+      "pool"               = "black",
+      "riffle"             = "black",
+      "run"                = "black"
+    ),
+    guide = "none"
+  ) +
+  labs(
+    x = "Value (0–1)",
+    y = NULL,
+    title = "Steelhead habitat: habitat variability across locations",
+    subtitle = "Points = locations; diamond = mean"
+  ) +
+  theme_classic(base_size = 12) +
+  theme(
+    strip.background = element_rect(fill = "white", color = "black", linewidth = 0.5),
+    strip.text = element_text(size = 10),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 0.5),
+    axis.line = element_blank(),
+    plot.title = element_text(size = 12),
+    plot.subtitle = element_text(size = 10, color = "grey40")
+  )
+
+ggsave(
+  filename = here::here("figures", "steelhead_hsi_locations.png"),
+  width = 12,
+  height = 9,
+  dpi = 300,
+  bg = "white"
+)
+
+```
+
+```{r}
+knitr::knit_exit()
+```
