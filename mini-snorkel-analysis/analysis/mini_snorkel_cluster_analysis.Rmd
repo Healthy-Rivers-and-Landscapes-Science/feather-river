@@ -21,13 +21,13 @@ library(googleCloudStorageR)
 knitr::opts_chunk$set(warning = F, message = F)
 
 # TODO update data connections when data are posted on EDI
-ongoing_snorkel <- read_csv(here::here("data", "ongoing_fish_observations.csv"))
-ongoing_snorkel_metadata <- read_csv(here::here("data", "ongoing_survey_characteristics.csv"))
-ongoing_snorkel_location <- read_csv(here::here("data", "ongoing_locations_lookup.csv"))
+ongoing_snorkel <- read_csv(here::here("data-raw", "ongoing_fish_observations.csv"))
+ongoing_snorkel_metadata <- read_csv(here::here("data-raw", "ongoing_survey_characteristics.csv"))
+ongoing_snorkel_location <- read_csv(here::here("data-raw", "ongoing_locations_lookup.csv"))
 # mini snorkel data
-mini_snorkel_raw <- read_csv(here::here("data", "microhabitat_observations.csv")) |> 
+mini_snorkel_raw <- read_csv(here::here("data-raw", "microhabitat_observations.csv")) |>
   mutate(fish_presence = factor(ifelse(count == 0 | is.na(count), 0, 1)))
-location_raw <- read_csv(here::here("data", "survey_locations.csv"))
+location_raw <- read_csv(here::here("data-raw", "survey_locations.csv"))
 ```
 
 # Mini Snorkel
@@ -935,7 +935,7 @@ cluster_data_post |>
   labs(x = "",
        y = "")
 
-ggsave("analysis/figures/environmental_boxplot.png", height = 7, width = 9)
+ggsave(here::here("analysis", "figures", "environmental_boxplot.png"), height = 7, width = 9)
 
 mini_snorkel_raw |> 
   filter(is.na(count) | count == 0) |> 
@@ -966,12 +966,12 @@ cluster_assign |>
   labs(x = "",
        y = "")
 
-ggsave("analysis/figures/substrate_boxplot.png", height = 7, width = 9)
+ggsave(here::here("analysis", "figures", "substrate_boxplot.png"), height = 7, width = 9)
 
-# cluster_assign |> 
+# cluster_assign |>
 #   ggplot(aes(x = cluster_groups, y = percent_small_gravel_substrate)) +
 #   geom_boxplot()
-# cluster_assign |> 
+# cluster_assign |>
 #   ggplot(aes(x = cluster_groups, y = percent_large_gravel_substrate)) +
 #   geom_boxplot()
 # cluster_assign |> 
@@ -1009,7 +1009,7 @@ cover_boxplot <- cluster_assign |>
   labs(x = "",
        y = "")
 
-ggsave("analysis/figures/cover_boxplot.png", height = 7, width = 9)
+ggsave(here::here("analysis", "figures", "cover_boxplot.png"), height = 7, width = 9)
 
 # cluster_assign |> 
 #   ggplot(aes(x = cluster_groups, y = percent_submerged_aquatic_veg_inchannel)) +
@@ -1036,7 +1036,7 @@ mini_snorkel_raw |>
   labs(x = "",
        y = "")
 
-ggsave("analysis/figures/cover_no_fish_obs_boxplot.png", height = 7, width = 9)
+ggsave(here::here("analysis", "figures", "cover_no_fish_obs_boxplot.png"), height = 7, width = 9)
 ```
 
 #### Classify new data
@@ -1171,7 +1171,7 @@ substrate_cluster_assign |>
   labs(x = "",
        y = "")
 
-#ggsave("analysis/figures/substrate_boxplot.png", height = 7, width = 9)
+#ggsave(here::here("analysis", "figures", "substrate_boxplot.png"), height = 7, width = 9)
 
 substrate_cluster_assign |> 
   pivot_longer(cols = percent_fine_substrate:percent_boulder_substrate, names_to = "parameter", values_to = "value") |> 
@@ -1191,7 +1191,7 @@ substrate_cluster_assign |>
   theme_bw() +
   labs(x = "",
        y = "")
-ggsave("analysis/figures/substrate_cluster_combo.png", height = 7, width = 9)
+ggsave(here::here("analysis", "figures", "substrate_cluster_combo.png"), height = 7, width = 9)
 # cluster_assign |> 
 #   ggplot(aes(x = cluster_groups, y = percent_small_gravel_substrate)) +
 #   geom_boxplot()
@@ -1227,9 +1227,9 @@ substrate_cluster_data_post |>
 ```{r, include = F}
 
 # some records where units are NA. we may just want to get rid of those
-ongoing_snorkel_obs <- read_csv("data/cleaner_snorkel_observations.csv")
-ongoing_snorkel_metadata <- read_csv("data/cleaner_snorkel_metadata.csv")
-site_lookup <- read_csv("data/location_unit_lookup.csv")
+ongoing_snorkel_obs <- read_csv(here::here("data-raw", "cleaner_snorkel_observations.csv"))
+ongoing_snorkel_metadata <- read_csv(here::here("data-raw", "cleaner_snorkel_metadata.csv"))
+site_lookup <- read_csv(here::here("data-raw", "location_unit_lookup.csv"))
 
 
 obs_ck <- ongoing_snorkel_obs |> 

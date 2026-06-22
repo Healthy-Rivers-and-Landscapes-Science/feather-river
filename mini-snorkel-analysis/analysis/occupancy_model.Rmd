@@ -19,15 +19,15 @@ library(tidyverse)
 library(googleCloudStorageR)
 knitr::opts_chunk$set(warning = F, message = F)
 
-ongoing_location_lookup_raw <- read_csv(here::here("data", "feather_location_lookup.csv"))
-ongoing_metadata_raw <- read_csv(here::here("data", "feather_snorkel_metadata.csv"))
-ongoing_obs_raw <- read_csv(here::here("data", "feather_snorkel_observations.csv"))
+ongoing_location_lookup_raw <- read_csv(here::here("data-raw", "feather_location_lookup.csv"))
+ongoing_metadata_raw <- read_csv(here::here("data-raw", "feather_snorkel_metadata.csv"))
+ongoing_obs_raw <- read_csv(here::here("data-raw", "feather_snorkel_observations.csv"))
 
 # mini snorkel data
 # TODO is there a table that associates the microhabitat plot with a lat/long?
 # TODO the survey locations are missing coordinates
-mini_snorkel_raw <- read_csv(here::here("data", "microhabitat_with_fish_observations.csv"))
-location_raw <- read_csv(here::here("data", "survey_locations.csv"))
+mini_snorkel_raw <- read_csv(here::here("data-raw", "microhabitat_with_fish_observations.csv"))
+location_raw <- read_csv(here::here("data-raw", "survey_locations.csv"))
 ```
 
 ## Occupancy modeling
