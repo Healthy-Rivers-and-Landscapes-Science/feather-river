@@ -48,10 +48,10 @@ Summary of work that has been done so far:
 
 ```{r, include=FALSE}
 # redd survey points
-redd_data <- read.csv("edi-redd/data-raw/combined_raw_data.csv")
+redd_data <- read.csv(here::here("edi-redd", "data-raw", "combined_raw_data.csv"))
 
 # surveying sites from gis data map
-gdb_path <- "edi-redd/data-raw/shapefiles/b105_redd_survey_locations_maps_2021.gdb"
+gdb_path <- here::here("edi-redd", "data-raw", "shapefiles", "b105_redd_survey_locations_maps_2021.gdb")
 
 layers <- st_layers(gdb_path)$name
 ```
@@ -79,7 +79,7 @@ data_zero_removed <- redd_data |>
 
 
 # Chris shared the correct lat/long for some of these records, and decided to delete some of the entries
-fixed_zeros <- read.csv("edi-redd/data-raw/qc-processing-files/Faulty_lat_long_records_edits_Chris_111224.csv") |> # csv with Chris' notes
+fixed_zeros <- read.csv(here::here("edi-redd", "data-raw", "qc-processing-files", "Faulty_lat_long_records_edits_Chris_111224.csv")) |> # csv with Chris' notes
   select(-1) |> 
   mutate(Northing = str_trim(Northing)) |>
   filter(Northing != "Erase this data") |> #erasing the 6 data entries he indicates to delete
@@ -120,7 +120,7 @@ off_channel_removed <- redd_data_fixed_zeros |>
 glimpse()
 
 #reding in Chris' file with corrections
-fixed_off_channel <- read.csv("edi-redd/data-raw/qc-processing-files/Off_channel_records_edit_Chris_110524.csv") |> 
+fixed_off_channel <- read.csv(here::here("edi-redd", "data-raw", "qc-processing-files", "Off_channel_records_edit_Chris_110524.csv")) |> 
   glimpse()
 
 fixed_off_channel <- fixed_off_channel |> 
