@@ -25,7 +25,7 @@ theme_set(
     )
 )
 
-source(here("data-raw", "pull_from_edi.R"))
+source(here("mini-snorkel-analysis", "data-raw", "pull_from_edi.R"))
 
 cover_vars        <- c("small_woody", "large_woody", "overhanging_veg",
                        "undercut_bank", "aquatic_veg", "boulder_substrate",
@@ -242,7 +242,7 @@ plot_depth_velocity_scatter <- function(mini_snorkel_chinook, mini_snorkel_steel
     ch |> filter(count > 0) |> mutate(species_cat = "Chinook Salmon"),
     sh |> filter(count > 0) |> mutate(species_cat = "Steelhead"),
   ) |>
-    filter(count > 0) |> 
+    filter(count > 0) |>
     mutate(
       species_cat = factor(species_cat, levels = c("Chinook Salmon", "Steelhead")),
       cover_panel = factor(cover_panel, levels = c("Cover < 20%", "Cover present"))
@@ -261,6 +261,73 @@ plot_depth_velocity_scatter <- function(mini_snorkel_chinook, mini_snorkel_steel
       legend.position = "right",
       axis.text.x     = element_text(angle = 0, size = 10)
     )
+}
+
+plot_depth_velocity_scatter_ft <- function(mini_snorkel_chinook, mini_snorkel_steelhead,
+                                           pct_thresh = percent_threshold) {
+  CM_TO_FT  <- 0.0328084
+  MS_TO_FPS <- 3.28084
+
+  DEPTH_MIN_FT <- 0.5
+  DEPTH_MAX_FT <- 4.0
+  VEL_MIN_FPS  <- 0.0
+  VEL_MAX_FPS  <- 3.0
+
+  add_cover_cols <- function(df) {
+    df |>
+      filter(!is.na(depth), !is.na(velocity), !is.na(date)) |>
+      mutate(
+        depth_ft  = depth    * CM_TO_FT,
+        vel_fps   = velocity * MS_TO_FPS,
+        any_cover = (
+          coalesce(percent_small_woody_cover_inchannel, 0)                         >= pct_thresh |
+          coalesce(percent_large_woody_cover_inchannel, 0)                         >= pct_thresh |
+          (coalesce(percent_cover_half_meter_overhead, 0) +
+           coalesce(percent_cover_more_than_half_meter_overhead, 0))               >= pct_thresh |
+          coalesce(percent_undercut_bank, 0)                                       >= pct_thresh |
+          coalesce(percent_submerged_aquatic_veg_inchannel, 0)                     >= pct_thresh |
+          coalesce(percent_boulder_substrate, 0)                                   >= pct_thresh |
+          coalesce(percent_cobble_substrate, 0)                                    >= pct_thresh |
+          coalesce(surface_turbidity, 0)                                           >  0
+        ),
+        week_of_year = lubridate::week(date),
+        cover_panel  = if_else(any_cover, "Cover present", "Cover < 20%")
+      ) |>
+      filter(
+        depth_ft >= DEPTH_MIN_FT, depth_ft <= DEPTH_MAX_FT,
+        vel_fps  >= VEL_MIN_FPS,  vel_fps  <= VEL_MAX_FPS
+      )
+  }
+
+  ch <- add_cover_cols(mini_snorkel_chinook)
+  sh <- add_cover_cols(mini_snorkel_steelhead)
+
+  bind_rows(
+    ch |> filter(count > 0) |> mutate(species_cat = "Chinook Salmon"),
+    sh |> filter(count > 0) |> mutate(species_cat = "Steelhead"),
+  ) |>
+    filter(count > 0) |>
+    mutate(
+      species_cat = factor(species_cat, levels = c("Chinook Salmon", "Steelhead")),
+      cover_panel = factor(cover_panel, levels = c("Cover < 20%", "Cover present"))
+    ) |>
+    ggplot(aes(x = depth_ft, y = vel_fps, shape = species_cat, color = week_of_year)) +
+    geom_point(alpha = 0.55, size = 2) +
+    scale_shape_manual(
+      values = c("Chinook Salmon" = 16, "Steelhead" = 17),
+      name   = NULL
+    ) +
+    scale_color_viridis_c(name = "Week of year", option = "plasma") +
+    scale_x_continuous(limits = c(DEPTH_MIN_FT, DEPTH_MAX_FT)) +
+    scale_y_continuous(limits = c(VEL_MIN_FPS,  VEL_MAX_FPS)) +
+    facet_wrap(~cover_panel) +
+    labs(x = "Depth (ft)", y = "Velocity (fps)") +
+    theme_hsi() +
+    theme(
+      legend.position = "right",
+      axis.text.x     = element_text(angle = 0, size = 10)
+    ) +
+    labs(subtitle = "Depth and Velocity filtered to: 0.5 – 4.0 ft and 0.0 – 3.0 fps")
 }
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -315,7 +382,7 @@ mini_snorkel_steelhead <- mini_fish_raw |>
   ) |>
   filter(species %in% c("steelhead trout (wild)", "steelhead trout (clipped)") | count == 0)
 
-redd_steelhead_sf <- readxl::read_excel(here("data-raw", "SH Redd Survey.xlsx")) |>
+redd_steelhead_sf <- readxl::read_excel(here("mini-snorkel-analysis", "data-raw", "SH Redd Survey.xlsx")) |>
   janitor::clean_names() |>
   rename(number_redds = number_of_redds, date_redd = date) |>
   filter(number_redds > 0) |>
@@ -446,7 +513,7 @@ plot_depth_velocity <- function(mini_snorkel_chinook, mini_snorkel_steelhead,
       select(depth, velocity, presence, species, month, cover_panel) |>
       filter(presence == "Present")
   }
-  
+
   bind_rows(
     prep_dv(mini_snorkel_chinook,   "Chinook Salmon"),
     prep_dv(mini_snorkel_steelhead, "Steelhead")
@@ -490,3 +557,5 @@ ggsave(
   plot_depth_velocity_scatter(mini_snorkel_chinook, mini_snorkel_steelhead),
   width = 12, height = 6, dpi = 300, bg = "white"
 )
+
+plot_depth_velocity_scatter_ft(mini_snorkel_chinook, mini_snorkel_steelhead, pct_thresh = 20)
