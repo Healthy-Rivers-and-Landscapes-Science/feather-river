@@ -26,7 +26,7 @@ Analysis framing
 ```{r, include = F}
 library(tidyverse)
 library(ggalluvial)
-source(here::here("data-raw","pull_from_edi.R"))
+source(here::here("mini-snorkel-analysis", "data-raw","pull_from_edi.R"))
 mini_snorkel_model_ready <- mini_fish_raw |> 
   left_join(mini_locations_raw |> 
               distinct(location_table_id, date, channel_location)) |> 

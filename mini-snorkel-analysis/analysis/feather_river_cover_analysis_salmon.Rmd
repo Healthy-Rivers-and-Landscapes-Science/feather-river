@@ -71,7 +71,7 @@ To account for spatial and temporal structure in the data, we evaluated a series
 ## Review Data
 
 ```{r}
-source(here::here("data-raw", "pull_from_edi.R"))
+source(here::here("mini-snorkel-analysis", "data-raw", "pull_from_edi.R"))
 
 mini_snorkel_raw <- mini_fish_raw |> 
   left_join(mini_locations_raw |> distinct()) |> 
@@ -203,7 +203,7 @@ redd_data_by_location <- redd_data |>
 # chinook_raw_redds <- redd_data_by_location |> 
 #   group_by(location) |> 
 #   summarise(total_redds = sum(number_redds, na.rm = T)) |> 
-#   saveRDS(here::here("visualizations", "raw_redd_location_chinook.rds"))
+#   saveRDS(here::here("mini-snorkel-analysis", "visualizations", "raw_redd_location_chinook.rds"))
 
 # redd_data_by_location |> 
 #   ggplot(aes(x = location, y = n_redds)) +
@@ -1077,7 +1077,7 @@ ggplot(plot_df, aes(x = feature, y = value)) +
   )
 
 ggsave(
-  filename = here::here("figures", "chinook_hsi_lfc_hfc.png"),
+  filename = here::here("mini-snorkel-analysis", "figures", "chinook_hsi_lfc_hfc.png"),
   width = 12,
   height = 9,
   dpi = 300,
@@ -1175,7 +1175,7 @@ ggplot(plot_df, aes(x = value, y = feature)) + # color = feature) +
   )
 
 ggsave(
-  filename = here::here("figures", "chinook_hsi_locations_boxplot.png"),
+  filename = here::here("mini-snorkel-analysis", "figures", "chinook_hsi_locations_boxplot.png"),
   width = 12,
   height = 9,
   dpi = 300,

@@ -33,9 +33,9 @@ colors_small <-  c("#9A8822", "#F5CDB4", "#F8AFA8", "#FDDDA0", "#74A089", #Royal
 )
 
 # TODO update data connections when data are posted on EDI
-ongoing_snorkel <- read_csv(here::here("data-raw", "ongoing_fish_observations.csv"))
-ongoing_snorkel_metadata <- read_csv(here::here("data-raw", "ongoing_survey_characteristics.csv"))
-ongoing_snorkel_location <- read_csv(here::here("data-raw", "ongoing_locations_lookup.csv"))
+ongoing_snorkel <- read_csv(here::here("mini-snorkel-analysis", "data-raw", "ongoing_fish_observations.csv"))
+ongoing_snorkel_metadata <- read_csv(here::here("mini-snorkel-analysis", "data-raw", "ongoing_survey_characteristics.csv"))
+ongoing_snorkel_location <- read_csv(here::here("mini-snorkel-analysis", "data-raw", "ongoing_locations_lookup.csv"))
 
 # mini snorkel data (on EDI)
 res <- read_data_entity_names(packageId = "edi.1705.1")

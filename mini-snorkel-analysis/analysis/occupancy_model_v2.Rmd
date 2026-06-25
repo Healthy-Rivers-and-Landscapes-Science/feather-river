@@ -28,13 +28,13 @@ library(unmarked)
 knitr::opts_chunk$set(warning = F, message = F)
 
 # TODO update data connections when data are posted on EDI
-ongoing_snorkel <- read_csv(here::here("data-raw", "ongoing_fish_observations.csv"))
-ongoing_snorkel_metadata <- read_csv(here::here("data-raw", "ongoing_survey_characteristics.csv"))
-ongoing_snorkel_location <- read_csv(here::here("data-raw", "ongoing_locations_lookup.csv"))
+ongoing_snorkel <- read_csv(here::here("edi-ongoing-snorkel", "data", "fish_observations.csv"))
+ongoing_snorkel_metadata <- read_csv(here::here("edi-ongoing-snorkel", "data", "survey_characteristics.csv"))
+ongoing_snorkel_location <- read_csv(here::here("edi-ongoing-snorkel", "data", "locations_lookup.csv"))
 # mini snorkel data
-mini_snorkel_raw <- read_csv(here::here("data-raw", "microhabitat_observations.csv")) |>
+mini_snorkel_raw <- read_csv(here::here("mini-snorkel-analysis", "data-raw", "microhabitat_observations.csv")) |>
   mutate(fish_presence = factor(ifelse(count == 0 | is.na(count), 0, 1)))
-location_raw <- read_csv(here::here("data-raw", "survey_locations.csv"))
+location_raw <- read_csv(here::here("mini-snorkel-analysis", "data-raw", "survey_locations.csv"))
 ```
 
 ```{r, include = F}

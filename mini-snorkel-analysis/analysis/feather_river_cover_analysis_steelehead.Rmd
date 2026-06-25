@@ -104,7 +104,7 @@ inference on habitat associations with steelhead presence.
 ## Review Data
 
 ```{r}
-source(here::here("data-raw", "pull_from_edi.R"))
+source(here::here("mini-snorkel-analysis", "data-raw", "pull_from_edi.R"))
 
 mini_snorkel_raw <- mini_fish_raw |> 
   left_join(mini_locations_raw |> distinct()) |> 
@@ -174,7 +174,7 @@ aggregate or is that double counting? Currently grouped by date and
 location name to get a total number of redds.
 
 ```{r}
-redd_data_raw <- readxl::read_excel(here::here("data-raw", "SH Redd Survey.xlsx")) |> 
+redd_data_raw <- readxl::read_excel(here::here("mini-snorkel-analysis", "data-raw", "SH Redd Survey.xlsx")) |> 
   janitor::clean_names() 
 
 # remove zero redds
@@ -227,7 +227,7 @@ redd_data_by_location <- redd_data_with_redds |>
 # steelhead_raw_redds <- redd_data_by_location |> 
 #   group_by(location) |> 
 #   summarise(total_redds = sum(number_redds, na.rm = T)) |> 
-#   saveRDS(here::here("visualizations", "raw_redd_location_steelhead.rds"))
+#   saveRDS(here::here("mini-snorkel-analysis", "visualizations", "raw_redd_location_steelhead.rds"))
 
 leaflet() |> 
   addProviderTiles(providers$Esri.WorldImagery, group = "Aerial Imagery") |>
@@ -1099,7 +1099,7 @@ ggplot(plot_df, aes(x = feature, y = value)) +
   )
 
 ggsave(
-  filename = here::here("figures", "steelhead_hsi_lfc_hfc.png"),
+  filename = here::here("mini-snorkel-analysis", "figures", "steelhead_hsi_lfc_hfc.png"),
   width = 12,
   height = 9,
   dpi = 300,
@@ -1196,7 +1196,7 @@ ggplot(plot_df, aes(x = value, y = feature, color = feature)) +
   )
 
 ggsave(
-  filename = here::here("figures", "steelhead_hsi_locations.png"),
+  filename = here::here("mini-snorkel-analysis", "figures", "steelhead_hsi_locations.png"),
   width = 12,
   height = 9,
   dpi = 300,
