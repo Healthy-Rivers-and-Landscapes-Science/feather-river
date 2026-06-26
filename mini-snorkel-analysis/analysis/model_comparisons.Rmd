@@ -1,0 +1,111 @@
+---
+title: "model comparison"
+author: "Maddee Wiggins (FlowWest)"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Comparison of Results
+
+*The following compares models and results for the FlowWest Chinook and Steelhead models to the FERC 2004 report that analyzed the same data.*
+
+### FlowWest Models:
+
+**Goal**: model that reflects the significance of cover, substrate, depth, and velocity on steelhead presence and absence
+
+-   binary logistic regression
+
+-   response variable - presence/absence
+
+-   mixed effect framework
+
+-   retains full ecological covariate set
+
+### FERC 2004 Model
+
+Report: [SP F-10 3A FINAL REPORT DISTRIBUTION AND HABITAT USE OF JUVENILE STEELHEAD AND OTHER FISHES OF THE LOWER FEATHER RIVER](https://netorg629193.sharepoint.com/sites/VA-FeatherRiver/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FVA%2DFeatherRiver%2FShared%20Documents%2FResources%2FFeather%20River%20Reports%2F04%2D28%2D04%5Fatt%5F10%5Ff10%5F3A%5Fsteelhead%5Fhab%5Fuse%2Epdf&parent=%2Fsites%2FVA%2DFeatherRiver%2FShared%20Documents%2FResources%2FFeather%20River%20Reports&p=true&ga=1)
+
+**Goal:** A habitat-use inference model to guide management and restoration planning
+
+-   Binary logistic regression with fixed-effect
+
+-   no random effects
+
+-   AIC-based variable selection
+
+-   model captures habitat quality
+
+### Differences
+
+| Variable | FERC 2004 Report Findings | Chinook Model | Steelhead Model |
+|----|----|----|----|
+| **Depth** | Steelhead associated with shallower margins; Chinook vary by size class | Positive and highly significant effect on presence | Negative and significant effect on presence |
+| **Velocity** | Steelhead avoid higher velocities; prefer lower velocity microhabitats | Strong negative effect on presence | Strong negative effect on presence (larger magnitude than Chinook) |
+| **Substrate** | Gravel/cobble more frequently used than fine substrates | Cobble and boulder not significant once hydraulics included | Substrate not significant once hydraulics included |
+| **In-stream Cover** | Positive association with instream cover; Large cover important for some size classes | Large woody not significant; small woody positive but moderate | Small woody positive and significant |
+| **Overhanging Vegetation** | Large cover important for some size classes | Strong positive and significant effect | Strong positive and significant effect |
+| **Aquatic Vegetation** | Positive association in low-velocity areas | Negative and significant | Positive and significant |
+| **Undercut Bank** | positive association reported | Positive, not significant | Positive, not significant |
+| **Spawning (Redd) Signal** | Not included in models | Redd total significant; redd presence marginal | Redd presence strong; redd total significant |
+| **Temporal Structure** | Seasonal patterns described but not modeled hierarchically | Strong month variance component | Weak month variance component |
+
+### Model Evaluation
+
+*How are models evaluated for performance? Are they?*
+
+-   **FlowWest models**
+
+    -   Goal: Are certain habitat variables significantly associated with fish presence? How well does the model predict presence and how robust is the prediction
+
+    -   Evaluation: AUC, confusion matrix, p-values
+
+-   **2004 FERC report**
+
+    -   Goal: Are certain habitat variables significantly associated with fish presence?
+
+    -   Evaluation: P-values, AIC
+
+-   [**Favrot et al.**](https://netorg629193.sharepoint.com/sites/VA-FeatherRiver/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FVA%2DFeatherRiver%2FShared%20Documents%2FSystematic%20Lit%20Review%2FJune%2012%20%2D%20Lucy%20Lit%20Pull%2Ffavrot%5Fet%5Fal%5F2018%2Epdf&parent=%2Fsites%2FVA%2DFeatherRiver%2FShared%20Documents%2FSystematic%20Lit%20Review%2FJune%2012%20%2D%20Lucy%20Lit%20Pull&p=true&ga=1)**,**
+
+    -   Goal: Is this the best-supported explanatory model for habitat selection?
+
+    -   Evaluation: AIC-based model selection with mixed-effects RSF, residual diagnostics, confidence intervals/odds ratios, and Bayesian credible intervals
+
+-   [Beakes et al., 2012](https://netorg629193.sharepoint.com/sites/VA-FeatherRiver/Shared%20Documents/Forms/AllItems.aspx?viewid=63d6df4b%2Dcf55%2D4d2a%2Dbcf2%2D1ebdd8dc0dc3&as=json&id=%2Fsites%2FVA%2DFeatherRiver%2FShared%20Documents%2FResources%2FLiterature%2FBeakes%5Fetal%5FRRA%5Finpress%20%281%29%2Epdf&parent=%2Fsites%2FVA%2DFeatherRiver%2FShared%20Documents%2FResources%2FLiterature)
+
+    -   Goal: compare two statistical approaches for modeling juvenile Chinook salmon habitat - first model is a traditional composite suitability index style aggregated univariate model, second model is a multivariate GLM using AIC model selection
+
+    -   Evaluation: Cohen's Kappa, optimized threshold, percent correctly classified, sensitivity, specificity, AUC
+
+        | Metric      | Beakes Model G | FW Steelhead | FW Chinook |
+        |-------------|----------------|--------------|------------|
+        | AUC         | 0.649          | 0.913        | 0.907      |
+        | Kappa       | 0.203          | 0.31         | 0.23       |
+        | Sensitivity | 37.5%          | 27%          | 14.1%      |
+        | Specificity | 83.6%          | 99.5%        | 99.8%      |
+
+-   *Kappa - a measure of all possible outcomes of presence or absence that are predicted correctly, after accounting for chance predictions*
+
+-   *Sensitivity - Measures how well the model detects fish when they are present*
+
+-   *Specificity - Measures how well the model avoids false alarms.*
+
+-   *AUC - Measures how well a model can distinguish between presence and absence across all possible probability thresholds, not just one cutoff*
+
+```{r eval=FALSE, include=FALSE}
+# for reference, FlowWest models:
+# Steelhead κ ≈ 0.31
+# Chinook κ ≈ 0.23
+```
+
+### Figures Comparing FlowWest Chinook and Steelhead Models
+
+**Conallin et al. 2014 - Figure 5**
+
+![](images/clipboard-3948173119.png){width="75%"}
+
+![](images/clipboard-1309889640.png){width="75%"}
