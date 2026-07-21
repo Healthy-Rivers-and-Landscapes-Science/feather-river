@@ -1,4 +1,4 @@
-location,survey_date,longitude,latitude,channel_location
+location,date,longitude,latitude,channel_location
 Below Big,2024-10-22T00:00:00Z,-121.62443136,39.38997402,HFC
 Below Big,2024-10-22T00:00:00Z,-121.62370888,39.38978359,HFC
 Below Big,2024-10-22T00:00:00Z,-121.62372759,39.38993214,HFC

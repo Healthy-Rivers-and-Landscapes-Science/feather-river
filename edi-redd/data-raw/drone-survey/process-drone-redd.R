@@ -70,6 +70,15 @@ if (qc_summary$duplicate_points > 0) warning(qc_summary$duplicate_points, " dupl
 drone_redd_clean <- qc_flags |>
   distinct(location, survey_date, longitude, latitude, channel_location, .keep_all = TRUE) |>
   select(location, survey_date, longitude, latitude, channel_location) |>
-  arrange(channel_location, location, survey_date)
+  arrange(channel_location, location, survey_date) |>
+  rename(date = survey_date)
+
+drone_redd_clean |>
+  group_by(date, location, channel_location) |>
+  summarise(n_redds = n()) |>
+  ggplot() +
+  geom_col(aes(x = date, y = n_redds, fill = channel_location)) +
+  theme_minimal()
+
 
 write_csv(drone_redd_clean, here::here("edi-redd", "data-raw", "drone-survey", "drone_redd_clean.csv"))
