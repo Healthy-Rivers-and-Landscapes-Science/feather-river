@@ -96,6 +96,57 @@ map_substrate_code <- function(x) {
   )
 }
 
+# Species cleaning: fixes typos, standardizes formatting, and expands
+# known abbreviation codes. Entries marked "# VERIFY" are my best guess
+# based on context — please confirm against your field datasheet codes
+# before trusting them in analysis.
+clean_species <- function(x) {
+  x_trim <- str_trim(x)
+
+  case_when(
+    is.na(x_trim) ~ NA_character_,
+    x_trim %in% c("NO FISH CAUGHT") ~ NA_character_,
+
+    x_trim == "Chjnook Salmon- Spring" ~ "Chinook Salmon - Spring",
+    x_trim == "Chinook Salmon- Fall" ~ "Chinook Salmon - Fall",
+    x_trim == "Chinook Salmon- Late Fall" ~ "Chinook Salmon - Late Fall",
+    x_trim == "Chinook Salmon- Winter" ~ "Chinook Salmon - Winter",
+    x_trim == "Chinook Salmon- Unknown Race Tagged" ~ "Chinook Salmon - Unknown Race Tagged",
+    x_trim == "Chinook Salmon - Spring Tagged" ~ "Chinook Salmon - Spring Tagged",
+    x_trim == "Chinook Salmon - Fall Tagged" ~ "Chinook Salmon - Fall Tagged",
+    x_trim == "Chinook Salmon" ~ "Chinook Salmon - Unknown Race",
+    x_trim == "Unidentified salmonid" ~ "Unidentified Salmonid",
+    x_trim == "UNID Sunfish" ~ "Unidentified Sunfish",
+
+    x_trim == "Sacramento Squawfish or Hardhead" ~ "Sacramento Pikeminnow or Hardhead",
+    x_trim == "sasq" ~ "Sacramento Pikeminnow",
+    x_trim == "Sacramento Squawfish" ~ "Sacramento Pikeminnow",
+    x_trim == "Pikeminnow/Hardhead" ~ "Sacramento Pikeminnow or Hardhead",
+
+    x_trim == "SD" ~ "Speckled Dace",
+    x_trim == "GS" ~ "Green Sunfish",
+    x_trim %in% c("min") ~ "Unidentified Juvenile Minnow",
+    x_trim %in% c("wag") ~ "Wakasagi",
+    x_trim %in% c("chnw") ~ "Chinook Salmon - Winter",
+    x_trim %in% c("chnlf", "CHNLF") ~ "Chinook Salmon - Late Fall",
+    x_trim %in% c("chnf") ~ "Chinook Salmon - Fall",
+
+    # VERIFY - pending confirmation from data owner
+    x_trim %in% c("MSQ", "msq") ~ "Western Mosquitofish",
+    x_trim %in% c("CHNSC") ~ "Chinook Salmon - Spring",
+    x_trim %in% c("CHNs") ~ "Chinook Salmon - Spring",
+    x_trim %in% c("SPB", "spb") ~ "Spotted Bass",
+    x_trim %in% c("Scp") ~ "Prickly Sculpin",
+    x_trim %in% c("Res") ~ "Rainbow Trout (wild)",
+    x_trim %in% c("Pink") ~ "Pink Salmon",
+    x_trim %in% c("b") ~ NA_character_,
+
+    TRUE ~ x_trim
+  ) |>
+    str_replace("^Unid\\b", "Unidentified")
+}
+
+
 #  process 1997-2001 -------------------------------------------------------------------
 seine_1997 <- raw_1997 |>
   clean_names() |>
@@ -314,6 +365,22 @@ issue_log <- dplyr::bind_rows(
   )
 )
 
+seine_sample_shape <- all_seine_combined |>
+  select(date, sample_shape) |>
+  na.omit() |>
+  write_csv(here::here("edi-seine", "data", "clean", "diagnostics", "seine_sample_shape.csv"))
+
+issue_log <- dplyr::bind_rows(
+  issue_log,
+  hrlpub::log_issue(
+    issue = "sample shape not needed in final dataset",
+    rows_affected = nrow(seine_sample_shape),
+    action = "removed sample_shape column which includes: sweep seine technique, box seine technique, and net",
+    n_total = nrow(all_seine_combined),
+    details_path = "data/clean/diagnostics/seine_sample_shape.csv"
+  )
+)
+
 
 # -------------------------------------------------------------------------
 # Data modifications/cleaning:
@@ -321,19 +388,20 @@ issue_log <- dplyr::bind_rows(
 # 2. created one sample id based on sample id and seine id since they were redundant and dependent on the input dataset
 # 3. if gear type was NA, we made it SEIN
 # 4. extracted the number of hauls from the comments section
-# 5. removed flow (gage), weather
+# 5. removed flow (gage), weather, id
 # 6. Do not represent substrate and cover as “dominant” and “secondary”
 #     etc because they record all that is present and then enter or order of
 #     entry determines the “dominant” and “secondary”
+# 7. removed sample shape
 
-# TODO: just include substrate type (small, medium, fine) and make the description
-# part of the metadata
-# substrate:
+# TODO: substrate description for metadata:
 # Fine - small gravel (0-50mm) (0-2in.)
 # Small - medium gravel (50-150mm) (2-6in.)
 # Medium - large cobble (150-300mm) (6-12in.)
 # Pavement (Boat Ramp)
 # Boulder (>300mm) (>12in.)
+#
+# TODO: add rivermile and lat/long of rivermile
 
 all_seine_clean <- all_seine_combined |>
   filter(!gear_type %in% c("NETS", "EF_SE", "EF-SE")) |>
@@ -342,6 +410,19 @@ all_seine_clean <- all_seine_combined |>
     gear_type = coalesce(gear_type, "SEIN")
     #n_hauls   = map_dbl(comments, extract_n_hauls)
   ) |>
+  # Methods state a single "average depth of the haul" was recorded, but the
+  # raw data has two point depths (depth_1, depth_2) plus, for 1997-2001 only,
+  # the distances those points were taken at (depth_dist_1/2). depth_dist has
+  # no equivalent in 2008+ data (depth there is fixed at half/full distance
+  # out), so it can't be harmonized across eras - average the two depths into
+  # one `depth` column per the methods text and drop the distance fields.
+  mutate(depth = rowMeans(cbind(depth_1, depth_2), na.rm = TRUE)) |>
+  # Methods define "seine area" as length, width, and average depth of the
+  # haul, i.e. sample_area = length * width * depth. 1997-2001 already
+  # supplies sample_area directly from the raw data; 2008+ data doesn't
+  # include a pre-computed area, so derive it here from length/width/depth.
+  mutate(sample_area = coalesce(sample_area, length * width * depth)) |>
+  # COLLAPSE SUBSTRATE VAR
   mutate(
     substrate_1_code = map_substrate_code(substrate_1),
     substrate_2_code = map_substrate_code(substrate_2),
@@ -356,15 +437,50 @@ all_seine_clean <- all_seine_combined |>
   ) |>
   ungroup() |>
   rowwise() |>
+  # COLLAPSE COVER VAR
   mutate(
     cover = paste(
       na.omit(c(cover_1, cover_2, cover_3)),
       collapse = ", "
     )
   ) |>
-  select(-seine_id, -flow, -weather, -comments,
+  # CLEAN SPECIES:
+  mutate(species_clean = clean_species(species)) |>
+  mutate(
+    adipose_clipped = case_when(
+      str_detect(species_clean, "Tagged") ~ TRUE,
+      str_detect(species_clean, "\\(ad clipped\\)") ~ TRUE,
+      str_detect(species_clean, "^Chinook Salmon|^Steelhead Trout") ~ FALSE,
+      TRUE ~ NA
+    ),
+    run = case_when(
+      str_detect(species_clean, "Late Fall") ~ "Late Fall",
+      str_detect(species_clean, "Fall") ~ "Fall",
+      str_detect(species_clean, "Spring") ~ "Spring",
+      str_detect(species_clean, "Winter") ~ "Winter",
+      str_detect(species_clean, "Unknown Race") ~ "Unknown",
+      TRUE ~ NA_character_
+    ),
+    id_note = case_when(
+      str_detect(species_clean, "form not i.d.'d") ~ "form not identified",
+      TRUE ~ NA_character_
+    )
+  ) |>
+  mutate(
+    species_final = tolower(case_when(
+      str_detect(species_clean, "^Chinook Salmon") ~ "Chinook Salmon",
+      str_detect(species_clean, "^Rainbow Trout|^Steelhead Trout") ~ "O. Mykiss",
+      species_clean == "Smallmouth Bass" ~ "Small Mouth Bass",
+      species_clean == "Largemouth Bass" ~ "Large Mouth Bass",
+      species_clean == "Sacramento Pikeminnow or Hardhead" ~ "Sacramento Pikeminnow or hardhead",
+      TRUE ~ species_clean
+    ))
+  ) |>
+  mutate(species = species_final) |>
+  select(-seine_id, -flow, -weather, -comments, -sample_shape,
          -substrate_1, -substrate_2, -substrate_3,
          -substrate_1_code, -substrate_2_code, -substrate_3_code,
-         -cover_1, -cover_2, -cover_3)
-
+         -cover_1, -cover_2, -cover_3, -id, -source,
+         -species_clean, -species_final,
+         -depth_1, -depth_2, -depth_dist_1, -depth_dist_2)
 
