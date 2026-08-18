@@ -1,5 +1,6 @@
 library(tidyverse)
 library(readxl)
+library(sf)
 
 xy_data_path <- here::here("edi-redd", "data-raw", "drone-survey", "2024 Aerial Chinook Salmon Redd Survey XY Data.xlsx")
 
@@ -82,3 +83,73 @@ drone_redd_clean |>
 
 
 write_csv(drone_redd_clean, here::here("edi-redd", "data-raw", "drone-survey", "drone_redd_clean.csv"))
+
+### Compile flight route mission shapefiles ----
+
+# each mission shapefile is a drone flight route polygon named by hand in the
+# field; those names mostly match `location` in drone_redd_clean but a few
+# missions were flown as one combined route over several locations (e.g.
+# "Low Aud to Upp Aud" covers Lower/Middle/Upper Auditorium). Rather than
+# guess a name crosswalk, spatially join each mission polygon against the
+# redd points it actually contains and use that to assign location name(s).
+
+mission_dir <- here::here("edi-redd", "data-raw", "drone-survey", "Aerial Chinook Salmon Redd Survey Flight Route Mission Shapefiles")
+mission_files <- list.files(mission_dir, pattern = "\\.shp$", full.names = TRUE)
+
+mission_polys <- map(mission_files, function(f) {
+  st_read(f, quiet = TRUE) |>
+    st_zm() |>
+    st_transform(4326) |>
+    transmute(mission = tools::file_path_sans_ext(basename(f)), feature_id = row_number())
+}) |>
+  list_rbind() |>
+  st_as_sf()
+
+redd_pts <- drone_redd_clean |>
+  st_as_sf(coords = c("longitude", "latitude"), crs = 4326, remove = FALSE)
+
+# 2m buffer only absorbs floating-point/edge-snapping noise between a mission
+# polygon and the points recorded inside it; it's too small to bleed into a
+# neighboring mission's polygon
+mission_polys_buf <- mission_polys |>
+  st_transform(3310) |>
+  st_buffer(2) |>
+  st_transform(4326)
+
+matches <- st_join(mission_polys_buf, redd_pts, join = st_intersects) |>
+  st_drop_geometry() |>
+  count(mission, feature_id, location, name = "n_redds")
+
+# one row per mission x matched location; missions with no drone_redd_clean
+# points inside them (new mission areas not yet reflected in the redd data)
+# keep their own mission name as the location so nothing is silently dropped
+location_lookup <- matches |>
+  mutate(matched = !is.na(location), location = if_else(matched, location, mission)) |>
+  arrange(mission, feature_id, desc(n_redds))
+
+multi_location_missions <- location_lookup |>
+  count(mission, feature_id) |>
+  filter(n > 1)
+if (nrow(multi_location_missions) > 0) {
+  message("Missions spanning more than one drone_redd_clean location:")
+  print(multi_location_missions)
+}
+
+unmatched_missions <- location_lookup |>
+  filter(!matched) |>
+  distinct(mission)
+if (nrow(unmatched_missions) > 0) {
+  warning(nrow(unmatched_missions), " mission shapefile(s) had no matching drone_redd_clean location and kept their own mission name: ",
+          paste(unmatched_missions$mission, collapse = ", "))
+}
+
+drone_flight_routes <- mission_polys |>
+  left_join(location_lookup, by = c("mission", "feature_id")) |>
+  select(mission, location, n_redds, matched)
+
+st_write(
+  drone_flight_routes,
+  here::here("edi-redd", "data-raw", "drone-survey", "drone_flight_routes_compiled.shp"),
+  delete_dsn = TRUE,
+  quiet = TRUE
+)
