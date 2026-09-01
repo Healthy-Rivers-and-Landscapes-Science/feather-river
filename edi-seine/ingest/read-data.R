@@ -38,3 +38,13 @@ list2env(
   setNames(table_list, snakecase::to_snake_case(names(table_list))),
   envir = .GlobalEnv
 )
+
+
+# pull site info with rivermiles ------------------------------------------
+
+river_miles <- readxl::read_excel(here::here("edi-seine", "data", "raw", "Site.xlsx")) |>
+  janitor::clean_names()
+
+# crosswalk from granular seine location names to the river_miles site names
+subsite_lookup <- readxl::read_excel(here::here("edi-seine", "data", "raw",  "Subsite Table.xlsx")) |>
+  janitor::clean_names()

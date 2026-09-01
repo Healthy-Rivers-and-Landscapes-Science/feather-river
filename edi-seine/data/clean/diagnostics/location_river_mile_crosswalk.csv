@@ -1,0 +1,234 @@
+location,n_rows,sources,river_mile_site,river_mile,river_mile_site_id,match_method
+Yuba City Boat Ramp,2204,1997-2001,Yuba City,28,34000,manual_crosswalk
+Live Oak Boat Ramp,2203,1997-2001,Live Oak,41.5,29000,manual_crosswalk
+Star Bend Across from Ramp RR,1731,2015-2025,Star Bend,18,37000,exact_subsite_table
+Bedrock Park RL,1723,"2008-2014, 2015-2025",Bedrock Riffle,65.8,2000,exact_subsite_table
+Hatchery Ditch,1677,"2008-2014, 2015-2025",Hatchery Ditch/Riffle,66.5,1100,exact_subsite_table
+Boyd Pump Boat Ramp,1629,1997-2001,Boyds,22,36000,manual_crosswalk
+Riverbend Park Beach RL,1486,2015-2025,Riverbend,65.1,3000,exact_subsite_table
+Thermalito Boat Ramp,1310,1997-2001,Thermalito Outlet,59,14000,manual_crosswalk
+G95 (Bar Complex btwn Big Hole Isl/Hour Riffle),1304,1997-2001,G95,57,16000,manual_crosswalk
+Montgomery Street (River Bend Park),1275,1997-2001,Riverbend,65.1,3000,manual_crosswalk
+Bedrock Park,1185,1997-2001,Bedrock Riffle,65.8,2000,manual_crosswalk
+Gridley Boat Ramp,1111,1997-2001,Gridley,50,24000,manual_crosswalk
+Aleck RR,1047,2015-2025,Aleck Riffle,63.5,6000,exact_subsite_table
+Bedrock Park Backwater,1035,"2008-2014, 2015-2025",Bedrock Riffle,65.8,2000,exact_subsite_table
+McFarland Main - RR,995,"2008-2014, 2015-2025",McFarland,52,22000,exact_subsite_table
+Sean's Beach RR,992,2015-2025,Shawn's Beach,37,31000,exact_subsite_table
+Live Oak Upstream Boat Launch,951,"2008-2014, 2015-2025",Live Oak,41.5,29000,exact_subsite_table
+Shanghai Above RR,804,2015-2025,Shanghai,25,35000,exact_subsite_table
+Kiester,802,"2008-2014, 2015-2025",Kiester,55,19000,exact_river_miles_site_name
+Herringer Main RL,802,2015-2025,Herringer,45,27000,exact_subsite_table
+1/4 Mile Downstream of Yuba City Boat Ramp,771,1997-2001,Yuba City,28,34000,manual_crosswalk
+Gridley-Side,764,"2008-2014, 2015-2025",Gridley,50,24000,exact_subsite_table
+Gateway RR,760,2015-2025,Gateway,58.8,13000,exact_subsite_table
+Robinson Riffle RL,738,2015-2025,Robinson,62,9000,exact_subsite_table
+HATCHERY DITCH,731,1997-2001,Hatchery Ditch/Riffle,66.5,1100,normalized_subsite_table
+1/4 Mile Upstream of Live Oak Boat Ramp,700,1997-2001,Live Oak,41.5,29000,manual_crosswalk
+Boyds Bump Boat Launch- Across,681,"2008-2014, 2015-2025",Boyds,22,36000,manual_crosswalk
+Upstream G95 RL,675,2015-2025,G95,57,16000,exact_subsite_table
+Yuba City Train Bridge Upstream RL,643,2015-2025,Yuba City,28,34000,exact_subsite_table
+Big Riffle,635,"1997-2001, 2008-2014",Big Bar/Riffle,53.5,21000,manual_crosswalk
+Hour Bar Side Channel (alternate),629,1997-2001,Hour,56,17000,manual_crosswalk
+Hour side channel RL - Upstream,554,"2008-2014, 2015-2025",Hour,56,17000,exact_subsite_table
+Boyd's Downstream RL,544,2015-2025,Boyds,22,36000,exact_subsite_table
+Yuba River 1mi Downstream RL,544,2015-2025,Yuba City,28,34000,exact_subsite_table
+Goose Riffle,534,1997-2001,Goose Riffle,54.6,20000,exact_river_miles_site_name
+honcut Downstream RR,516,2015-2025,Honcut Creek,44,28000,exact_subsite_table
+Vance Avenue Boat Ramp,491,1997-2001,Vance,58,15000,manual_crosswalk
+Boyds 1mi downstream Side Channel RL,487,2015-2025,Boyds,22,36000,exact_subsite_table
+Downstream Outlet RL,482,2015-2025,Thermalito Outlet,59,14000,exact_subsite_table
+Developing Riffle,471,1997-2001,McFarland,52,22000,manual_crosswalk
+Eye side channel,452,"2008-2014, 2015-2025",Eye Riffle,60.2,12000,exact_subsite_table
+Cox,451,"2008-2014, 2015-2025",Cox Riffle,47.5,26000,exact_subsite_table
+Star Bend Pump RL,444,2015-2025,Star Bend,18,37000,exact_subsite_table
+Shallow Riffle Backwater RR,441,2015-2025,Cox Riffle,47.5,26000,exact_subsite_table
+Hour Main RL - Downstream,437,"2008-2014, 2015-2025",Hour,56,17000,manual_crosswalk
+River Reflections RV Park RL,436,2015-2025,River Reflections,63.2,7000,exact_subsite_table
+Upstream Hwy 20 RR,436,2015-2025,Yuba City,28,34000,exact_subsite_table
+Eye side channel - Bottom,426,"2008-2014, 2015-2025",Eye Riffle,60.2,12000,manual_crosswalk
+Hour Main RL,421,"2008-2014, 2015-2025",Hour,56,17000,exact_subsite_table
+Live Oak Boat Launch,410,"2008-2014, 2015-2025",Live Oak,41.5,29000,exact_subsite_table
+Steep side channel - Upstream,400,"2008-2014, 2015-2025",Steep Riffle,61,10000,manual_crosswalk
+Star Bend Pumps 1/2 mile upstream RR,379,2015-2025,Star Bend,18,37000,exact_subsite_table
+Yuba City park beach RR,377,2015-2025,Yuba City,28,34000,exact_subsite_table
+Hatchery Riffle,372,1997-2001,Hatchery Ditch/Riffle,66.5,1100,manual_crosswalk
+McFarland Backwater RR,362,2008-2014,McFarland,52,22000,manual_crosswalk
+Steep Main RR - Downstream,358,"2008-2014, 2015-2025",Steep Riffle,61,10000,manual_crosswalk
+Steep Riffle,329,1997-2001,Steep Riffle,61,10000,exact_river_miles_site_name
+Sean's Beach 2mi DS,319,2015-2025,Shawn's Beach,37,31000,exact_subsite_table
+G95 SC RL,318,"2008-2014, 2015-2025",G95,57,16000,exact_subsite_table
+Steep Backwater,307,2008-2014,Steep Riffle,61,10000,manual_crosswalk
+Hour Glide,306,1997-2001,Hour,56,17000,manual_crosswalk
+Live Oak - Downstream Boat Launch,298,"2008-2014, 2015-2025",Live Oak,41.5,29000,exact_subsite_table
+Big Riffle Below,296,2015-2025,Big Bar/Riffle,53.5,21000,exact_subsite_table
+Steep Main RR - Upstream,293,2008-2014,Steep Riffle,61,10000,manual_crosswalk
+G95 Upper Main RR,289,"2008-2014, 2015-2025",G95,57,16000,exact_subsite_table
+G95 E Side Channel RL,284,2015-2025,G95,57,16000,exact_subsite_table
+Hour Main RR - Downstream,279,2015-2025,Hour,56,17000,exact_subsite_table
+Big Bar RL,273,2015-2025,Big Bar/Riffle,53.5,21000,exact_subsite_table
+Gateway RL,266,2015-2025,Gateway,58.8,13000,exact_subsite_table
+Steep side channel,261,"2008-2014, 2015-2025",Steep Riffle,61,10000,exact_subsite_table
+1/4 Mile Upstream of Boyd Pump Boat Ramp,259,1997-2001,Boyds,22,36000,manual_crosswalk
+Bend Upstream Live Oak Ramp RR,256,2015-2025,Live Oak,41.5,29000,exact_subsite_table
+Matthews Main Channel,252,2015-2025,Matthews,64.2,5000,exact_subsite_table
+100 yards above Honcut Upstream RL,246,2015-2025,Honcut Creek,44,28000,exact_subsite_table
+Cox SC RR,244,2015-2025,Cox Riffle,47.5,26000,exact_subsite_table
+Vance East Main RR,243,"2008-2014, 2015-2025",Vance,58,15000,exact_subsite_table
+yuba city launch,239,2015-2025,Yuba City,28,34000,exact_subsite_table
+Cox RL,237,2015-2025,Cox Riffle,47.5,26000,exact_subsite_table
+Goose Riffle RL,234,2015-2025,Goose Riffle,54.6,20000,exact_subsite_table
+Downstream Gridley Ramp RL,223,2015-2025,Gridley,50,24000,exact_subsite_table
+G95 Main RL,223,"2008-2014, 2015-2025",G95,57,16000,exact_subsite_table
+LiveOak Local's Launch,221,2015-2025,Live Oak,41.5,29000,exact_subsite_table
+Morse Road Beach RL,221,2015-2025,Morse Road,34.5,32000,exact_subsite_table
+herringer 1/4 mi below RR,210,2015-2025,Herringer,45,27000,exact_subsite_table
+MOE'S DITCH,207,1997-2001,Moe's,66.5,1200,normalized_subsite_table
+Auditorium RL -Downstream,196,"2008-2014, 2015-2025",Auditorium Riffle,66.5,1000,normalized_subsite_table
+Developing Riffle RL,195,2015-2025,McFarland,52,22000,exact_subsite_table
+G95 SC  RR,194,"2008-2014, 2015-2025",G95,57,16000,exact_subsite_table
+Herringer Downstream RL,194,2015-2025,Herringer,45,27000,exact_subsite_table
+G95 Downstream RR,193,2015-2025,G95,57,16000,exact_subsite_table
+Eye Main RR - Downstream,192,"2008-2014, 2015-2025",Eye Riffle,60.2,12000,exact_subsite_table
+Star Bend 2 mi Downstream RL,190,2015-2025,Star Bend,18,37000,exact_subsite_table
+McFarland Main RR - Upstream,189,"2008-2014, 2015-2025",McFarland,52,22000,manual_crosswalk
+Big Hole Island Boat Ramp,188,1997-2001,Vance,58,15000,manual_crosswalk
+Weir RL,174,2015-2025,Weir Riffle,60.8,11000,exact_subsite_table
+Herringer Upstream Riffle RR,165,2015-2025,Herringer,45,27000,exact_subsite_table
+Below Gridley Boat Ramp,165,1997-2001,Gridley,50,24000,manual_crosswalk
+Cox Side Channel RL,163,2015-2025,Cox Riffle,47.5,26000,exact_subsite_table
+MacFarland,157,1997-2001,McFarland,52,22000,manual_crosswalk
+Moe's Ditch,155,"1997-2001, 2015-2025",Moe's,66.5,1200,exact_subsite_table
+Big Hole Boat Launch RL,153,2015-2025,Vance,58,15000,exact_subsite_table
+Below Big Hole,148,1997-2001,Vance,58,15000,manual_crosswalk
+Junkyard,147,2015-2025,Junkyard,48.5,25000,exact_river_miles_site_name
+Auditoruim RR - Downstream,139,"2008-2014, 2015-2025",Auditorium Riffle,66.5,1000,exact_subsite_table
+Bear River Downstream RL,130,2015-2025,Bear River,12.5,38000,exact_subsite_table
+Boyds 1/2 mile upstream RL,130,2015-2025,Boyds,22,36000,exact_subsite_table
+Junkyard side channel 2 - RL,129,"2008-2014, 2015-2025",Junkyard,48.5,25000,exact_subsite_table
+Junkyard side channel 1 - RR,129,2008-2014,Junkyard,48.5,25000,manual_crosswalk
+Mulberry Beach RR - Downstream,129,2015-2025,NA,NA,NA,unresolved_not_in_subsite_table
+G-95,127,1997-2001,G95,57,16000,manual_crosswalk
+Steep Main RR,126,2015-2025,Steep Riffle,61,10000,exact_subsite_table
+Gridley Riffle Lower RR,117,2015-2025,Gridley,50,24000,exact_subsite_table
+HATCHERY DITCH - bottom,116,1997-2001,Hatchery Ditch/Riffle,66.5,1100,manual_crosswalk
+Big Bar RR,113,2015-2025,Big Bar/Riffle,53.5,21000,exact_subsite_table
+Between Steep and Eye (Wier Site),113,2008-2014,Steep Riffle,61,10000,manual_crosswalk
+Lower MacFarland,112,1997-2001,McFarland,52,22000,manual_crosswalk
+Robinson pond S.C.,110,2015-2025,Robinson,62,9000,exact_subsite_table
+Robinson Side RR,108,2015-2025,Robinson,62,9000,exact_subsite_table
+Trailer Park Riffle,106,1997-2001,Trailer Park,64.4,4000,manual_crosswalk
+Star Bend Beach Above Launch RL,101,2015-2025,Star Bend,18,37000,exact_subsite_table
+Lower McFarlan Main RL,101,2015-2025,McFarland,52,22000,manual_crosswalk
+Live Oak Boat Ramp RL,98,2015-2025,Live Oak,41.5,29000,exact_subsite_table
+Junkyard Main RR,98,2008-2014,Junkyard,48.5,25000,manual_crosswalk
+Junkyard side channel 1 - RL,95,2008-2014,Junkyard,48.5,25000,manual_crosswalk
+Yuba River Island,91,2015-2025,Yuba City,28,34000,exact_subsite_table
+Aleck Backwater RL,90,2015-2025,Aleck Riffle,63.5,6000,exact_subsite_table
+McFarland Backwater RL,89,"2008-2014, 2015-2025",McFarland,52,22000,exact_subsite_table
+Hatchery Ditch (Bottom),89,1997-2001,Hatchery Ditch/Riffle,66.5,1100,manual_crosswalk
+Boyds Pump-  1 mile Downstream RL,86,2008-2014,Boyds,22,36000,manual_crosswalk
+Steep side channel - Downstream,85,"2008-2014, 2015-2025",Steep Riffle,61,10000,manual_crosswalk
+Vance West RL - Upstream,83,2008-2014,Vance,58,15000,manual_crosswalk
+Aleck RL - Upstream,82,2015-2025,Aleck Riffle,63.5,6000,exact_subsite_table
+Table Mountain,80,2015-2025,Table Mountain,66.5,1300,exact_river_miles_site_name
+Aleck-lunch spot,78,"2008-2014, 2015-2025",Aleck Riffle,63.5,6000,exact_subsite_table
+Between Big Riffle and Big Bar,78,2015-2025,Big Bar/Riffle,53.5,21000,exact_subsite_table
+McFarland Upper RL,78,2015-2025,McFarland,52,22000,exact_subsite_table
+Robinson Main RR,75,2015-2025,Robinson,62,9000,exact_subsite_table
+Mathews Riffle,75,1997-2001,Matthews,64.2,5000,manual_crosswalk
+Upstream Gridley Riffle Side Channel RL,72,2015-2025,Gridley,50,24000,exact_subsite_table
+Mosquito Beach RR,71,2015-2025,Yuba City,28,34000,exact_subsite_table
+Sunset Pumps Downstream Island,70,2015-2025,Sunset Pumps,38.5,30000,exact_subsite_table
+G95 East Side Channel RR,69,2015-2025,G95,57,16000,exact_subsite_table
+Lower McFarland RR,69,2015-2025,McFarland,52,22000,exact_subsite_table
+Below Big Hole Island,68,1997-2001,Vance,58,15000,manual_crosswalk
+Junkyard SC RR,68,2008-2014,Junkyard,48.5,25000,manual_crosswalk
+Auditorium RR - Downstream,67,"2008-2014, 2015-2025",Auditorium Riffle,66.5,1000,manual_crosswalk
+Lower Hatchery ditch,63,1997-2001,Hatchery Ditch/Riffle,66.5,1100,manual_crosswalk
+Downstream Sunset Pumps RL,62,2015-2025,Sunset Pumps,38.5,30000,exact_subsite_table
+Lower Trailer Park Backwater RL,62,2015-2025,Trailer Park,64.4,4000,manual_crosswalk
+Big Hole RR,61,2015-2025,Vance,58,15000,exact_subsite_table
+Lower Hatchery Side Channel,57,2015-2025,Hatchery Ditch/Riffle,66.5,1100,exact_subsite_table
+Swampy bend,57,2015-2025,Swampy Bend,51,23000,exact_subsite_table
+250 yards below Honcut Confluence,57,1997-2001,NA,NA,NA,unresolved_not_in_subsite_table
+Yuba Train Bridge Upstream RR,56,2015-2025,Yuba City,28,34000,exact_subsite_table
+G-95 East RL,55,2015-2025,G95,57,16000,exact_subsite_table
+Gridley Pool,55,1997-2001,Gridley,50,24000,manual_crosswalk
+Hour Backwater,54,1997-2001,Hour,56,17000,manual_crosswalk
+Jeff's Basshole,52,2015-2025,Star Bend,18,37000,exact_subsite_table
+Auditorium Riffle,51,1997-2001,Auditorium Riffle,66.5,1000,exact_river_miles_site_name
+1/4 Mile Upstream of Big Hole Island,51,1997-2001,Vance,58,15000,manual_crosswalk
+Hour side channel Backwater,50,"2008-2014, 2015-2025",Hour,56,17000,exact_subsite_table
+Island Upstream Yuba City Launch,50,2015-2025,Yuba City,28,34000,exact_subsite_table
+Below Junkyard Riffle,50,1997-2001,Junkyard,48.5,25000,manual_crosswalk
+Below Long Glide,50,1997-2001,NA,NA,NA,unresolved_not_in_subsite_table
+Below Upper Herringer,50,1997-2001,Herringer,45,27000,manual_crosswalk
+Boyds Pump-  1 mile Downstream RR,44,2015-2025,Boyds,22,36000,exact_subsite_table
+Palm Ave. Ramp RR,43,2015-2025,Palm Ave,55.3,18000,exact_subsite_table
+Great Western,42,2015-2025,Great Western,62.8,8000,exact_river_miles_site_name
+Herringer Side Channel,42,1997-2001,Herringer,45,27000,manual_crosswalk
+NA,42,2015-2025,NA,NA,NA,unresolved_not_in_subsite_table
+Sanders Road Bend,41,2015-2025,Sanders Road,34,33000,exact_subsite_table
+Bear River 1 mi Upstream,40,2015-2025,Bear River,12.5,38000,exact_subsite_table
+Outlet Launch,40,"2008-2014, 2015-2025",Thermalito Outlet,59,14000,exact_subsite_table
+Downstream Hwy 20 RL,39,2015-2025,Yuba City,28,34000,exact_subsite_table
+Upstream Outlet Launch RR,37,2015-2025,Thermalito Outlet,59,14000,exact_subsite_table
+Below Herringer Riffle,37,1997-2001,Herringer,45,27000,manual_crosswalk
+Eye Main RR - Upstream,37,2008-2014,Eye Riffle,60.2,12000,manual_crosswalk
+Gridley Riffle,37,1997-2001,Gridley,50,24000,manual_crosswalk
+Eye Riffle - Upper Side Channel,36,1997-2001,Eye Riffle,60.2,12000,manual_crosswalk
+Auditorium RL - Downstream,33,2008-2014,Auditorium Riffle,66.5,1000,exact_subsite_table
+Gridley Riffle RR Downstream,33,"2008-2014, 2015-2025",Gridley,50,24000,exact_subsite_table
+gridley Boat launch side channel,33,1997-2001,Gridley,50,24000,manual_crosswalk
+Upstream Big Riffle RL,31,2015-2025,Big Bar/Riffle,53.5,21000,exact_subsite_table
+Downstream Clay Banks RR,30,2015-2025,NA,NA,NA,unresolved_not_in_subsite_table
+Pollywog Beach,30,2015-2025,NA,NA,NA,unresolved_not_in_subsite_table
+Developing Riffle RR,29,2015-2025,McFarland,52,22000,exact_subsite_table
+Lower Robinson Riffle Backwater,29,2015-2025,Robinson,62,9000,exact_subsite_table
+Clay Banks upstream backwater RL,29,2015-2025,NA,NA,NA,unresolved_not_in_subsite_table
+Shallow Riffle,29,1997-2001,Cox Riffle,47.5,26000,manual_crosswalk
+Downstream G95 RR,28,2015-2025,G95,57,16000,exact_subsite_table
+Hatchery Riffle RR,28,2015-2025,Hatchery Ditch/Riffle,66.5,1100,exact_subsite_table
+Ellis Road Beach,27,2015-2025,NA,NA,NA,unresolved_not_in_subsite_table
+Gateway Riffle,27,1997-2001,Gateway,58.8,13000,manual_crosswalk
+Gateway,26,2008-2014,Gateway,58.8,13000,exact_river_miles_site_name
+Robinson's Riffle,25,1997-2001,Robinson,62,9000,manual_crosswalk
+"u/s end of bar complex, d/s of big hole islands",25,1997-2001,Vance,58,15000,manual_crosswalk
+Swampy Bend,24,1997-2001,Swampy Bend,51,23000,exact_river_miles_site_name
+Shallow Riffle  (523),24,1997-2001,Cox Riffle,47.5,26000,manual_crosswalk
+Sean's Beach RR - Upstream,23,2015-2025,Shawn's Beach,37,31000,exact_subsite_table
+Downstream Bum Beach,23,2015-2025,NA,NA,NA,unresolved_not_in_subsite_table
+Above G95 SC - RR,21,2008-2014,G95,57,16000,manual_crosswalk
+d/s end of big hole islands,21,1997-2001,Vance,58,15000,manual_crosswalk
+bend backwater (562),17,1997-2001,NA,NA,NA,unresolved_not_in_subsite_table
+GOOSE Riffle,16,1997-2001,Goose Riffle,54.6,20000,manual_crosswalk
+Unit 26A,16,1997-2001,NA,NA,NA,unresolved_not_in_subsite_table
+Vance Avenue,16,1997-2001,Vance,58,15000,manual_crosswalk
+Vance East Main RL,16,2008-2014,Vance,58,15000,manual_crosswalk
+Hatchery Fence (Island above Bedrock),14,2015-2025,Hatchery Ditch/Riffle,66.5,1100,exact_subsite_table
+Upper Heringer,13,1997-2001,Herringer,45,27000,manual_crosswalk
+Eye Riffle,12,1997-2001,Eye Riffle,60.2,12000,exact_river_miles_site_name
+Hatchery Ditch(upper),12,1997-2001,Hatchery Ditch/Riffle,66.5,1100,manual_crosswalk
+Shanghai downstream RL,10,2015-2025,Shanghai,25,35000,exact_subsite_table
+Trailer Park Main,9,2015-2025,Trailer Park,64.4,4000,exact_subsite_table
+24th St. Levee OWA,9,2015-2025,NA,NA,NA,unresolved_not_in_subsite_table
+Hour Main Backwater - RL,8,2015-2025,Hour,56,17000,exact_subsite_table
+Junkyard Main RL,8,2015-2025,Junkyard,48.5,25000,exact_subsite_table
+West Kiester OWA,8,2015-2025,Kiester,55,19000,exact_subsite_table
+G95 Downstream RL,8,2008-2014,G95,57,16000,manual_crosswalk
+Junkyard Above RR,8,2008-2014,Junkyard,48.5,25000,manual_crosswalk
+Junkyard Riffle,8,1997-2001,Junkyard,48.5,25000,manual_crosswalk
+Robinson's Riffle Side Channel,5,1997-2001,Robinson,62,9000,manual_crosswalk
+Steep Riffle Side Channel,5,1997-2001,Steep Riffle,61,10000,manual_crosswalk
+Boyd's Ramp,4,2015-2025,Boyds,22,36000,exact_subsite_table
+Palm avenue access,4,1997-2001,Palm Ave,55.3,18000,manual_crosswalk
+Big Bar,3,1997-2001,Big Bar/Riffle,53.5,21000,manual_crosswalk
+between bend backwater and honcutt confluence(566),3,1997-2001,Honcut Creek,44,28000,manual_crosswalk
+Moe's Outlet,2,2015-2025,Moe's,66.5,1200,exact_subsite_table
+Eye Main RL,2,2008-2014,Eye Riffle,60.2,12000,manual_crosswalk
+Old Thermalito,2,1997-2001,Thermalito Outlet,59,14000,manual_crosswalk
+Island Below Gateway RL,1,2015-2025,Gateway,58.8,13000,exact_subsite_table
+Gridley Ramp,1,2015-2025,Gridley,50,24000,manual_crosswalk
+Honcut Confluence,1,1997-2001,Honcut Creek,44,28000,manual_crosswalk
+upper herringer (532),1,1997-2001,Herringer,45,27000,manual_crosswalk

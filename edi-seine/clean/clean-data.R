@@ -132,18 +132,18 @@ clean_species <- function(x) {
     x_trim %in% c("chnf") ~ "Chinook Salmon - Fall",
 
     # VERIFY - pending confirmation from data owner
-    x_trim %in% c("MSQ", "msq") ~ "Western Mosquitofish",
-    x_trim %in% c("CHNSC") ~ "Chinook Salmon - Spring",
-    x_trim %in% c("CHNs") ~ "Chinook Salmon - Spring",
-    x_trim %in% c("SPB", "spb") ~ "Spotted Bass",
-    x_trim %in% c("Scp") ~ "Prickly Sculpin",
+    x_trim %in% c("MSQ", "msq") ~ "Western Mosquitofish", # confirmed by Kassie
+    x_trim %in% c("CHNSC") ~ "Chinook Salmon - Spring (ad-clipped)", # confirmed by Kassie, need to add the ad clipped to the correct column
+    x_trim %in% c("CHNs") ~ "Chinook Salmon - Spring",# confirmed by Kassie
+    x_trim %in% c("SPB", "spb") ~ "Spotted Bass",# confirmed by Kassie
+    x_trim %in% c("Scp") ~ "Unid Juvenile Sculpin",# confirmed by Kassie, check 'juvenile' is okay?
     x_trim %in% c("Res") ~ "Rainbow Trout (wild)",
     x_trim %in% c("Pink") ~ "Pink Salmon",
     x_trim %in% c("b") ~ NA_character_,
 
     TRUE ~ x_trim
   ) |>
-    str_replace("^Unid\\b", "Unidentified")
+    str_replace("^Unid\\b", "Unidentified") # will remove "b" from dataset
 }
 
 
@@ -160,8 +160,9 @@ seine_1997 <- raw_1997 |>
     weather_code     = weather_code,
     depth_dist_1     = depth1dist,
     depth_dist_2     = depth2dist,
-    depth_1          = depth1,
-    depth_2          = depth2,
+    depth_1          = depth1, # TODO: include in documentation: full distance out
+    depth_2          = depth2, # TODO: include in documentation: closest to shore
+    # averaging these wouldn't be a good representation of the actual depth.
     substrate_1      = hu_csubstrate,
     cover_1          = hu_ccover,
     stream_feature   = hu_cunit,
@@ -170,7 +171,13 @@ seine_1997 <- raw_1997 |>
   ) |>
   mutate(
     source           = "1997-2001",
-    water_temp       = weathermetrics::fahrenheit.to.celsius(water_temp, round = 1),
+    # This era records water_temp in Fahrenheit and uses 0 as a "not recorded"
+    # placeholder (it also uses NA - the coding is inconsistent). Converting a
+    # raw 0 would manufacture a reading of -17.8 C, which is what the 161 rows
+    # on 1999-06-11 were showing. na_if() must run BEFORE the conversion so the
+    # sentinel never becomes a number. Real values here span 44-80 F
+    # (6.7-26.7 C), so 0 is a sentinel rather than the low end of a continuum.
+    water_temp       = weathermetrics::fahrenheit.to.celsius(na_if(water_temp, 0), round = 1),
     species          = coalesce(organism_map[species_code], species_code),
     lifestage        = decode_lifestage(as.character(lifestage_code)),
     survey_condition = condition_map[as.character(survey_condition)],
@@ -206,7 +213,9 @@ seine_1997 <- raw_1997 |>
 glimpse(seine_1997)
 
 # process 2008-2014 -------------------------------------------------------
-
+# See for original pre-processing:
+# https://github.com/FlowWest/edi-feather-beach-seine/blob/add-seine-db/data-raw/jpe-datasets/feather_seine_2008-2014.md
+#
 # Convert UTM coordinates to decimal degrees
 points_utm <- cbind(raw_2008$x_coord, raw_2008$y_coord)
 v   <- terra::vect(points_utm, crs = "+proj=utm +zone=10 +datum=WGS84 +units=m")
@@ -229,8 +238,10 @@ seine_2008 <- raw_2008 |>
     length           = bs_start_length,
     width            = bs_close_width,
     distance_out     = bs_distance_out,
-    depth_1          = bs_depth_1_2,
-    depth_2          = bs_depth_full,
+    depth_avg          = bs_depth_1_2, #TODO need to understand this value
+   # depth_2          = bs_depth_full,#TODO need to understandt this value;
+    # MW: I am going to remove the full depth following the guidance from Kassie, Ryon for
+    # 2015-2025 data. bs_depth_1_2 should be the average depth.
     stream_feature   = rpg_ru,
     location         = site_name
   ) |>
@@ -260,7 +271,7 @@ seine_2008 <- raw_2008 |>
   select(source, date, sample_id, seine_id, id, location, latitude, longitude, channel,
          gear_type, gear_size, survey_condition, water_temp, weather, secchi, flow,
          species, fork_length, lifestage, run, count,
-         length, width, distance_out, depth_1, depth_2,
+         length, width, distance_out, depth_avg,
          substrate_1, substrate_2, substrate_3, cover_1, cover_2, cover_3,
          stream_feature, sample_shape, sample_area, comments)
 
@@ -283,6 +294,9 @@ catch_clean <- catch_tbl |>
   mutate(label = coalesce(common_name, species))
 
 # TODO: figure out fix three dates that are not parsing correctly
+# (sample_id 1198, 1502, 1645 are stored as "01/00/00" in the raw accdb -
+# day 00 / year 00 - so they parse to NA. Kassie is cross-checking these
+# sample ids; they may be catch records whose sample record was deleted.)
 sample_clean <- sample_tbl |>
   clean_names() |>
   mutate(
@@ -328,13 +342,13 @@ seine_accdb <- catch_clean |>
     length       = bs_start_length,
     width        = bs_close_width,
     distance_out = bs_distance_out,
-    depth_1      = bs_depth_1_2,
-    depth_2      = bs_depth_full
+    depth_avg      = bs_depth_1_2 # this is the average
+    #depth_2      = bs_depth_full # remove
   ) |>
   select(source, date, sample_id, seine_id, id, location, latitude, longitude, channel,
          gear_type, gear_size, survey_condition, water_temp, weather, secchi, flow,
          species, fork_length, lifestage, run, weight, count,
-         length, width, distance_out, depth_1, depth_2,
+         length, width, distance_out, depth_avg,
          substrate_1, substrate_2, substrate_3, cover_1, cover_2, cover_3,
          stream_feature, sample_shape, sample_area, comments)
 
@@ -345,7 +359,6 @@ glimpse(seine_accdb)
 
 all_seine_combined <- bind_rows(seine_1997, seine_2008, seine_accdb) |>
   mutate(year = year(date))
-
 
 # dataset specific modifications -----------------------------------------------
 issue_log <- tibble::tibble()
@@ -381,8 +394,240 @@ issue_log <- dplyr::bind_rows(
   )
 )
 
+# link seine locations to river mile via the Subsite Table crosswalk --------
 
-# -------------------------------------------------------------------------
+# `Subsite Table.xlsx` (data-raw/background) maps the granular seine
+# `location` values (SubSite Details) to the coarser named reaches in
+# `river_miles` (Site.xlsx). Matched in three tiers, most to least direct:
+#   1. location is already one of the canonical river_miles site names
+#   2. exact string match to Subsite Table's SubSite Details column
+#   3. match after normalizing case/whitespace/punctuation only (an
+#      assumption, since it relies on the two strings being formatting
+#      variants of the same site, not literally identical)
+# Locations not covered by Subsite Table (boat ramps, relative-distance
+# descriptions, a few spelling variants like "MacFarland" vs "McFarland")
+# are left unmatched rather than guessed.
+normalize_site_name <- function(x) {
+  x |>
+    str_squish() |>
+    tolower() |>
+    str_replace_all("’", "'") |>
+    str_replace_all("\\s*-\\s*", "-") |>
+    str_replace_all("\\.", "")
+}
+
+subsite_lookup_norm <- subsite_lookup |>
+  mutate(location_norm = normalize_site_name(sub_site_details))
+
+# location counts + which source table(s) (1997-2001 / 2008-2014 / 2015-2025)
+# each location shows up in, so the saved crosswalk covers every era
+distinct_locations <- all_seine_combined |>
+  group_by(location) |>
+  summarise(
+    n_rows  = n(),
+    sources = paste(sort(unique(source)), collapse = ", "),
+    .groups = "drop"
+  ) |>
+  mutate(location_norm = normalize_site_name(location))
+
+river_mile_tier0 <- distinct_locations |>
+  filter(location %in% river_miles$site_name) |>
+  left_join(river_miles, by = c("location" = "site_name")) |>
+  mutate(river_mile_site = location, match_method = "exact_river_miles_site_name") |>
+  select(location, n_rows, sources, river_mile_site, river_mile,
+         river_mile_site_id = site_id, match_method)
+
+river_mile_tier1 <- distinct_locations |>
+  filter(!location %in% river_mile_tier0$location) |>
+  inner_join(
+    subsite_lookup |> select(sub_site_details, river_mile_site = site_name, river_mile_site_id = site_id),
+    by = c("location" = "sub_site_details")
+  ) |>
+  left_join(river_miles |> select(site_name, river_mile), by = c("river_mile_site" = "site_name")) |>
+  mutate(match_method = "exact_subsite_table") |>
+  select(location, n_rows, sources, river_mile_site, river_mile, river_mile_site_id, match_method)
+
+river_mile_tier2 <- distinct_locations |>
+  filter(!location %in% c(river_mile_tier0$location, river_mile_tier1$location)) |>
+  inner_join(
+    subsite_lookup_norm |> select(location_norm, matched_subsite_text = sub_site_details,
+                                   river_mile_site = site_name, river_mile_site_id = site_id),
+    by = "location_norm"
+  ) |>
+  left_join(river_miles |> select(site_name, river_mile), by = c("river_mile_site" = "site_name")) |>
+  mutate(match_method = "normalized_subsite_table") |>
+  select(location, n_rows, sources, matched_subsite_text, river_mile_site, river_mile,
+         river_mile_site_id, match_method)
+
+# GUESS TABLE -----------------------------------------------------------
+# `location` only matched Subsite Table's `matched_subsite_text` after
+# stripping case/whitespace/punctuation, not verbatim, so `river_mile_site`
+# started as an assumption rather than a confirmed lookup.
+# VERIFIED 2026-08-19 (Maddee Rubenson) - all three confirmed correct:
+#   "HATCHERY DITCH"            -> Hatchery Ditch/Riffle (matched "Hatchery Ditch")
+#   "MOE'S DITCH"               -> Moe's                 (matched "Moe's Ditch")
+#   "Auditorium RL -Downstream" -> Auditorium Riffle      (matched "Auditorium RL - Downstream")
+river_mile_guesses <- river_mile_tier2 |>
+  select(location, matched_subsite_text, river_mile_site)
+
+print(river_mile_guesses, n = Inf)
+
+river_mile_unresolved <- distinct_locations |>
+  filter(!location %in% c(river_mile_tier0$location, river_mile_tier1$location, river_mile_tier2$location)) |>
+  mutate(
+    river_mile_site    = NA_character_,
+    river_mile         = NA_real_,
+    river_mile_site_id = NA_real_,
+    match_method       = "unresolved_not_in_subsite_table"
+  ) |>
+  select(location, n_rows, sources, river_mile_site, river_mile, river_mile_site_id, match_method) |>
+  write_csv(here::here("edi-seine", "data", "clean", "diagnostics", "river_mile_unresolved.csv"))
+
+# MANUAL CROSSWALK - hand-edit this table -----------------------------------
+# Every location Subsite Table couldn't resolve (river_mile_unresolved above)
+# gets a row here. Fill in `river_mile_site` with one of the 41 names in
+# river_miles$site_name once you've confirmed it, and note your reasoning in
+# `comment` - the same way clean_species() documents its manual calls.
+# Leave river_mile_site NA for anything you can't confidently place; it will
+# stay unresolved. Re-run the script after editing to pick up your changes.
+river_mile_manual_crosswalk <- tibble::tribble(
+  ~location,                                            ~river_mile_site, ~comment,
+  "Yuba City Boat Ramp",                                'Yuba City',    NA_character_,
+  "Live Oak Boat Ramp",                                 'Live Oak',    NA_character_,
+  "Boyd Pump Boat Ramp",                                'Boyds',    NA_character_,
+  "Thermalito Boat Ramp",                               'Thermalito Outlet',    NA_character_,
+  "G95 (Bar Complex btwn Big Hole Isl/Hour Riffle)",    'G95',    NA_character_,
+  "Montgomery Street (River Bend Park)",                'Riverbend',    NA_character_,
+  "Bedrock Park",                                       "Bedrock Riffle",    NA_character_,
+  "Gridley Boat Ramp",                                  'Gridley',    NA_character_,
+  "1/4 Mile Downstream of Yuba City Boat Ramp",         'Yuba City',    NA_character_,
+  "1/4 Mile Upstream of Live Oak Boat Ramp",            'Live Oak',    NA_character_,
+  "Boyds Bump Boat Launch- Across",                     'Boyds',    NA_character_,
+  "Big Riffle",                                         'Big Bar/Riffle',    NA_character_,
+  "Hour Bar Side Channel (alternate)",                  'Hour',    NA_character_,
+  "Vance Avenue Boat Ramp",                             'Vance',    NA_character_,
+  "Developing Riffle",                                  'McFarland',    NA_character_,
+  "Hour Main RL - Downstream",                          'Hour',    NA_character_,
+  "Eye side channel - Bottom",                          'Eye Riffle',    NA_character_,
+  "Steep side channel - Upstream",                      'Steep Riffle',    NA_character_,
+  "Hatchery Riffle",                                    'Hatchery Ditch/Riffle',    NA_character_,
+  "McFarland Backwater RR",                             'McFarland',    NA_character_,
+  "Steep Main RR - Downstream",                         'Steep Riffle',    NA_character_,
+  "Steep Backwater",                                    'Steep Riffle',    NA_character_,
+  "Hour Glide",                                         'Hour',    NA_character_,
+  "Steep Main RR - Upstream",                           'Steep Riffle',    NA_character_,
+  "1/4 Mile Upstream of Boyd Pump Boat Ramp",           'Boyds',    NA_character_,
+  "McFarland Main RR - Upstream",                       'McFarland',    NA_character_,
+  "Big Hole Island Boat Ramp",                          'Vance',    NA_character_,
+  "Below Gridley Boat Ramp",                            'Gridley',    NA_character_,
+  "MacFarland",                                         'McFarland',    NA_character_,
+  "Below Big Hole",                                     'Vance',    NA_character_,
+  "Junkyard side channel 1 - RR",                       'Junkyard',    NA_character_,
+  "Mulberry Beach RR - Downstream",                     NA_character_,    NA_character_, # TODO
+  "G-95",                                               'G95',    NA_character_,
+  "HATCHERY DITCH - bottom",                            'Hatchery Ditch/Riffle',    NA_character_,
+  "Between Steep and Eye (Wier Site)",                  'Steep Riffle',    NA_character_,
+  "Lower MacFarland",                                   'McFarland',    NA_character_,
+  "Trailer Park Riffle",                                'Trailer Park',    NA_character_,
+  "Lower McFarlan Main RL",                             'McFarland',    NA_character_,
+  "Junkyard Main RR",                                   'Junkyard',    NA_character_,
+  "Junkyard side channel 1 - RL",                       'Junkyard',    NA_character_,
+  "Hatchery Ditch (Bottom)",                            'Hatchery Ditch/Riffle',    NA_character_,
+  "Boyds Pump-  1 mile Downstream RL",                  'Boyds',    NA_character_,
+  "Steep side channel - Downstream",                    'Steep Riffle',    NA_character_,
+  "Vance West RL - Upstream",                           'Vance',    NA_character_,
+  "Mathews Riffle",                                     'Matthews',    NA_character_,
+  "Below Big Hole Island",                              'Vance',    NA_character_,
+  "Junkyard SC RR",                                     'Junkyard',    NA_character_,
+  "Auditorium RR - Downstream",                         'Auditorium Riffle',    NA_character_,
+  "Lower Hatchery ditch",                               'Hatchery Ditch/Riffle',    NA_character_,
+  "Lower Trailer Park Backwater RL",                    'Trailer Park',    NA_character_,
+  "250 yards below Honcut Confluence",                  NA_character_,    NA_character_, # TODO
+  "Gridley Pool",                                       "Gridley",    NA_character_,
+  "Hour Backwater",                                     "Hour",    NA_character_,
+  "1/4 Mile Upstream of Big Hole Island",               "Vance",    NA_character_,
+  "Below Junkyard Riffle",                              "Junkyard",    NA_character_,
+  "Below Long Glide",                                   NA_character_,    NA_character_,# TODO
+  "Below Upper Herringer",                              'Herringer',    NA_character_,
+  "Herringer Side Channel",                             'Herringer',    NA_character_,
+  "Below Herringer Riffle",                             'Herringer',    NA_character_,
+  "Eye Main RR - Upstream",                             'Eye Riffle',    NA_character_,
+  "Gridley Riffle",                                     'Gridley',    NA_character_,
+  "Eye Riffle - Upper Side Channel",                    'Eye Riffle',    NA_character_,
+  "gridley Boat launch side channel",                   'Gridley',    NA_character_,
+  "Downstream Clay Banks RR",                           NA_character_,    NA_character_,# TODO
+  "Pollywog Beach",                                     NA_character_,    NA_character_,# TODO
+  "Clay Banks upstream backwater RL",                   NA_character_,    NA_character_,# TODO
+  "Shallow Riffle",                                     'Cox Riffle',    NA_character_,
+  "Ellis Road Beach",                                   NA_character_,    NA_character_,# TODO
+  "Gateway Riffle",                                     'Gateway',    NA_character_,
+  "Robinson's Riffle",                                  'Robinson',    NA_character_,
+  "u/s end of bar complex, d/s of big hole islands",    'Vance',    NA_character_,
+  "Shallow Riffle  (523)",                              'Cox Riffle',    NA_character_,
+  "Downstream Bum Beach",                               NA_character_,    NA_character_,# TODO
+  "Above G95 SC - RR",                                  'G95',    NA_character_,
+  "d/s end of big hole islands",                        'Vance',    NA_character_,
+  "bend backwater (562)",                               NA_character_,    NA_character_,# TODO
+  "GOOSE Riffle",                                       'Goose Riffle',    NA_character_,
+  "Unit 26A",                                           NA_character_,    NA_character_,# TODO
+  "Vance Avenue",                                       'Vance',    NA_character_,
+  "Vance East Main RL",                                 'Vance',    NA_character_,
+  "Upper Heringer",                                     'Herringer',    NA_character_,
+  "Hatchery Ditch(upper)",                              'Hatchery Ditch/Riffle',    NA_character_,
+  "24th St. Levee OWA",                                 NA_character_,    NA_character_,# TODO
+  "G95 Downstream RL",                                  'G95',    NA_character_,
+  "Junkyard Above RR",                                  'Junkyard',    NA_character_,
+  "Junkyard Riffle",                                    'Junkyard',    NA_character_,
+  "Robinson's Riffle Side Channel",                     'Robinson',    NA_character_,
+  "Steep Riffle Side Channel",                          'Steep Riffle',    NA_character_,
+  "Palm avenue access",                                 'Palm Ave',    NA_character_,
+  "Big Bar",                                            'Big Bar/Riffle',    NA_character_,
+  "between bend backwater and honcutt confluence(566)", 'Honcut Creek',    NA_character_,
+  "Eye Main RL",                                        'Eye Riffle',    NA_character_,
+  "Old Thermalito",                                     'Thermalito Outlet',    NA_character_,
+  "Gridley Ramp",                                       'Gridley',    NA_character_,
+  "Honcut Confluence",                                  'Honcut Creek',    NA_character_,
+  "upper herringer (532)",                              'Herringer',    NA_character_
+)
+
+# fold in any manual calls made above; anything still NA stays unresolved
+river_mile_unresolved <- river_mile_unresolved |>
+  select(-river_mile_site, -river_mile, -river_mile_site_id, -match_method) |>
+  left_join(river_mile_manual_crosswalk, by = "location") |>
+  left_join(river_miles |> select(site_name, river_mile), by = c("river_mile_site" = "site_name")) |>
+  left_join(river_miles |> select(river_mile_site = site_name, river_mile_site_id = site_id), by = "river_mile_site") |>
+  mutate(match_method = if_else(is.na(river_mile_site), "unresolved_not_in_subsite_table", "manual_crosswalk")) |>
+  select(location, n_rows, sources, river_mile_site, river_mile, river_mile_site_id, match_method)
+
+# comprehensive location -> river mile crosswalk covering every distinct
+# `location` across all three source tables (1997-2001, 2008-2014, 2015-2025)
+# that feed all_seine_combined
+location_river_mile_crosswalk <- bind_rows(
+  river_mile_tier0,
+  river_mile_tier1,
+  river_mile_tier2 |> select(-matched_subsite_text),
+  river_mile_unresolved
+) |>
+  arrange(desc(n_rows)) |>
+  write_csv(here::here("edi-seine", "data", "clean", "diagnostics", "location_river_mile_crosswalk.csv"))
+
+location_river_mile_lookup <- location_river_mile_crosswalk |>
+  filter(match_method != "unresolved_not_in_subsite_table") |>
+  select(location, river_mile_site, river_mile, river_mile_site_id)
+
+issue_log <- dplyr::bind_rows(
+  issue_log,
+  hrlpub::log_issue(
+    issue = "seine location not found in Subsite Table river mile crosswalk",
+    rows_affected = sum(location_river_mile_crosswalk$n_rows[location_river_mile_crosswalk$match_method == "unresolved_not_in_subsite_table"]),
+    action = "left river_mile_site/river_mile as NA rather than guess a match",
+    n_total = nrow(all_seine_combined),
+    details_path = "data/clean/diagnostics/location_river_mile_crosswalk.csv"
+  )
+)
+
+
+# CREATE CLEAN DATA -------------------------------------------------------------------------
 # Data modifications/cleaning:
 # 1. removed gear types of NETS, EF_SE, and EF-SE
 # 2. created one sample id based on sample id and seine id since they were redundant and dependent on the input dataset
@@ -401,27 +646,90 @@ issue_log <- dplyr::bind_rows(
 # Pavement (Boat Ramp)
 # Boulder (>300mm) (>12in.)
 #
-# TODO: add rivermile and lat/long of rivermile
+
+# locations that don't match river mile locations - see
+# location_river_mile_crosswalk.csv (written above) for the full list with row counts
+location_river_mile_crosswalk |>
+  filter(match_method == "unresolved_not_in_subsite_table") |>
+  pull(location)
+
+# look at raw species, pre-cleaning
+all_seine_combined |>
+  pull(species) |>
+  unique()
+
+# all NA... should just be removed
+all_seine_combined |>
+  filter(species == "b") |>
+  glimpse()
+
+# CREATE CLEAN DATA OBJECT
 
 all_seine_clean <- all_seine_combined |>
+  # Raw accdb date-entry errors, each keyed on sample_id so they can only ever
+  # touch the intended row. No cross-era collision risk: accdb sample_ids run
+  # 352-1736, the 2008-2014 range is 50-351, and 1997-2001 has sample_id = NA.
+  #
+  # sample_id 1704 is entered as 06/16/05, which parses to 2005 - outside this
+  # dataset's 2015-2025 range. Typo for 06/16/25: sample_ids 1701-1705 are all
+  # 06/16/25, this record's time (12:25) falls between its neighbors 1703
+  # (11:58) and 1705 (13:30), and all three share the same flow (4400) and
+  # weather (CLR), i.e. the same survey day.
+  #
+  # sample_id 1502 and 1645 are entered as "01/00/00" (day 00 / year 00) and so
+  # parse to NA. Each is bracketed by same-day records sharing flow and weather,
+  # which recovers the survey date:
+  #   1502 -> 2023-07-18 (time 11:20 sits between 1501 @ 10:30 and 1503 @ 12:08;
+  #                       all three flow 5000, weather CLR)
+  #   1645 -> 2024-07-18 (time 12:20 follows 1644 @ 11:27; both flow 9000, CLR)
+  # There is a third "01/00/00" record in SAMPLE TBL (sample_id 1198), but it
+  # has 0 rows in Catch TBL. This pipeline is catch-driven (catch_clean is the
+  # left side of the join), so that sample never reaches this dataset and needs
+  # no fix here - the NA dates that remain after this are all rows with no
+  # sample_id at all.
+  # NOTE: per the note in qc/qc-data.R, Kassie is cross-checking the NA-date
+  # sample ids - so 1502 and 1645 should be confirmed against that review
+  # rather than treated as settled by the neighbor inference alone.
+  mutate(date = case_when(
+    sample_id == 1704 & year(date) == 2005 ~ update(date, year = 2025),
+    sample_id == 1502 & is.na(date)        ~ as.Date("2023-07-18"),
+    sample_id == 1645 & is.na(date)        ~ as.Date("2024-07-18"),
+    TRUE                                   ~ date
+  )) |>
+  # `year` was derived back in all_seine_combined, i.e. BEFORE the corrections
+  # above, so it has to be recomputed here or it stays stale: sample_id 1704
+  # would keep year 2005 against a 2025 date, and 1502/1645 would keep year NA
+  # against a valid date.
+  mutate(year = year(date)) |>
+  # A fork_length of 0 isn't a measurement - it's a plus count, i.e. a subset
+  # of the catch was measured and the remainder was only counted. Set those to
+  # NA so they aren't treated as real 0mm lengths in summaries/analysis; the
+  # `count` field still carries the number of fish. Happens twice, both
+  # fork_length == 0 (no negative values in the data): 2008-08-26 (sample_id
+  # 123, sacramento sucker, count 38) and 2023-02-21 (sample_id 1415, chinook
+  # salmon, count 89).
+  mutate(fork_length = if_else(fork_length <= 0, NA_real_, fork_length)) |>
+  # sample_id 1628 (2024-07-15, Bedrock Park RL) records water_temp 147, it
+  # might be 14.7 otherwise mark as NA. TODO - checking with Kassie, Ryon
+  mutate(water_temp = case_when(
+    sample_id == 1628 & water_temp == 147 ~ NA_real_,
+    TRUE                                  ~ water_temp
+  )) |>
+  # species b is all NA for every other column except count of 1
+  filter(species != "b") |>
+  left_join(location_river_mile_lookup, by = "location") |>
   filter(!gear_type %in% c("NETS", "EF_SE", "EF-SE")) |>
   mutate(
     sample_id = coalesce(sample_id, seine_id),
-    gear_type = coalesce(gear_type, "SEIN")
-    #n_hauls   = map_dbl(comments, extract_n_hauls)
+    gear_type = coalesce(gear_type, "SEIN"),
+    n_hauls   = map_dbl(comments, extract_n_hauls)
   ) |>
-  # Methods state a single "average depth of the haul" was recorded, but the
-  # raw data has two point depths (depth_1, depth_2) plus, for 1997-2001 only,
-  # the distances those points were taken at (depth_dist_1/2). depth_dist has
-  # no equivalent in 2008+ data (depth there is fixed at half/full distance
-  # out), so it can't be harmonized across eras - average the two depths into
-  # one `depth` column per the methods text and drop the distance fields.
-  mutate(depth = rowMeans(cbind(depth_1, depth_2), na.rm = TRUE)) |>
   # Methods define "seine area" as length, width, and average depth of the
   # haul, i.e. sample_area = length * width * depth. 1997-2001 already
   # supplies sample_area directly from the raw data; 2008+ data doesn't
   # include a pre-computed area, so derive it here from length/width/depth.
-  mutate(sample_area = coalesce(sample_area, length * width * depth)) |>
+  # TODO: double check this
+  mutate(sample_area = coalesce(sample_area, length * width * depth_avg)) |>
   # COLLAPSE SUBSTRATE VAR
   mutate(
     substrate_1_code = map_substrate_code(substrate_1),
@@ -450,7 +758,8 @@ all_seine_clean <- all_seine_combined |>
     adipose_clipped = case_when(
       str_detect(species_clean, "Tagged") ~ TRUE,
       str_detect(species_clean, "\\(ad clipped\\)") ~ TRUE,
-      str_detect(species_clean, "^Chinook Salmon|^Steelhead Trout") ~ FALSE,
+      str_detect(species_clean, "^Chinook Salmon|^Steelhead Trout") ~ FALSE, # NOTE: the above statement overrides this. If steelhead
+      # trout is adipose clipped, it will show up in final dataset as o. mykiss clipped
       TRUE ~ NA
     ),
     run = case_when(
@@ -469,7 +778,7 @@ all_seine_clean <- all_seine_combined |>
   mutate(
     species_final = tolower(case_when(
       str_detect(species_clean, "^Chinook Salmon") ~ "Chinook Salmon",
-      str_detect(species_clean, "^Rainbow Trout|^Steelhead Trout") ~ "O. Mykiss",
+      str_detect(species_clean, "^Rainbow Trout|^Steelhead Trout") ~ "O. Mykiss", # FLAG - there are clipped steelhead.
       species_clean == "Smallmouth Bass" ~ "Small Mouth Bass",
       species_clean == "Largemouth Bass" ~ "Large Mouth Bass",
       species_clean == "Sacramento Pikeminnow or Hardhead" ~ "Sacramento Pikeminnow or hardhead",
@@ -482,5 +791,12 @@ all_seine_clean <- all_seine_combined |>
          -substrate_1_code, -substrate_2_code, -substrate_3_code,
          -cover_1, -cover_2, -cover_3, -id, -source,
          -species_clean, -species_final,
-         -depth_1, -depth_2, -depth_dist_1, -depth_dist_2)
+         -depth_dist_1, -depth_dist_2,
+         -river_mile_site, -river_mile_site_id, -id_note,
+         -latitude, -longitude) |>
+  # there are 37 rows with NA date and sample_id. These are being removed.
+  filter(!is.na(date))
+
+write_csv(all_seine_clean, here::here("edi-seine", "data", "clean", "all_seine_clean.csv"))
+
 
