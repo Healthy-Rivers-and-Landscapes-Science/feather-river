@@ -17,7 +17,7 @@ library(tidyverse)
 
 # ── box + arrow helpers ───────────────────────────────────────────────────
 
-new_box <- function(id, xmin, xmax, ymin, ymax, text, align = "left", fontface = "plain") {
+new_box <- function(id, xmin, xmax, ymin, ymax, text, align = "left", fontface = "bold") {
   tibble(
     id = id, xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
     text = text, align = align, fontface = fontface
@@ -50,14 +50,14 @@ arrow_bypass <- function(boxes, from, to, via_x) {
 # ── boxes ─────────────────────────────────────────────────────────────────
 
 boxes <- bind_rows(
-  new_box("sources", 14, 86, 100, 114,
+  new_box("sources", 3, 97, 100, 114,
           paste(
             "Mini Snorkel Data (EDI) — fish counts + habitat covariates (2001–2002)",
             "Redd Survey Data (ground surveys) — Chinook: 2014–2023 · Steelhead: 2003–2025",
             sep = "\n"),
           align = "left"),
 
-  new_box("explore", 2, 45, 74, 96,
+  new_box("explore", 1, 48, 74, 96,
           paste(
             "Data Exploration &",
             "Statistical Analysis",
@@ -69,7 +69,7 @@ boxes <- bind_rows(
             sep = "\n"),
           align = "left"),
 
-  new_box("variables", 51, 98, 66, 96,
+  new_box("variables", 50, 99, 66, 96,
           paste(
             "Habitat Variables of Interest",
             " ",
@@ -83,11 +83,11 @@ boxes <- bind_rows(
             sep = "\n"),
           align = "left"),
 
-  new_box("preprocess", 51, 98, 52, 62,
+  new_box("preprocess", 50, 99, 52, 62,
           "Build Model Data\n(threshold cover %, join redd summary,\nremove incomplete records)",
           align = "center"),
 
-  new_box("logistic", 51, 98, 30, 50,
+  new_box("logistic", 50, 99, 30, 50,
           paste(
             "Candidate Logistic Regression Models",
             "(Steelhead & Chinook Salmon)",
@@ -100,8 +100,10 @@ boxes <- bind_rows(
             sep = "\n"),
           align = "left"),
 
-  new_box("evaluation", 51, 98, 16, 26,
-          "Model Performance Evaluation\nROC / AUC · confusion matrix metrics · model comparison table",
+  new_box("evaluation", 50, 99, 16, 26,
+          # split across two lines - as one line this is the widest string in
+          # the figure and overflows the box at the current font size
+          "Model Performance Evaluation\nROC / AUC · confusion matrix metrics\nmodel comparison table",
           align = "center"),
 
   new_box("final", 14, 86, -6, 8,
@@ -146,7 +148,7 @@ p <- ggplot() +
   geom_text(
     data = boxes,
     aes(x = label_x, y = yc, label = text, hjust = hjust, fontface = fontface),
-    size = 3.1, lineheight = 1.05, family = "serif", vjust = 0.5
+    size = 5.2, lineheight = 1.05, family = "serif", vjust = 0.5
   ) +
   geom_segment(
     data = arrows,
@@ -158,7 +160,11 @@ p <- ggplot() +
   theme_void() +
   theme(plot.margin = margin(10, 10, 10, 10))
 
+# Height is set generously relative to width: box heights are fixed in data
+# units, so the taller canvas is what keeps the larger font from overflowing
+# the boxes. Width is unchanged, so the font is genuinely larger relative to
+# the figure width (which is what constrains display size in a document).
 ggsave(
   here::here("mini-snorkel-analysis", "figures", "analysis_conceptual_map.png"),
-  p, width = 11, height = 10, dpi = 300, bg = "white"
+  p, width = 11, height = 16, dpi = 300, bg = "white"
 )
