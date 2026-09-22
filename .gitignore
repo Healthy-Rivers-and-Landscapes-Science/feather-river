@@ -49,3 +49,6 @@ po/*~
 rsconnect/
 
 .DS_Store
+
+# Microsoft Office lock/temp files (e.g. "~$Subsite Table.xlsx")
+~$*

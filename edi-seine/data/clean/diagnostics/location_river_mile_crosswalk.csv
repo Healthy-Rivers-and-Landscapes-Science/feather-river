@@ -107,7 +107,7 @@ Bear River Downstream RL,130,2015-2025,Bear River,12.5,38000,exact_subsite_table
 Boyds 1/2 mile upstream RL,130,2015-2025,Boyds,22,36000,exact_subsite_table
 Junkyard side channel 2 - RL,129,"2008-2014, 2015-2025",Junkyard,48.5,25000,exact_subsite_table
 Junkyard side channel 1 - RR,129,2008-2014,Junkyard,48.5,25000,manual_crosswalk
-Mulberry Beach RR - Downstream,129,2015-2025,NA,NA,NA,unresolved_not_in_subsite_table
+Mulberry Beach RR - Downstream,129,2015-2025,Sanders Road,34,33000,manual_crosswalk
 G-95,127,1997-2001,G95,57,16000,manual_crosswalk
 Steep Main RR,126,2015-2025,Steep Riffle,61,10000,exact_subsite_table
 Gridley Riffle Lower RR,117,2015-2025,Gridley,50,24000,exact_subsite_table
@@ -151,7 +151,7 @@ Lower Trailer Park Backwater RL,62,2015-2025,Trailer Park,64.4,4000,manual_cross
 Big Hole RR,61,2015-2025,Vance,58,15000,exact_subsite_table
 Lower Hatchery Side Channel,57,2015-2025,Hatchery Ditch/Riffle,66.5,1100,exact_subsite_table
 Swampy bend,57,2015-2025,Swampy Bend,51,23000,exact_subsite_table
-250 yards below Honcut Confluence,57,1997-2001,NA,NA,NA,unresolved_not_in_subsite_table
+250 yards below Honcut Confluence,57,1997-2001,Honcut Creek,44,28000,manual_crosswalk
 Yuba Train Bridge Upstream RR,56,2015-2025,Yuba City,28,34000,exact_subsite_table
 G-95 East RL,55,2015-2025,G95,57,16000,exact_subsite_table
 Gridley Pool,55,1997-2001,Gridley,50,24000,manual_crosswalk
@@ -182,15 +182,15 @@ Auditorium RL - Downstream,33,2008-2014,Auditorium Riffle,66.5,1000,exact_subsit
 Gridley Riffle RR Downstream,33,"2008-2014, 2015-2025",Gridley,50,24000,exact_subsite_table
 gridley Boat launch side channel,33,1997-2001,Gridley,50,24000,manual_crosswalk
 Upstream Big Riffle RL,31,2015-2025,Big Bar/Riffle,53.5,21000,exact_subsite_table
-Downstream Clay Banks RR,30,2015-2025,NA,NA,NA,unresolved_not_in_subsite_table
-Pollywog Beach,30,2015-2025,NA,NA,NA,unresolved_not_in_subsite_table
+Downstream Clay Banks RR,30,2015-2025,Morse Road,34.5,32000,manual_crosswalk
+Pollywog Beach,30,2015-2025,Shawn's Beach,37,31000,manual_crosswalk
 Developing Riffle RR,29,2015-2025,McFarland,52,22000,exact_subsite_table
 Lower Robinson Riffle Backwater,29,2015-2025,Robinson,62,9000,exact_subsite_table
-Clay Banks upstream backwater RL,29,2015-2025,NA,NA,NA,unresolved_not_in_subsite_table
+Clay Banks upstream backwater RL,29,2015-2025,Morse Road,34.5,32000,manual_crosswalk
 Shallow Riffle,29,1997-2001,Cox Riffle,47.5,26000,manual_crosswalk
 Downstream G95 RR,28,2015-2025,G95,57,16000,exact_subsite_table
 Hatchery Riffle RR,28,2015-2025,Hatchery Ditch/Riffle,66.5,1100,exact_subsite_table
-Ellis Road Beach,27,2015-2025,NA,NA,NA,unresolved_not_in_subsite_table
+Ellis Road Beach,27,2015-2025,Sanders Road,34,33000,manual_crosswalk
 Gateway Riffle,27,1997-2001,Gateway,58.8,13000,manual_crosswalk
 Gateway,26,2008-2014,Gateway,58.8,13000,exact_river_miles_site_name
 Robinson's Riffle,25,1997-2001,Robinson,62,9000,manual_crosswalk
@@ -198,7 +198,7 @@ Robinson's Riffle,25,1997-2001,Robinson,62,9000,manual_crosswalk
 Swampy Bend,24,1997-2001,Swampy Bend,51,23000,exact_river_miles_site_name
 Shallow Riffle  (523),24,1997-2001,Cox Riffle,47.5,26000,manual_crosswalk
 Sean's Beach RR - Upstream,23,2015-2025,Shawn's Beach,37,31000,exact_subsite_table
-Downstream Bum Beach,23,2015-2025,NA,NA,NA,unresolved_not_in_subsite_table
+Downstream Bum Beach,23,2015-2025,Shanghai,25,35000,manual_crosswalk
 Above G95 SC - RR,21,2008-2014,G95,57,16000,manual_crosswalk
 d/s end of big hole islands,21,1997-2001,Vance,58,15000,manual_crosswalk
 bend backwater (562),17,1997-2001,NA,NA,NA,unresolved_not_in_subsite_table
@@ -212,7 +212,7 @@ Eye Riffle,12,1997-2001,Eye Riffle,60.2,12000,exact_river_miles_site_name
 Hatchery Ditch(upper),12,1997-2001,Hatchery Ditch/Riffle,66.5,1100,manual_crosswalk
 Shanghai downstream RL,10,2015-2025,Shanghai,25,35000,exact_subsite_table
 Trailer Park Main,9,2015-2025,Trailer Park,64.4,4000,exact_subsite_table
-24th St. Levee OWA,9,2015-2025,NA,NA,NA,unresolved_not_in_subsite_table
+24th St. Levee OWA,9,2015-2025,Eye Riffle,60.2,12000,manual_crosswalk
 Hour Main Backwater - RL,8,2015-2025,Hour,56,17000,exact_subsite_table
 Junkyard Main RL,8,2015-2025,Junkyard,48.5,25000,exact_subsite_table
 West Kiester OWA,8,2015-2025,Kiester,55,19000,exact_subsite_table

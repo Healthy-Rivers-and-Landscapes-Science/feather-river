@@ -69,7 +69,7 @@ qc_flags <- qc_data |>
     invalid_secchi = !is.na(secchi) & secchi < 0,
 
     # channel should only ever be the two named channels (or NA pre-2015)
-    unexpected_channel = !is.na(channel) & !channel %in% c("HFC", "LFC"),
+    unexpected_channel = !is.na(channel) & !channel %in% c("HFC", "LFC", "HFC DS LYR"),
 
     # gear_type should be exactly SEIN post-cleaning (NETS/EF_SE/EF-SE are
     # removed in clean-data.R)
@@ -104,7 +104,7 @@ qc_summary_by_era <- qc_flags |>
   group_by(era) |>
   summarise(n_rows = n(), across(all_of(flag_cols), sum), .groups = "drop")
 
-print(qc_summary_by_era)
+qc_summary_by_era |> glimpse()
 
 walk(flag_cols, \(f) {
   n <- qc_summary[[f]]
@@ -155,6 +155,8 @@ p_dist <- ggplot(continuous_long, aes(x = value)) +
   ) +
   theme_minimal(base_size = 11)
 
+p_dist
+
 ggsave(file.path(fig_dir, "qc_continuous_distributions.png"), p_dist,
        width = 11, height = 10, dpi = 150)
 
@@ -171,6 +173,8 @@ p_dist_era <- ggplot(continuous_long, aes(x = value, fill = era)) +
   ) +
   theme_minimal(base_size = 11) +
   theme(legend.position = "top")
+
+p_dist_era
 
 ggsave(file.path(fig_dir, "qc_continuous_distributions_by_era.png"), p_dist_era,
        width = 11, height = 10, dpi = 150)
@@ -190,6 +194,8 @@ p_time <- ggplot(continuous_long, aes(x = date, y = value, color = era)) +
   theme(legend.position = "top") +
   guides(color = guide_legend(override.aes = list(alpha = 1, size = 2)))
 
+p_time
+
 ggsave(file.path(fig_dir, "qc_continuous_over_time.png"), p_time,
        width = 12, height = 10, dpi = 150)
 
@@ -204,6 +210,8 @@ p_box <- ggplot(continuous_long, aes(x = era, y = value, fill = era)) +
   ) +
   theme_minimal(base_size = 11) +
   theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+p_box
 
 ggsave(file.path(fig_dir, "qc_continuous_by_era_boxplot.png"), p_box,
        width = 11, height = 10, dpi = 150)
@@ -228,6 +236,8 @@ p_depth <- qc_data |>
   theme_minimal(base_size = 11) +
   theme(legend.position = "top") +
   guides(color = guide_legend(override.aes = list(alpha = 1, size = 2)))
+
+p_depth
 
 ggsave(file.path(fig_dir, "qc_depth_fields.png"), p_depth,
        width = 10, height = 8, dpi = 150)

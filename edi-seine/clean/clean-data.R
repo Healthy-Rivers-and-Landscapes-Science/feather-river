@@ -490,6 +490,8 @@ river_mile_unresolved <- distinct_locations |>
 # `comment` - the same way clean_species() documents its manual calls.
 # Leave river_mile_site NA for anything you can't confidently place; it will
 # stay unresolved. Re-run the script after editing to pick up your changes.
+# NOTE: some sites were manually crosswalked based off of their proximity to
+# rivermile. This was done in rivermile-crosswalk-map.R
 river_mile_manual_crosswalk <- tibble::tribble(
   ~location,                                            ~river_mile_site, ~comment,
   "Yuba City Boat Ramp",                                'Yuba City',    NA_character_,
@@ -523,7 +525,7 @@ river_mile_manual_crosswalk <- tibble::tribble(
   "MacFarland",                                         'McFarland',    NA_character_,
   "Below Big Hole",                                     'Vance',    NA_character_,
   "Junkyard side channel 1 - RR",                       'Junkyard',    NA_character_,
-  "Mulberry Beach RR - Downstream",                     NA_character_,    NA_character_, # TODO
+  "Mulberry Beach RR - Downstream",                     'Sanders Road',    NA_character_, # based off of proximity to RM 34
   "G-95",                                               'G95',    NA_character_,
   "HATCHERY DITCH - bottom",                            'Hatchery Ditch/Riffle',    NA_character_,
   "Between Steep and Eye (Wier Site)",                  'Steep Riffle',    NA_character_,
@@ -542,7 +544,7 @@ river_mile_manual_crosswalk <- tibble::tribble(
   "Auditorium RR - Downstream",                         'Auditorium Riffle',    NA_character_,
   "Lower Hatchery ditch",                               'Hatchery Ditch/Riffle',    NA_character_,
   "Lower Trailer Park Backwater RL",                    'Trailer Park',    NA_character_,
-  "250 yards below Honcut Confluence",                  NA_character_,    NA_character_, # TODO
+  "250 yards below Honcut Confluence",                  'Honcut Creek',    NA_character_, # based off of "honcut" in name
   "Gridley Pool",                                       "Gridley",    NA_character_,
   "Hour Backwater",                                     "Hour",    NA_character_,
   "1/4 Mile Upstream of Big Hole Island",               "Vance",    NA_character_,
@@ -555,16 +557,16 @@ river_mile_manual_crosswalk <- tibble::tribble(
   "Gridley Riffle",                                     'Gridley',    NA_character_,
   "Eye Riffle - Upper Side Channel",                    'Eye Riffle',    NA_character_,
   "gridley Boat launch side channel",                   'Gridley',    NA_character_,
-  "Downstream Clay Banks RR",                           NA_character_,    NA_character_,# TODO
-  "Pollywog Beach",                                     NA_character_,    NA_character_,# TODO
-  "Clay Banks upstream backwater RL",                   NA_character_,    NA_character_,# TODO
+  "Downstream Clay Banks RR",                           'Morse Road',    NA_character_,# based off of proximity to rm 34.5
+  "Pollywog Beach",                                     "Shawn's Beach",    NA_character_,# based off of proximity to RM 37
+  "Clay Banks upstream backwater RL",                   'Morse Road',    NA_character_,# based off of proximity to rm 34.5
   "Shallow Riffle",                                     'Cox Riffle',    NA_character_,
-  "Ellis Road Beach",                                   NA_character_,    NA_character_,# TODO
+  "Ellis Road Beach",                                   'Sanders Road',    NA_character_,# based off of proximity to rm 34
   "Gateway Riffle",                                     'Gateway',    NA_character_,
   "Robinson's Riffle",                                  'Robinson',    NA_character_,
   "u/s end of bar complex, d/s of big hole islands",    'Vance',    NA_character_,
   "Shallow Riffle  (523)",                              'Cox Riffle',    NA_character_,
-  "Downstream Bum Beach",                               NA_character_,    NA_character_,# TODO
+  "Downstream Bum Beach",                               'Shanghai',    NA_character_,# based off of proximity to rm 25
   "Above G95 SC - RR",                                  'G95',    NA_character_,
   "d/s end of big hole islands",                        'Vance',    NA_character_,
   "bend backwater (562)",                               NA_character_,    NA_character_,# TODO
@@ -574,7 +576,7 @@ river_mile_manual_crosswalk <- tibble::tribble(
   "Vance East Main RL",                                 'Vance',    NA_character_,
   "Upper Heringer",                                     'Herringer',    NA_character_,
   "Hatchery Ditch(upper)",                              'Hatchery Ditch/Riffle',    NA_character_,
-  "24th St. Levee OWA",                                 NA_character_,    NA_character_,# TODO
+  "24th St. Levee OWA",                                 'Eye Riffle',    NA_character_,# based off of proximity to rm 60
   "G95 Downstream RL",                                  'G95',    NA_character_,
   "Junkyard Above RR",                                  'Junkyard',    NA_character_,
   "Junkyard Riffle",                                    'Junkyard',    NA_character_,
@@ -709,11 +711,22 @@ all_seine_clean <- all_seine_combined |>
   # 123, sacramento sucker, count 38) and 2023-02-21 (sample_id 1415, chinook
   # salmon, count 89).
   mutate(fork_length = if_else(fork_length <= 0, NA_real_, fork_length)) |>
-  # sample_id 1628 (2024-07-15, Bedrock Park RL) records water_temp 147, it
-  # might be 14.7 otherwise mark as NA. TODO - checking with Kassie, Ryon
+  # sample_id 1628 (2024-07-15, Bedrock Park RL) recorded water_temp 147.
+  # Confirmed by Kassie/Ryon: the correct value is 17 degrees.
   mutate(water_temp = case_when(
-    sample_id == 1628 & water_temp == 147 ~ NA_real_,
+    sample_id == 1628 & water_temp == 147 ~ 17,
     TRUE                                  ~ water_temp
+  )) |>
+  # Confirmed depth corrections (data entry errors - decimal point dropped):
+  #   sample_id 899  (2020-01-13, Riverbend Park Beach RL): recorded 63,
+  #     should be 0.63.
+  #   sample_id 1066 (2020-08-06, Aleck RR): recorded 30, should be 0.3.
+  #     No haul length was recorded for this sample, so depth can't be
+  #     cross-checked against sample_area here - length stays NA.
+  mutate(depth_avg = case_when(
+    sample_id == 899  & depth_avg == 63 ~ 0.63,
+    sample_id == 1066 & depth_avg == 30 ~ 0.3,
+    TRUE                                 ~ depth_avg
   )) |>
   # species b is all NA for every other column except count of 1
   filter(species != "b") |>
