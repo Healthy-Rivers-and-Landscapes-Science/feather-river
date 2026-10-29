@@ -1,0 +1,456 @@
+---
+title: "Feather River - Hypothesis Models vs. Mixed Models for Fish Occurrence"
+author: "Maddee Wiggins (FlowWest)"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    code_folding: hide
+params:
+  species_pattern: "chinook"   # same parameters as feather_river_hypothesis_models.Rmd
+  percent_threshold: 20
+  cover_method: "sum"
+  redd_max_dist_m: 50
+  use_redd: TRUE
+  include_optional: FALSE
+  cv_models: TRUE              # leave-one-site-out cross-validation (a few minutes: it refits mixed models)
+---
+
+```{r setup-comparison, include=FALSE}
+library(tidyverse)
+library(glmmTMB)
+library(pROC)
+library(sf)
+library(here)
+
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+theme_set(theme_minimal(base_size = 13))
+options(scipen = 999)
+set.seed(1)
+```
+
+**DRAFT.** This document compares two ways of modeling fish presence/absence in
+the Feather River mini snorkel data, on identical data:
+
+1. **Hypothesis models**
+   ([feather_river_hypothesis_models.Rmd](feather_river_hypothesis_models.Rmd)):
+   a pre-specified set of GLMs with fixed effects only, compared with AICc.
+2. **Mixed model**
+   ([feather_river_cover_analysis_salmon_ha_cover.Rmd](feather_river_cover_analysis_salmon_ha_cover.Rmd)):
+   one model with the habitat terms and random intercepts for site and month.
+
+Species: `r params$species_pattern`.
+
+## Shared data
+
+The code for the data preparation, combined HA cover, redd count and the
+hypothesis model set is read from the hypothesis Rmd (the named chunks are
+evaluated here), not copied. If it changes there, this comparison changes with
+it. They run silently here; see that document for their output.
+
+```{r load-hypothesis-chunks}
+# Evaluate the named code chunks of the hypothesis Rmd in this document's
+# environment. They are read from that file, not copied, so both approaches use
+# the same data preparation and model definitions.
+source_chunks <- function(rmd, labels, envir = knitr::knit_global()) {
+  lines <- readLines(rmd, warn = FALSE)
+  starts <- grep("^```\\{r", lines)
+  fences <- grep("^```\\s*$", lines)
+  chunk_label <- function(l) trimws(sub("^```\\{r[ ,]*([^,}]*).*$", "\\1", l))
+  for (lab in labels) {
+    s <- starts[vapply(lines[starts], chunk_label, "") == lab]
+    if (length(s) != 1) stop("Chunk '", lab, "' not found exactly once in ", rmd)
+    e <- fences[fences > s][1]
+    eval(parse(text = lines[(s + 1):(e - 1)]), envir = envir)
+  }
+  invisible(labels)
+}
+
+source_chunks(
+  here("mini-snorkel-analysis", "analysis", "feather_river_hypothesis_models.Rmd"),
+  c("read-data", "survey-attrs", "unit-level", "coding", "cover-map", "cover-classify",
+    "redd", "model-data", "specs", "helpers", "fit-main")
+)
+```
+
+```{r shared-summary}
+tibble(rows = nrow(model_data),
+       presences = sum(model_data$presence),
+       absences = sum(model_data$presence == 0),
+       sites = n_distinct(model_data$location),
+       surveys = n_distinct(model_data$location_table_id)) |>
+  knitr::kable(caption = "Rows used by every model below (complete cases, one row per microhabitat unit)")
+```
+
+## The two approaches
+
+| | Hypothesis models | Mixed model |
+|---|---|---|
+| Question | Which hypothesis (cover, depth, flow, combinations; then redd, season, design) is best supported? | What are the habitat effects after allowing baseline presence to differ by site and month? |
+| Model set | 10 pre-specified GLMs, ranked by AICc | One model (plus nested variants), reported with effect sizes |
+| Site and month | Hypotheses tested last (month and design added to the best habitat model) | Random intercepts in the model from the start |
+| Habitat terms | Separate hypotheses: cover, depth, velocity, and combinations | All in one model: cover + depth + velocity + redd + turbidity |
+| Strength | Directly tests competing explanations | Accounts for repeated sampling at sites and across months |
+
+## Models fit
+
+```{r define-models}
+model_data <- model_data |>
+  mutate(redd_presence = as.integer(redd_total > 0))
+
+habitat_terms <- c("cover", "depth_z", "velocity_z",
+                   if (params$use_redd) c("redd_z", "redd_presence"),
+                   "surface_turbidity_z")
+habitat_rhs <- paste(habitat_terms, collapse = " + ")
+
+re_loc      <- "(1 | location)"
+re_nested   <- "(1 | channel_location/location)"
+re_locmonth <- "(1 | location) + (1 | month)"
+
+best_stage1 <- main$stage1_best
+best_rhs <- main$rhs[[best_stage1]]
+
+catalog <- bind_rows(
+  tibble(approach = "Hypothesis (GLM)", model = names(main$rhs), rhs = unname(main$rhs),
+         re = NA_character_),
+  tibble(approach = "Mixed model",
+         model = c("mixed_loc", "mixed_nested", "mixed_final"),
+         rhs = habitat_rhs, re = c(re_loc, re_nested, re_locmonth)),
+  tibble(approach = "Hybrid",
+         model = "best_habitat_month_siteRE",
+         rhs = add_term(best_rhs, "month"), re = re_loc),
+  tibble(approach = "Baseline",
+         model = c("month_only", "re_only"),
+         rhs = c("month", "1"), re = c(NA_character_, re_locmonth))
+)
+
+fit_any <- function(rhs, re = NA_character_) {
+  f <- as.formula(paste("presence ~", rhs, if (!is.na(re)) paste("+", re)))
+  if (is.na(re)) glm(f, data = model_data, family = binomial(link = "logit"))
+  else glmmTMB(f, data = model_data, family = binomial(link = "logit"))
+}
+
+catalog$fit <- map2(catalog$rhs, catalog$re, fit_any)
+
+catalog |>
+  transmute(approach, model, formula = paste("presence ~", rhs, ifelse(is.na(re), "", paste("+", re)))) |>
+  mutate(formula = str_wrap(formula, 90)) |>
+  knitr::kable(caption = "Models compared. `best_habitat_month_siteRE` = best stage 1 habitat model + month (fixed) + (1 | location). Baselines: month alone, and site + month random effects with no habitat.")
+```
+
+The mixed-model formula is the one used in the HA cover Rmd, except that
+continuous predictors are standardized here (which does not change AICc or
+AUC). `best_stage1` in the hypothesis set is `r best_stage1`.
+
+## Comparison on identical rows
+
+```{r metrics}
+aicc_of <- function(m) {
+  k <- as.integer(attr(logLik(m), "df")); n <- nobs(m)
+  -2 * as.numeric(logLik(m)) + 2 * k + 2 * k * (k + 1) / (n - k - 1)
+}
+
+# Nakagawa-style R2 for binomial-logit models:
+# marginal = fixed effects only; conditional = fixed + random effects
+r2_logit <- function(m) {
+  is_mixed <- inherits(m, "glmmTMB")
+  link_fixed <- if (is_mixed) predict(m, type = "link", re.form = NA) else predict(m, type = "link")
+  var_f <- var(as.numeric(link_fixed))
+  var_re <- if (is_mixed) sum(vapply(VarCorr(m)$cond, function(v) as.numeric(v[1, 1]), numeric(1))) else 0
+  var_e <- pi^2 / 3
+  tibble(r2_marginal = var_f / (var_f + var_re + var_e),
+         r2_conditional = (var_f + var_re) / (var_f + var_re + var_e))
+}
+
+metrics <- catalog |>
+  mutate(
+    k = map_int(fit, ~ as.integer(attr(logLik(.x), "df"))),
+    AICc = map_dbl(fit, aicc_of),
+    auc_in_sample = map_dbl(fit, ~ as.numeric(pROC::auc(pROC::roc(model_data$presence,
+                                  as.numeric(predict(.x, type = "response")),
+                                  levels = c(0, 1), direction = "<", quiet = TRUE)))),
+    r2 = map(fit, r2_logit)
+  ) |>
+  unnest(r2) |>
+  mutate(delta_AICc = AICc - min(AICc))
+```
+
+### Cross-validated prediction
+
+In-sample AUC rewards model size and site-specific intercepts. Leave-one-site-out
+cross-validation refits each model without one site and predicts that site's
+units. Mixed models predict a new site with its random intercept set to zero but
+keep the month effects (months are shared across sites). Log loss is the mean
+negative log-likelihood of held-out units (lower is better).
+
+```{r cv-loso}
+cv_loso <- function(rhs, re = NA_character_, data = model_data, group = "location") {
+  f <- as.formula(paste("presence ~", rhs, if (!is.na(re)) paste("+", re)))
+  pred <- rep(NA_real_, nrow(data))
+  for (g in unique(data[[group]])) {
+    test <- data[[group]] == g
+    pred[test] <- tryCatch({
+      if (is.na(re)) {
+        m <- suppressWarnings(glm(f, data = data[!test, ], family = binomial))
+        as.numeric(predict(m, newdata = data[test, ], type = "response"))
+      } else {
+        m <- suppressWarnings(glmmTMB(f, data = data[!test, ], family = binomial))
+        as.numeric(predict(m, newdata = data[test, ], type = "response", allow.new.levels = TRUE))
+      }
+    }, error = function(e) rep(NA_real_, sum(test)))
+  }
+  ok <- !is.na(pred)
+  eps <- 1e-6
+  p <- pmin(pmax(pred[ok], eps), 1 - eps)
+  y <- data$presence[ok]
+  tibble(n_scored = sum(ok),
+         auc_loso = as.numeric(pROC::auc(pROC::roc(y, pred[ok], levels = c(0, 1), direction = "<", quiet = TRUE))),
+         logloss_loso = -mean(y * log(p) + (1 - y) * log(1 - p)))
+}
+
+cv_models <- c("null", best_stage1, "best_season", "best_design", "best_redd",
+               "mixed_loc", "mixed_final", "best_habitat_month_siteRE", "month_only", "re_only")
+
+if (params$cv_models) {
+  cv_tab <- catalog |>
+    filter(model %in% cv_models) |>
+    mutate(cv = map2(rhs, re, cv_loso)) |>
+    select(model, cv) |>
+    unnest(cv)
+  metrics <- metrics |> left_join(cv_tab, by = "model")
+} else {
+  metrics <- metrics |> mutate(n_scored = NA_integer_, auc_loso = NA_real_, logloss_loso = NA_real_)
+}
+```
+
+```{r metrics-table}
+metrics |>
+  arrange(AICc) |>
+  select(approach, model, k, AICc, delta_AICc, auc_in_sample, auc_loso, logloss_loso,
+         r2_marginal, r2_conditional) |>
+  mutate(across(c(AICc, delta_AICc), ~ round(.x, 1)),
+         across(c(auc_in_sample, auc_loso, r2_marginal, r2_conditional), ~ round(.x, 3)),
+         logloss_loso = round(logloss_loso, 4)) |>
+  knitr::kable(caption = "All models on identical rows, ordered by AICc. R2 is marginal (fixed effects) and conditional (fixed + random). Leave-one-site-out columns are blank for models not cross-validated.")
+```
+
+```{r metrics-plot, fig.height = 6, fig.width = 9}
+metrics |>
+  mutate(model = fct_reorder(model, -delta_AICc)) |>
+  ggplot(aes(delta_AICc, model, fill = approach)) +
+  geom_col() +
+  scale_fill_manual(values = c("Hypothesis (GLM)" = "#0072B2", "Mixed model" = "#D55E00",
+                               "Hybrid" = "#009E73", "Baseline" = "grey60"), name = NULL) +
+  labs(x = "Delta AICc (smaller = better supported)", y = NULL,
+       title = "AICc of every model on identical rows")
+```
+
+AICc compares the GLMs and mixed models on the same likelihood scale because
+the data and response are identical. The variance parameters of random effects
+are on a boundary, so treat small AICc differences between a GLM and a mixed
+model cautiously.
+
+## What do site and month contribute?
+
+This separates how much of the fit comes from the habitat hypotheses and how
+much from the site and month structure. Each row asks how much a habitat model
+improves on a model that already includes the named control, measured as AICc
+improvement (positive = habitat helps) and change in in-sample AUC.
+
+```{r habitat-given-control}
+get <- function(model, col) metrics[[col]][metrics$model == model]
+
+habitat_added <- tribble(
+  ~control,                                ~without_habitat,  ~with_habitat,
+  "none (intercept only)",                 "null",            best_stage1,
+  "month (fixed effect)",                  "month_only",      "best_season",
+  "site + month (random effects)",         "re_only",         "mixed_final"
+) |>
+  mutate(
+    dAICc_gain = map2_dbl(without_habitat, with_habitat, ~ get(.x, "AICc") - get(.y, "AICc")),
+    auc_without = map_dbl(without_habitat, ~ get(.x, "auc_in_sample")),
+    auc_with = map_dbl(with_habitat, ~ get(.x, "auc_in_sample")),
+    auc_gain = auc_with - auc_without
+  ) |>
+  mutate(across(c(dAICc_gain), ~ round(.x, 1)),
+         across(c(auc_without, auc_with, auc_gain), ~ round(.x, 3)))
+
+knitr::kable(habitat_added,
+             caption = "Gain from habitat terms given each control (habitat model: best stage 1 for the first two rows, full mixed-model habitat terms for the last)")
+```
+
+The table below shows how much of the fitted structure is attributed to site
+and month rather than habitat.
+
+```{r contribution-r2}
+metrics |>
+  filter(model %in% c("null", best_stage1, "month_only", "best_season", "re_only",
+                      "mixed_loc", "mixed_final")) |>
+  transmute(model,
+            r2_marginal = round(r2_marginal, 3),
+            r2_conditional = round(r2_conditional, 3),
+            auc_in_sample = round(auc_in_sample, 3)) |>
+  knitr::kable(caption = "Marginal R2 = variance explained by fixed effects; conditional R2 adds site and month random effects")
+```
+
+## Do the conclusions about habitat agree?
+
+### Hypothesis rankings with and without site and month random effects
+
+The ten stage 1 hypotheses are refit with `(1 | location) + (1 | month)` added
+to each. Under random effects, the "null" model is the random-effects-only
+baseline. If the ranking and the gains over null survive, the two approaches
+agree on which habitat hypotheses matter.
+
+```{r stage1-re}
+stage1_models <- main$table |> filter(stage == 1)
+specs_used <- specs_main
+
+stage1_re <- map_dfr(seq_len(nrow(specs_used)), function(i) {
+  m <- fit_any(specs_used$rhs[i], re_locmonth)
+  tibble(model = specs_used$model[i], AICc_re = aicc_of(m))
+})
+
+stage1_compare <- stage1_models |>
+  select(model, AICc_glm = AICc) |>
+  left_join(stage1_re, by = "model") |>
+  mutate(
+    gain_over_null_glm = AICc_glm[model == "null"] - AICc_glm,
+    gain_over_null_re = AICc_re[model == "null"] - AICc_re,
+    rank_glm = rank(AICc_glm),
+    rank_re = rank(AICc_re)
+  ) |>
+  arrange(rank_glm)
+
+stage1_compare |>
+  mutate(across(c(AICc_glm, AICc_re, gain_over_null_glm, gain_over_null_re), ~ round(.x, 1))) |>
+  knitr::kable(caption = "Stage 1 hypotheses: fixed-effects GLM vs. with site and month random effects. Gain over null = AICc improvement over the intercept-only (or random-effects-only) model; positive = supported.")
+```
+
+```{r stage1-plot, fig.height = 5, fig.width = 8}
+stage1_compare |>
+  select(model, `Without random effects` = gain_over_null_glm, `With site + month random effects` = gain_over_null_re) |>
+  pivot_longer(-model, names_to = "fit", values_to = "gain") |>
+  mutate(model = fct_reorder(model, gain, .fun = max)) |>
+  ggplot(aes(gain, model, fill = fit)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(values = c("Without random effects" = "#0072B2",
+                               "With site + month random effects" = "#D55E00"), name = NULL) +
+  labs(x = "AICc improvement over the null model", y = NULL,
+       title = "Support for each habitat hypothesis, with and without random effects") +
+  theme(legend.position = "bottom")
+```
+
+### Effect sizes
+
+Odds ratios for the habitat terms in the best stage 1 hypothesis model, the same
+model with month added, and the mixed model.
+
+```{r effects, fig.height = 5, fig.width = 9}
+tidy_any <- function(m, label) {
+  out <- if (inherits(m, "glmmTMB")) broom.mixed::tidy(m, effects = "fixed", conf.int = TRUE)
+         else broom::tidy(m, conf.int = TRUE)
+  out |> mutate(fit = label)
+}
+
+pull_fit <- function(name) catalog$fit[[which(catalog$model == name)]]
+
+effects_cmp <- bind_rows(
+  tidy_any(pull_fit(best_stage1), paste0("Hypothesis: ", best_stage1, " (GLM)")),
+  tidy_any(pull_fit("best_season"), "Hypothesis: + month (GLM)"),
+  tidy_any(pull_fit("mixed_final"), "Mixed model (site + month random effects)")
+) |>
+  filter(term %in% c("cover", "depth_z", "velocity_z")) |>
+  mutate(odds_ratio = exp(estimate), or_low = exp(conf.low), or_high = exp(conf.high),
+         term = recode(term, cover = "Combined HA cover (0/1)",
+                       depth_z = "Depth (per SD)", velocity_z = "Velocity (per SD)"))
+
+ggplot(effects_cmp, aes(odds_ratio, term, color = fit)) +
+  geom_vline(xintercept = 1, linetype = 2, color = "gray50") +
+  geom_point(position = position_dodge(width = 0.6), size = 2.3) +
+  geom_errorbarh(aes(xmin = or_low, xmax = or_high), height = 0.2,
+                 position = position_dodge(width = 0.6)) +
+  scale_x_log10() +
+  scale_color_manual(values = c("#0072B2", "#009E73", "#D55E00"), name = NULL) +
+  labs(x = "Odds ratio (log scale)", y = NULL,
+       title = "Habitat effects under each approach") +
+  theme(legend.position = "bottom", legend.direction = "vertical")
+```
+
+```{r effects-table}
+effects_cmp |>
+  transmute(fit, term, odds_ratio = round(odds_ratio, 2), or_low = round(or_low, 2),
+            or_high = round(or_high, 2), p_value = signif(p.value, 2)) |>
+  knitr::kable(caption = "Odds ratios for the shared habitat terms")
+```
+
+### Variance among sites and months in the mixed model
+
+```{r variance-components}
+vc <- VarCorr(pull_fit("mixed_final"))$cond
+tibble(group = names(vc),
+       sd = vapply(vc, function(v) sqrt(as.numeric(v[1, 1])), numeric(1)),
+       variance = vapply(vc, function(v) as.numeric(v[1, 1]), numeric(1))) |>
+  mutate(across(c(sd, variance), ~ round(.x, 3))) |>
+  knitr::kable(caption = "Random-intercept standard deviations (logit scale) in the final mixed model")
+```
+
+## Reading the comparison
+
+```{r reading-numbers, include=FALSE}
+r2_m <- metrics |> filter(model == "mixed_final")
+r2_h <- metrics |> filter(model == best_stage1)
+```
+
+- **Fit on identical rows:** the lowest AICc is
+  `r metrics$model[which.min(metrics$AICc)]`
+  (`r metrics$approach[which.min(metrics$AICc)]`). See the ordered table for the
+  full ranking.
+- **Habitat alone vs. with controls:** the best habitat hypothesis
+  (`r best_stage1`) has marginal R2 `r round(r2_h$r2_marginal, 3)` and in-sample
+  AUC `r round(r2_h$auc_in_sample, 3)`; the final mixed model has marginal R2
+  `r round(r2_m$r2_marginal, 3)`, conditional R2 `r round(r2_m$r2_conditional, 3)`
+  and in-sample AUC `r round(r2_m$auc_in_sample, 3)`. The gap between marginal and
+  conditional R2 is the part attributed to site and month rather than habitat.
+- **Prediction at new sites:** use the leave-one-site-out columns (AUC and log
+  loss), which do not reward site-specific intercepts the way in-sample AUC does.
+- **Agreement on hypotheses:** compare the `rank_glm` and `rank_re` columns and
+  the gains over null in the stage 1 table. If the same hypotheses stay on top,
+  the two approaches agree on which habitat factors matter.
+- **Effect sizes:** the plot shows whether the habitat odds ratios shift when
+  month and site are modeled as random effects instead of tested as hypotheses.
+
+## Caveats
+
+- Both approaches use the same presence/absence data and the same combined HA
+  cover definition; changing the cover threshold or rule in the hypothesis Rmd's
+  YAML parameters changes this comparison.
+- Leave-one-site-out holds out entire sites but not entire months, so the month
+  structure is seen in training.
+- GLM and GLMM AICc values are comparable here because the data are identical,
+  but random-effect variance parameters sit on a boundary, so small differences
+  should not be over-interpreted.
+- Pooled leave-one-site-out AUC is not 0.5 for a model with no site information.
+  When a site is held out, an intercept-only model predicts the prevalence of the
+  other sites, so the pooled predictions are partly anti-correlated with presence
+  and the null's pooled AUC is below 0.5. Compare models with log loss, and read
+  AUC against the null model's value rather than against 0.5.
+- `best_design` has complete separation: no presences occur in some rare levels
+  of channel geomorphic unit (for example backwater) or at some numbers of
+  divers (for example four). Its coefficients and its R2 are unstable
+  (standard errors in the hundreds), so do not interpret them. The AICc of that
+  model should be read cautiously. Collapsing rare levels or treating divers as
+  numeric would fix this in the hypothesis Rmd.
+- Redd count is a site-level constant; in a model with a site random effect its
+  effect is only weakly identified.
+- Site, month and survey are not the only dependence in the data: units within
+  a survey are also correlated. The hypothesis Rmd has a survey-level random
+  intercept check; the mixed models here follow the HA cover Rmd (site and month).
+
+## Session info
+
+```{r session-info}
+sessionInfo()
+```

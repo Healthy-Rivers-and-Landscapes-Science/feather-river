@@ -1,0 +1,660 @@
+---
+title: "Feather River - Mini Snorkel Hypothesis-Testing Models of Fish Occurrence"
+author: "Maddee Wiggins (FlowWest)"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    code_folding: hide
+params:
+  species_pattern: "chinook"   # regex matched against `species` ("steelhead" matches wild + clipped)
+  percent_threshold: 20        # combined HA cover (%) at or above which cover = 1
+  cover_method: "sum"          # how HA categories combine: "sum" or "max" (see ha_cover.R)
+  redd_max_dist_m: 50          # max distance (m) from a redd to a mini snorkel transect
+  use_redd: TRUE               # redd hypotheses only make sense for Chinook (redd data are Chinook)
+  include_optional: FALSE      # TRUE adds pairwise combinations and survey-level flow
+  cv_models: TRUE              # leave-one-site-out cross-validation (a few seconds)
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(glmmTMB)
+library(pROC)
+library(sf)
+library(here)
+
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+theme_set(theme_minimal(base_size = 13))
+options(scipen = 999)
+
+set.seed(1)
+```
+
+**DRAFT.** This document restructures the Chinook/steelhead mixed-model analysis
+([feather_river_cover_analysis_salmon.Rmd](feather_river_cover_analysis_salmon.Rmd))
+into a set of pre-specified competing models. 
+
+## Objective
+
+Test which of several hypotheses about habitat best explains fish presence/absence
+in the Feather River mini snorkel data (2001-2002), using AICc to compare a fixed set of
+models rather than selecting terms stepwise.
+
+## Approach
+
+- **Response:** presence/absence of the target species in a microhabitat unit
+  (one row per `micro_hab_data_tbl_id`). Units where only other species were
+  seen are absences of the target species.
+- **Predictors:** only variables recorded for every unit, so absences are kept.
+  Fish-only variables (`fl_mm`, `dist_to_bottom`, `focal_velocity`) are excluded.
+- **Cover:** a single 0/1 variable. Percent cover from the Habitat Accounting
+  (HA) cover categories is combined, and a unit has cover if the combined
+  percent is at least the threshold (20%). The classification is a standalone
+  function, [ha_cover.R](ha_cover.R), so the categories, columns, threshold and
+  combination rule can be changed without editing this document.
+- **Models:** binomial GLMs fit on identical rows. Models 1-7 are the habitat
+  hypotheses. Models 8-10 add redd count, season (month) or sampling design to
+  the best of models 1-7.
+- **Evaluation:** AICc, delta AICc and Akaike weights; odds ratios for the best
+  model; leave-one-site-out cross-validated AUC.
+- **Robustness:** the whole set is refit with a survey-event random intercept
+  because about 36 units are sampled per survey.
+
+Species: `r params$species_pattern`. Cover threshold: `r params$percent_threshold`%
+(categories combined by `r params$cover_method`).
+
+## Data
+
+Mini snorkel data are read from local copies of
+[edi.1705.2](https://portal.edirepository.org/nis/mapbrowse?packageid=edi.1705.2)
+in `mini-snorkel-analysis/data-raw`. Redd data are read from `edi-redd/data`
+(the EDI package for the redd data, edi.1802.2, was not publicly readable when
+this draft was written).
+
+```{r read-data}
+fish_raw <- read_csv(here("mini-snorkel-analysis", "data-raw", "microhabitat_observations.csv"),
+                     show_col_types = FALSE)
+locations_raw <- read_csv(here("mini-snorkel-analysis", "data-raw", "survey_locations.csv"),
+                          show_col_types = FALSE)
+redd_raw <- read_csv(here("edi-redd", "data", "redd_observations.csv"), show_col_types = FALSE)
+```
+
+### Survey attributes
+
+`survey_locations.csv` has more than one row for some surveys
+(`location_table_id`), which differ only in their coordinates. Joining it
+directly to the fish data would duplicate every unit at those surveys, so survey
+attributes are collapsed to one row per survey. The coordinate variants are kept
+in `locations_raw` for matching redds to transects.
+
+```{r survey-attrs}
+survey_attrs <- locations_raw |>
+  select(-latitude, -longitude, -coordinate_method) |>
+  distinct()
+
+stopifnot(!anyDuplicated(survey_attrs$location_table_id))
+
+tibble(location_rows = nrow(locations_raw), surveys = nrow(survey_attrs)) |>
+  knitr::kable(caption = "Rows in survey_locations.csv vs. surveys")
+```
+
+### Collapse to one row per microhabitat unit
+
+Fish-level rows are summed to the unit. Counts of other species do not make a
+unit a presence for the target species.
+
+```{r unit-level}
+unit_vars <- c("location_table_id", "date", "transect_code", "depth", "velocity",
+               "surface_turbidity", "channel_geomorphic_unit",
+               "percent_small_woody_cover_inchannel", "percent_large_woody_cover_inchannel",
+               "percent_submerged_aquatic_veg_inchannel", "percent_undercut_bank",
+               "percent_cover_half_meter_overhead", "percent_cover_more_than_half_meter_overhead",
+               "percent_boulder_substrate", "percent_cobble_substrate")
+
+# Check that unit-level covariates really are constant within a unit
+unit_consistency <- fish_raw |>
+  group_by(micro_hab_data_tbl_id) |>
+  summarise(across(all_of(unit_vars), n_distinct), .groups = "drop") |>
+  summarise(across(all_of(unit_vars), ~ sum(.x > 1)))
+stopifnot(all(unit_consistency == 0))
+
+units <- fish_raw |>
+  group_by(micro_hab_data_tbl_id) |>
+  summarise(
+    target_count = sum(count[str_detect(species, params$species_pattern) & !is.na(species)],
+                       na.rm = TRUE),
+    across(all_of(unit_vars), first),
+    .groups = "drop"
+  ) |>
+  mutate(presence = as.integer(target_count > 0)) |>
+  left_join(survey_attrs, by = c("location_table_id", "date"))
+
+stopifnot(nrow(units) == n_distinct(fish_raw$micro_hab_data_tbl_id))
+
+units |>
+  summarise(units = n(), presences = sum(presence), absences = sum(presence == 0),
+            prevalence = round(mean(presence), 3)) |>
+  knitr::kable(caption = "Units and presences of the target species")
+```
+
+### Factor coding
+
+```{r coding}
+units <- units |>
+  mutate(
+    month = factor(month(date)),
+    channel_location = factor(channel_location),
+    channel_geomorphic_unit = factor(channel_geomorphic_unit),
+    location = factor(location),
+    location_table_id = factor(location_table_id)
+  )
+```
+
+### Cover: one variable from the HA categories
+
+The Habitat Accounting protocol treats cover as a qualifying criterion for
+rearing habitat: if at least 20% of the area includes cover features (habitat
+suitability index of at least 0.5), the area counts as rearing habitat
+(Appendix F, section 2.1.3.5). The 20% applies to cover features **together**,
+not to each type separately. This replaces the earlier approach of five separate
+0/1 variables, so the cover hypothesis is a single term and models read as
+`cover + depth + velocity + other`.
+
+`classify_ha_cover()` in [ha_cover.R](ha_cover.R) does this:
+
+1. For each HA category, add the percent from its data column(s), capped at 100.
+2. Combine the categories (`"sum"` by default, or `"max"`).
+3. `cover = 1` if the combined percent is at least the threshold, otherwise 0.
+   The continuous combined percent is kept as `cover_pct`.
+
+The mapping from HA categories to mini snorkel columns is `ha_cover_map`:
+
+```{r cover-map}
+source(here("mini-snorkel-analysis", "analysis", "ha_cover.R"))
+
+ha_cover_map |>
+  group_by(ha_category) |>
+  summarise(columns = paste(column, collapse = " + ")) |>
+  knitr::kable(caption = "HA cover categories and the mini snorkel columns used (edit ha_cover_map in ha_cover.R)")
+```
+
+The categories are those the State Water Board lists for Table 28 of the
+protocol (woody debris, boulder, grass/herbaceous, willow and other riparian
+vegetation, undercut bank, aquatic vegetation, overhanging vegetation, root
+wad/logjam/large wood). Grass/herbaceous and willow/riparian vegetation have no
+matching column in the mini snorkel data. Boulder and cobble are recorded as
+substrate in the survey but are counted as cover here (the VA accounting
+documents include cobble as cover; the State Water Board's summary of Table 28
+does not, so cobble is a choice to confirm). Undercut bank in HA must be at
+least 0.5 ft, which the survey did not record.
+
+```{r cover-classify}
+# Edit to change which HA categories count as cover, e.g.
+# cover_use <- setdiff(unique(ha_cover_map$ha_category), "boulder")
+cover_use <- unique(ha_cover_map$ha_category)
+
+units <- classify_ha_cover(units,
+                           threshold = params$percent_threshold,
+                           use = cover_use,
+                           method = params$cover_method,
+                           keep_categories = TRUE)
+
+cover_cols <- ha_cover_map$column[ha_cover_map$ha_category %in% cover_use]
+```
+
+```{r cover-diagnostics, fig.height = 4, fig.width = 8}
+tibble(
+  n_units = nrow(units),
+  with_cover = sum(units$cover, na.rm = TRUE),
+  pct_with_cover = round(100 * mean(units$cover, na.rm = TRUE), 1),
+  missing_cover = sum(is.na(units$cover))
+) |>
+  knitr::kable(caption = "Units classified as having cover")
+
+units |>
+  filter(!is.na(cover)) |>
+  group_by(presence = ifelse(presence == 1, "target species present", "absent")) |>
+  summarise(units = n(), pct_with_cover = round(100 * mean(cover), 1)) |>
+  knitr::kable(caption = "Share of units with cover, by fish presence (raw, no model)")
+
+units |>
+  select(starts_with("ha_") & ends_with("_pct")) |>
+  pivot_longer(everything(), names_to = "ha_category", values_to = "pct") |>
+  group_by(ha_category) |>
+  summarise(pct_units_nonzero = round(100 * mean(pct > 0, na.rm = TRUE), 1),
+            mean_pct_when_present = round(mean(pct[pct > 0], na.rm = TRUE), 1)) |>
+  knitr::kable(caption = "How often each HA category is recorded, and its mean percent when recorded")
+
+units |>
+  filter(!is.na(cover_pct)) |>
+  ggplot(aes(cover_pct)) +
+  geom_histogram(binwidth = 5, boundary = 0) +
+  geom_vline(xintercept = params$percent_threshold, linetype = 2, color = "red") +
+  labs(x = "Combined HA cover (%)", y = "Units",
+       title = "Combined cover per unit (dashed = threshold)")
+```
+
+### Predictor standardization
+
+Continuous predictors are standardized (`_z`, per 1 SD) in the model data so
+odds ratios are comparable.
+
+### Redd count
+
+Redds are matched to the nearest mini snorkel transect point within
+`r params$redd_max_dist_m` m and summed by transect location. Redd data are
+2014-2023 and the snorkel data are 2001-2002, so redd count is a site-level
+index of spawning use, not a year-matched value. It is constant within a site.
+
+```{r redd}
+site_pts <- locations_raw |>
+  filter(!is.na(latitude), !is.na(longitude)) |>
+  distinct(location, latitude, longitude) |>
+  st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |>
+  st_transform(26910)
+
+redd_pts <- redd_raw |>
+  filter(number_redds > 0, !is.na(longitude), !is.na(latitude)) |>
+  st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |>
+  st_transform(26910)
+
+nearest <- st_nearest_feature(redd_pts, site_pts)
+
+redd_by_site <- redd_pts |>
+  st_drop_geometry() |>
+  mutate(site = site_pts$location[nearest],
+         dist_m = as.numeric(st_distance(redd_pts, site_pts[nearest, ], by_element = TRUE))) |>
+  filter(dist_m <= params$redd_max_dist_m) |>
+  group_by(location = site) |>
+  summarise(redd_total = sum(number_redds), .groups = "drop")
+
+units <- units |>
+  left_join(redd_by_site, by = "location") |>
+  mutate(redd_total = replace_na(redd_total, 0))
+
+tibble(
+  redds_total = sum(redd_pts$number_redds),
+  redds_matched = sum(redd_by_site$redd_total),
+  sites_with_redds = nrow(redd_by_site),
+  sites_total = n_distinct(units$location)
+) |>
+  knitr::kable(caption = "Redds matched to mini snorkel transect locations")
+```
+
+### Model data
+
+Complete cases are taken **once**, on the union of variables used by any model,
+so every model is fit to the same rows. The table shows what is lost.
+
+```{r model-data}
+needed <- c("presence", "location", "location_table_id", "channel_location",
+            "channel_geomorphic_unit", "number_of_divers", "month",
+            "depth", "velocity", "surface_turbidity", "cover", "cover_pct",
+            cover_cols,   # raw percent columns, kept for the cover sensitivity checks
+            if (params$use_redd) "redd_total",
+            if (params$include_optional) "flow")
+
+missing_summary <- units |>
+  select(all_of(needed)) |>
+  summarise(across(everything(), ~ sum(is.na(.x)))) |>
+  pivot_longer(everything(), names_to = "variable", values_to = "n_missing") |>
+  filter(n_missing > 0)
+
+if (nrow(missing_summary) > 0) {
+  knitr::kable(missing_summary, caption = "Units with missing values by variable")
+}
+
+zscore <- function(x) as.numeric(scale(x))
+
+model_data <- units |>
+  select(all_of(needed)) |>
+  drop_na() |>
+  droplevels() |>
+  mutate(cover_pct_z = zscore(cover_pct),
+         depth_z = zscore(depth),
+         velocity_z = zscore(velocity),
+         surface_turbidity_z = zscore(surface_turbidity),
+         redd_z = if (params$use_redd) zscore(redd_total) else NA_real_,
+         flow_z = if (params$include_optional) zscore(flow) else NA_real_,
+         number_of_divers = factor(number_of_divers))
+
+tibble(step = c("Units", "Complete cases on all model variables"),
+       n = c(nrow(units), nrow(model_data)),
+       presences = c(sum(units$presence), sum(model_data$presence)),
+       absences = c(sum(units$presence == 0), sum(model_data$presence == 0))) |>
+  knitr::kable(caption = "Rows retained for modeling")
+```
+
+## Candidate models
+
+```{r specs}
+cover_rhs <- "cover"          # combined HA cover, 0/1
+cover_rhs_pct <- "cover_pct_z"  # combined HA cover, continuous (sensitivity)
+
+add_term <- function(rhs, x) if (rhs == "1") x else paste(rhs, "+", x)
+
+stage1_specs <- function(cover_rhs) {
+  specs <- tribble(
+    ~model,       ~rhs,                                                      ~hypothesis,
+    "null",       "1",                                                       "Habitat variables add nothing",
+    "cover",      cover_rhs,                                                 "Cover explains occurrence",
+    "cover_turb", paste(cover_rhs, "+ surface_turbidity_z"),                 "Cover plus surface turbidity",
+    "depth",      "depth_z",                                                 "Depth explains occurrence",
+    "flow",       "velocity_z",                                              "Flow (velocity) explains occurrence",
+    "dcv",        paste("depth_z + velocity_z +", cover_rhs),                "Depth, cover and velocity combine",
+    "dcv_turb",   paste("depth_z + velocity_z +", cover_rhs, "+ surface_turbidity_z"),
+                                                                             "Depth, cover, velocity and turbidity combine"
+  )
+  if (params$include_optional) {
+    specs <- bind_rows(
+      specs,
+      tribble(
+        ~model,        ~rhs,                                         ~hypothesis,
+        "depth_cover", paste("depth_z +", cover_rhs),                "Depth and cover",
+        "depth_vel",   "depth_z + velocity_z",                       "Depth and velocity",
+        "cover_vel",   paste("velocity_z +", cover_rhs),             "Cover and velocity",
+        "flow_survey", "flow_z",                                     "Survey-level flow explains occurrence"
+      )
+    )
+  }
+  specs
+}
+
+design_rhs <- "channel_location + channel_geomorphic_unit + number_of_divers"
+
+specs_main <- stage1_specs(cover_rhs)
+
+specs_main |>
+  mutate(rhs = str_wrap(rhs, 70)) |>
+  knitr::kable(caption = "Stage 1: habitat hypotheses (fit first)")
+```
+
+Stage 2 adds one group of terms to whichever stage 1 model has the lowest
+AICc:
+
+| Model | Added to the best stage 1 model |
+|---|---|
+| `best_redd` | redd count (`redd_z`), Chinook only |
+| `best_season` | month |
+| `best_design` | `r design_rhs` |
+
+## Fitting and comparison
+
+```{r helpers}
+aicc_table <- function(models) {
+  tibble(
+    model = names(models),
+    k = map_int(models, ~ as.integer(attr(logLik(.x), "df"))),
+    n = map_int(models, nobs),
+    logLik = map_dbl(models, ~ as.numeric(logLik(.x)))
+  ) |>
+    mutate(AICc = -2 * logLik + 2 * k + 2 * k * (k + 1) / (n - k - 1),
+           delta_AICc = AICc - min(AICc),
+           weight = exp(-delta_AICc / 2) / sum(exp(-delta_AICc / 2))) |>
+    arrange(AICc)
+}
+
+fit_set <- function(data, specs, random = NULL) {
+  fit <- function(rhs) {
+    f <- as.formula(paste("presence ~", rhs, if (!is.null(random)) paste("+", random)))
+    if (is.null(random)) glm(f, data = data, family = binomial)
+    else glmmTMB(f, data = data, family = binomial)
+  }
+  stage1 <- set_names(map(specs$rhs, fit), specs$model)
+  stage1_tab <- aicc_table(stage1)
+  best <- stage1_tab$model[1]
+  best_rhs <- specs$rhs[specs$model == best]
+
+  stage2_rhs <- c(
+    best_redd = if (params$use_redd) add_term(best_rhs, "redd_z"),
+    best_season = add_term(best_rhs, "month"),
+    best_design = add_term(best_rhs, design_rhs)
+  )
+  stage2 <- map(stage2_rhs, fit)
+
+  all_models <- c(stage1, stage2)
+  list(models = all_models,
+       stage1_best = best,
+       rhs = c(set_names(specs$rhs, specs$model), stage2_rhs),
+       table = aicc_table(all_models) |> mutate(stage = ifelse(model %in% names(stage1), 1, 2)))
+}
+```
+
+```{r fit-main}
+main <- fit_set(model_data, specs_main)
+
+main$table |>
+  mutate(across(c(logLik, AICc, delta_AICc), ~ round(.x, 1)), weight = round(weight, 3)) |>
+  knitr::kable(caption = paste0("Model ranking by AICc (best stage 1 model: ", main$stage1_best, ")"))
+```
+
+```{r aicc-plot, fig.height = 5, fig.width = 8}
+main$table |>
+  mutate(model = fct_reorder(model, -delta_AICc)) |>
+  ggplot(aes(delta_AICc, model, fill = factor(stage))) +
+  geom_col() +
+  geom_vline(xintercept = 2, linetype = 2, color = "grey40") +
+  scale_fill_manual(values = c("1" = "#0072B2", "2" = "#E69F00"),
+                    labels = c("1" = "Stage 1: habitat", "2" = "Stage 2: best + X"),
+                    name = NULL) +
+  labs(x = "Delta AICc (dashed line = 2)", y = NULL,
+       title = "Hypothesis support (smaller delta AICc = better supported)")
+```
+
+Models within about 2 delta AICc of the top model are treated as similarly
+supported. The null model appears in the table so it is clear whether any
+habitat hypothesis beats intercept-only.
+
+With `r sum(model_data$presence)` presences, the largest model fit
+(`r main$table$k[which.max(main$table$k)]` parameters) has roughly
+`r round(sum(model_data$presence) / max(main$table$k), 1)` events per parameter;
+the usual guideline is at least 10.
+
+## Best model
+
+```{r best-effects, fig.height = 5, fig.width = 8}
+best_name <- main$table$model[1]
+best_model <- main$models[[best_name]]
+
+effects_df <- broom::tidy(best_model, conf.int = TRUE, exponentiate = TRUE) |>
+  filter(term != "(Intercept)")
+
+effects_df |>
+  mutate(term = fct_reorder(term, estimate)) |>
+  ggplot(aes(estimate, term)) +
+  geom_vline(xintercept = 1, linetype = 2, color = "grey50") +
+  geom_point(size = 2.5) +
+  geom_errorbarh(aes(xmin = conf.low, xmax = conf.high), height = 0.2) +
+  scale_x_log10() +
+  labs(x = "Odds ratio (log scale; continuous predictors per 1 SD)", y = NULL,
+       title = paste("Effects in the top-ranked model:", best_name))
+```
+
+## Predictive performance
+
+AUC is computed with **leave-one-site-out** cross-validation: each site's units
+are predicted by a model fit to all the other sites. This replaces in-sample
+AUC, which rewards model size and site-specific intercepts. Log loss is the mean
+negative log-likelihood of held-out units (lower is better).
+
+```{r cv}
+cv_site <- function(rhs, data, group = "location") {
+  f <- as.formula(paste("presence ~", rhs))
+  pred <- rep(NA_real_, nrow(data))
+  for (g in unique(data[[group]])) {
+    test <- data[[group]] == g
+    p <- tryCatch({
+      m <- suppressWarnings(glm(f, data = data[!test, ], family = binomial))
+      as.numeric(predict(m, newdata = data[test, ], type = "response"))
+    }, error = function(e) rep(NA_real_, sum(test)))
+    pred[test] <- p
+  }
+  ok <- !is.na(pred)
+  eps <- 1e-6
+  p_clip <- pmin(pmax(pred[ok], eps), 1 - eps)
+  tibble(
+    n_scored = sum(ok),
+    auc_cv = as.numeric(pROC::auc(pROC::roc(data$presence[ok], pred[ok], levels = c(0, 1), direction = "<", quiet = TRUE))),
+    log_loss = -mean(data$presence[ok] * log(p_clip) + (1 - data$presence[ok]) * log(1 - p_clip))
+  )
+}
+
+if (params$cv_models) {
+  cv_results <- imap_dfr(main$rhs, ~ cv_site(.x, model_data) |> mutate(model = .y)) |>
+    left_join(main$table |> select(model, AICc, delta_AICc), by = "model") |>
+    arrange(AICc) |>
+    mutate(across(c(auc_cv, log_loss, AICc, delta_AICc), ~ round(.x, 3)))
+
+  knitr::kable(cv_results, caption = "Leave-one-site-out cross-validation, ordered by AICc")
+}
+```
+
+Read the cross-validated AUC against the null model's value, not against 0.5.
+When a site is held out, an intercept-only model predicts the prevalence of the
+other sites, so its pooled predictions are partly anti-correlated with presence
+and its pooled AUC falls below 0.5. Log loss does not have this problem and is
+the better column for comparing models.
+
+### Confusion matrix of the top model
+
+Presences are rare, so the threshold is set to the observed prevalence rather
+than 0.5.
+
+```{r confusion}
+best_pred <- predict(best_model, type = "response")
+thr <- mean(model_data$presence)
+conf <- table(Predicted = as.integer(best_pred > thr), Observed = model_data$presence)
+conf
+
+tibble(threshold = round(thr, 3),
+       sensitivity = round(conf["1", "1"] / sum(conf[, "1"]), 3),
+       specificity = round(conf["0", "0"] / sum(conf[, "0"]), 3)) |>
+  knitr::kable(caption = "In-sample classification at the prevalence threshold")
+```
+
+## Robustness checks
+
+### Survey-event random intercept
+
+About 36 units are sampled per survey (`location_table_id`) and are not
+independent. The whole set is refit with `(1 | location_table_id)` in every
+model, including the null. If the ranking is similar, conclusions do not depend
+on ignoring the clustering.
+
+```{r robust-re}
+robust_re <- fit_set(model_data, specs_main, random = "(1 | location_table_id)")
+
+robust_re$table |>
+  select(model, stage, k, AICc, delta_AICc, weight) |>
+  mutate(across(c(AICc, delta_AICc), ~ round(.x, 1)), weight = round(weight, 3)) |>
+  knitr::kable(caption = paste0("Ranking with a survey-event random intercept (best stage 1 model: ",
+                                robust_re$stage1_best, ")"))
+```
+
+```{r rank-compare}
+left_join(
+  main$table |> transmute(model, rank_glm = row_number()),
+  robust_re$table |> transmute(model, rank_re = row_number()),
+  by = "model"
+) |>
+  arrange(rank_glm) |>
+  knitr::kable(caption = "Model rank without and with the survey-event random intercept")
+```
+
+### Cover definition
+
+The 20% threshold, the "sum" rule and the choice of categories are all
+assumptions. Two checks follow. They are for judging how much the conclusions
+depend on those choices, **not** for choosing the best-fitting definition:
+picking the cover definition by AICc would add another selection step.
+
+**Threshold, combination rule and categories.** The same rows are refit with
+`classify_ha_cover()` under different settings. "sum" adds the categories (no
+overlap assumed); "max" uses the largest single category (full overlap
+assumed). The true value lies between them. "no_boulder" and "no_cobble" drop
+those categories, which the earlier analysis treated as substrate rather than
+cover.
+
+```{r cover-grid}
+cover_grid <- expand_grid(threshold = c(10, 20, 30),
+                          method = c("sum", "max"),
+                          categories = c("all", "no_boulder", "no_cobble", "no_boulder_cobble")) |>
+  mutate(use = map(categories, ~ switch(.x,
+                                         all = cover_use,
+                                         no_boulder = setdiff(cover_use, "boulder"),
+                                         no_cobble = setdiff(cover_use, "cobble"),
+                                         no_boulder_cobble = setdiff(cover_use, c("boulder", "cobble"))))) |>
+  distinct(threshold, method, use, .keep_all = TRUE)
+
+cover_sens <- pmap_dfr(cover_grid, function(threshold, method, categories, use) {
+  d <- classify_ha_cover(model_data, threshold = threshold, use = use, method = method)
+  m <- list(
+    null = glm(presence ~ 1, data = d, family = binomial),
+    cover = glm(presence ~ cover, data = d, family = binomial),
+    dcv = glm(presence ~ cover + depth_z + velocity_z, data = d, family = binomial)
+  )
+  tab <- aicc_table(m)
+  tibble(threshold, method, categories,
+         pct_units_with_cover = round(100 * mean(d$cover), 1),
+         cover_odds_ratio = round(exp(coef(m$cover)[["cover"]]), 2),
+         dAICc_cover_vs_null = round(tab$AICc[tab$model == "null"] - tab$AICc[tab$model == "cover"], 1),
+         AICc_dcv = tab$AICc[tab$model == "dcv"])
+}) |>
+  mutate(AICc_dcv = round(AICc_dcv - min(AICc_dcv), 1)) |>
+  rename(dAICc_dcv_vs_best_def = AICc_dcv)
+
+knitr::kable(cover_sens,
+             caption = "Cover definition sensitivity (dAICc_cover_vs_null > 0 means the cover-only model beats the null; dAICc_dcv_vs_best_def is relative to the best row of this table)")
+```
+
+**Continuous cover.** The combined percent is used as a continuous predictor
+(`cover_pct_z`) in place of the 0/1 variable:
+
+```{r robust-cont}
+specs_cont <- stage1_specs(cover_rhs_pct)
+sens_cont <- fit_set(model_data, specs_cont)
+
+sens_cont$table |>
+  select(model, stage, k, AICc, delta_AICc, weight) |>
+  mutate(across(c(AICc, delta_AICc), ~ round(.x, 1)), weight = round(weight, 3)) |>
+  knitr::kable(caption = paste0("Ranking with continuous cover percentages (best stage 1 model: ",
+                                sens_cont$stage1_best, ")"))
+```
+
+## Caveats
+
+- Redd count is a site-level constant from different years than the snorkel
+  surveys, so `best_redd` cannot be separated from site differences.
+- Survey-level flow (optional) is tied to channel and month and may act as a
+  proxy for sampling design or season.
+- Choosing the best of stage 1 and then adding terms is a selection step.
+  Check whether stage 1 has near-ties before interpreting stage 2.
+- Complete cases are taken on the union of variables so AICc is valid; models
+  with fewer variables therefore lose units with missing velocity.
+- HA applies the 20% criterion to the share of an area (that already meets
+  depth and velocity criteria) covered by cover features, with an optional
+  3-foot buffer around features. Here the share is the combined percent
+  recorded for a microhabitat unit, and no buffer is applied.
+- Percent cover in the data is recorded in separate in-channel and overhead
+  layers that can overlap in space. "sum" can overstate combined cover and
+  "max" can understate it; the cover definition checks show how much this
+  matters.
+- Two HA cover categories (grass/herbaceous, willow and other riparian
+  vegetation) are not measured, and the 0.5 ft minimum for undercut banks is
+  not recorded. Overhanging vegetation is the closest proxy for riparian
+  cover.
+- The HA categories come from the State Water Board's summary of Table 28 of
+  the Habitat Accounting Protocols. The table itself was not available when
+  this was written; check `ha_cover_map` against the final protocol.
+- Surface turbidity is zero for most units and may be driven by a few survey
+  days.
+- Presence/absence in a snorkel unit reflects detection as well as habitat use.
+  Visibility (turbidity) and number of divers may affect detection.
+
+## Session info
+
+```{r session}
+sessionInfo()
+```
