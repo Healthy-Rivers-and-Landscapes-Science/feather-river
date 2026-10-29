@@ -549,7 +549,7 @@ river_mile_manual_crosswalk <- tibble::tribble(
   "Hour Backwater",                                     "Hour",    NA_character_,
   "1/4 Mile Upstream of Big Hole Island",               "Vance",    NA_character_,
   "Below Junkyard Riffle",                              "Junkyard",    NA_character_,
-  "Below Long Glide",                                   NA_character_,    NA_character_,# TODO
+  "Below Long Glide",                                   "Long Glide",    NA_character_,
   "Below Upper Herringer",                              'Herringer',    NA_character_,
   "Herringer Side Channel",                             'Herringer',    NA_character_,
   "Below Herringer Riffle",                             'Herringer',    NA_character_,
@@ -569,9 +569,9 @@ river_mile_manual_crosswalk <- tibble::tribble(
   "Downstream Bum Beach",                               'Shanghai',    NA_character_,# based off of proximity to rm 25
   "Above G95 SC - RR",                                  'G95',    NA_character_,
   "d/s end of big hole islands",                        'Vance',    NA_character_,
-  "bend backwater (562)",                               NA_character_,    NA_character_,# TODO
+  "bend backwater (562)",                               'Honcut Creek',    NA_character_,
   "GOOSE Riffle",                                       'Goose Riffle',    NA_character_,
-  "Unit 26A",                                           NA_character_,    NA_character_,# TODO
+  "Unit 26A",                                           'Eye Riffle',    NA_character_,# TODO
   "Vance Avenue",                                       'Vance',    NA_character_,
   "Vance East Main RL",                                 'Vance',    NA_character_,
   "Upper Heringer",                                     'Herringer',    NA_character_,
@@ -596,7 +596,9 @@ river_mile_manual_crosswalk <- tibble::tribble(
 river_mile_unresolved <- river_mile_unresolved |>
   select(-river_mile_site, -river_mile, -river_mile_site_id, -match_method) |>
   left_join(river_mile_manual_crosswalk, by = "location") |>
-  left_join(river_miles |> select(site_name, river_mile), by = c("river_mile_site" = "site_name")) |>
+  left_join(river_miles |>
+              add_row('site_id' = NA, 'site_name' = "Long Glide", 'river_mile' = 45) |> # This is based off of email from Kassie Henley on Oct 29, 2026
+              select(site_name, river_mile), by = c("river_mile_site" = "site_name")) |>
   left_join(river_miles |> select(river_mile_site = site_name, river_mile_site_id = site_id), by = "river_mile_site") |>
   mutate(match_method = if_else(is.na(river_mile_site), "unresolved_not_in_subsite_table", "manual_crosswalk")) |>
   select(location, n_rows, sources, river_mile_site, river_mile, river_mile_site_id, match_method)

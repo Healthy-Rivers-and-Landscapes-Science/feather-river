@@ -1,2 +1,41 @@
 name	name_type	name_resolved	authority_system	authority_id
-
+chinook salmon	common	Oncorhynchus tshawytscha	ITIS	161980
+o. mykiss	common	Oncorhynchus mykiss	ITIS	161989
+speckled dace	common	Rhinichthys osculus	ITIS	163387
+sacramento pikeminnow	common	Ptychocheilus grandis	ITIS	163524
+tule perch	common	Hysterocarpus traskii	ITIS	553322
+sacramento sucker	common	Catostomus occidentalis		
+hardhead	common	Mylopharodon conocephalus		
+wakasagi	common	Hypomesus nipponensis		
+western mosquitofish	common	Gambusia affinis		
+prickly sculpin	common	Cottus asper		
+riffle sculpin	common	Cottus gulosus		
+bluegill	common	Lepomis macrochirus		
+redear sunfish	common	Lepomis microlophus		
+green sunfish	common	Lepomis cyanellus		
+pumpkinseed	common	Lepomis gibbosus		
+golden shiner	common	Notemigonus crysoleucas		
+inland silverside	common	Menidia beryllina		
+small mouth bass	common	Micropterus dolomieu		
+large mouth bass	common	Micropterus salmoides		
+spotted bass	common	Micropterus punctulatus		
+white crappie	common	Pomoxis annularis		
+hitch	common	Lavinia exilicauda		
+california roach	common	Lavinia symmetricus		
+sacramento splittail	common	Pogonichthys macrolepidotus		
+threadfin shad	common	Dorosoma petenense		
+american shad	common	Alosa sapidissima		
+common carp	common	Cyprinus carpio		
+fathead minnow	common	Pimephales promelas		
+red shiner	common	Cyprinella lutrensis		
+white catfish	common	Ameiurus catus		
+pacific lamprey	common	Entosphenus tridentatus		
+pink salmon	common	Oncorhynchus gorbuscha		
+unidentified juvenile bass (micropterus sp.)	common	Micropterus		
+unidentified ictalurid (catfish or bullhead)	common	Ictaluridae		
+unidentified juvenile lamprey	common	Petromyzontidae		
+unidentified juvenile minnow	common	Cyprinidae		
+unidentified juvenile sculpin	common	Cottidae		
+unidentified juvenile non-micropterus sunfish	common	Centrarchidae		
+unidentified sunfish	common	Centrarchidae		
+unidentified salmonid	common	Salmonidae		

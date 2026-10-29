@@ -162,7 +162,7 @@ Auditorium Riffle,51,1997-2001,Auditorium Riffle,66.5,1000,exact_river_miles_sit
 Hour side channel Backwater,50,"2008-2014, 2015-2025",Hour,56,17000,exact_subsite_table
 Island Upstream Yuba City Launch,50,2015-2025,Yuba City,28,34000,exact_subsite_table
 Below Junkyard Riffle,50,1997-2001,Junkyard,48.5,25000,manual_crosswalk
-Below Long Glide,50,1997-2001,NA,NA,NA,unresolved_not_in_subsite_table
+Below Long Glide,50,1997-2001,Long Glide,45,NA,manual_crosswalk
 Below Upper Herringer,50,1997-2001,Herringer,45,27000,manual_crosswalk
 Boyds Pump-  1 mile Downstream RR,44,2015-2025,Boyds,22,36000,exact_subsite_table
 Palm Ave. Ramp RR,43,2015-2025,Palm Ave,55.3,18000,exact_subsite_table
@@ -201,9 +201,9 @@ Sean's Beach RR - Upstream,23,2015-2025,Shawn's Beach,37,31000,exact_subsite_tab
 Downstream Bum Beach,23,2015-2025,Shanghai,25,35000,manual_crosswalk
 Above G95 SC - RR,21,2008-2014,G95,57,16000,manual_crosswalk
 d/s end of big hole islands,21,1997-2001,Vance,58,15000,manual_crosswalk
-bend backwater (562),17,1997-2001,NA,NA,NA,unresolved_not_in_subsite_table
+bend backwater (562),17,1997-2001,Honcut Creek,44,28000,manual_crosswalk
 GOOSE Riffle,16,1997-2001,Goose Riffle,54.6,20000,manual_crosswalk
-Unit 26A,16,1997-2001,NA,NA,NA,unresolved_not_in_subsite_table
+Unit 26A,16,1997-2001,Eye Riffle,60.2,12000,manual_crosswalk
 Vance Avenue,16,1997-2001,Vance,58,15000,manual_crosswalk
 Vance East Main RL,16,2008-2014,Vance,58,15000,manual_crosswalk
 Hatchery Fence (Island above Bedrock),14,2015-2025,Hatchery Ditch/Riffle,66.5,1100,exact_subsite_table

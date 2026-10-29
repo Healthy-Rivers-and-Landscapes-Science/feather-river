@@ -1,0 +1,780 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:stmml="http://www.xml-cml.org/schema/stmml-1.2" packageId="edi.000.1" xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0/eml.xsd https://eml.ecoinformatics.org/eml-2.2.0/eml.xsd" system="edi">
+  <access authSystem="https://pasta.edirepository.org/authentication" order="allowFirst" scope="document">
+    <allow>
+      <principal>uid=,o=EDI,dc=edirepository,dc=org</principal>
+      <permission>all</permission>
+    </allow>
+    <allow>
+      <principal>public</principal>
+      <permission>read</permission>
+    </allow>
+  </access>
+  <dataset>
+    <title>Feather River Beach Seine Fish Survey Data, 1997-2025</title>
+    <creator>
+      <individualName>
+        <givenName>Ryon</givenName>
+        <surName>Kurth</surName>
+      </individualName>
+      <organizationName>California Department of Water Resources</organizationName>
+      <electronicMailAddress>Ryon.Kurth@water.ca.gov</electronicMailAddress>
+    </creator>
+    <creator>
+      <individualName>
+        <givenName>Kassie</givenName>
+        <surName>Henley</surName>
+      </individualName>
+      <organizationName>TODO</organizationName>
+      <electronicMailAddress>TODO</electronicMailAddress>
+    </creator>
+    <pubDate>2026-10-29</pubDate>
+    <abstract>
+      <para>This dataset contains fish catch and habitat observations from beach seine surveys of the lower Feather River, California, collected between 1997 and 2025. Surveys were conducted at 42 river-mile sites (225 distinct recorded location names) between river mile 12.5 and 66.5, in both the low flow and high flow channels, to monitor the fish community and the habitat where juvenile fish, particularly juvenile Chinook salmon, were found. [TODO: state who conducted the surveys and the purpose or monitoring program.] Data were compiled from three source periods (1997-2001, 2008-2014 and 2015-2025) and standardized into a single table of 60,699 records from about 2,000 seine samples. Sampling occurred in 1997-2001, 2008-2009, 2013-2014 and 2015-2025; no data are included for 2002-2007 or 2010-2012. Most sampling occurred between January and August. Each record is a fish species (and, from 2008 onward, a count by length) captured in a seine haul, with fork length, life stage, Chinook salmon run and adipose fin clip status where recorded. Each record also carries the sample's water temperature, haul dimensions, depth, substrate, cover, stream feature, gear size and river mile. In total 42 species or taxonomic groups were recorded; Chinook salmon, Sacramento sucker and Sacramento pikeminnow were the most frequently recorded. Observations from 1997-2001 are one row per individual fish, whereas 2008-2025 rows carry a count. Measurement units for haul dimensions and depth differ between source periods and are described in the attribute definitions. These data are published to support the Healthy Rivers and Landscapes Science Program.
+</para>
+    </abstract>
+    <keywordSet>
+      <keyword>Healthy Rivers and Landscapes</keyword>
+      <keyword>Feather River</keyword>
+      <keyword>beach seine</keyword>
+      <keyword>juvenile fish</keyword>
+      <keyword>fish community</keyword>
+      <keyword>Chinook salmon</keyword>
+      <keyword>Oncorhynchus tshawytscha</keyword>
+      <keyword>Oncorhynchus mykiss</keyword>
+      <keyword>fish monitoring</keyword>
+      <keyword>habitat</keyword>
+      <keyword>low flow channel</keyword>
+      <keyword>high flow channel</keyword>
+      <keyword>California</keyword>
+      <keyword>Central Valley</keyword>
+    </keywordSet>
+    <intellectualRights>
+      <para>This information is released under the Creative Commons license - Attribution - CC BY (https://creativecommons.org/licenses/by/4.0/). The consumer of these data ("Data User" herein) is required to cite it appropriately in any publication that results from its use. The Data User should realize that these data may be actively used by others for ongoing research and that coordination may be necessary to prevent duplicate publication. The Data User is urged to contact the authors of these data if any questions about methodology or results occur. Where appropriate, the Data User is encouraged to consider collaboration or co-authorship with the authors. The Data User should realize that misinterpretation of data may occur if used out of context of the original study. While substantial efforts are made to ensure the accuracy of data and associated documentation, complete accuracy of data sets cannot be guaranteed. All data are made available "as is." The Data User should be aware, however, that data are updated periodically and it is the responsibility of the Data User to check for new versions of the data. The data authors and the repository where these data were obtained shall not be liable for damages resulting from any use or misinterpretation of the data. Thank you.
+</para>
+    </intellectualRights>
+    <coverage>
+      <geographicCoverage>
+        <geographicDescription>Lower Feather River, California (river miles 12.5 to 66.5)</geographicDescription>
+        <boundingCoordinates>
+          <westBoundingCoordinate>-121.6481</westBoundingCoordinate>
+          <eastBoundingCoordinate>-121.5497</eastBoundingCoordinate>
+          <northBoundingCoordinate>39.5177</northBoundingCoordinate>
+          <southBoundingCoordinate>38.9329</southBoundingCoordinate>
+        </boundingCoordinates>
+      </geographicCoverage>
+      <temporalCoverage>
+        <rangeOfDates>
+          <beginDate>
+            <calendarDate>1997-01-21</calendarDate>
+          </beginDate>
+          <endDate>
+            <calendarDate>2025-07-18</calendarDate>
+          </endDate>
+        </rangeOfDates>
+      </temporalCoverage>
+    </coverage>
+    <maintenance>
+      <description>annually</description>
+    </maintenance>
+    <contact>
+      <individualName>
+        <givenName>Ryon</givenName>
+        <surName>Kurth</surName>
+      </individualName>
+      <organizationName>California Department of Water Resources</organizationName>
+      <electronicMailAddress>Ryon.Kurth@water.ca.gov</electronicMailAddress>
+    </contact>
+    <methods>
+      <methodStep>
+        <description>
+          <para>
+    Field sampling
+  </para>
+          <para>
+    Beach seine surveys were conducted at permanent and alternate sites
+    along the lower Feather River, California, between river mile 12.5
+    and 66.5. [TODO: describe the sampling design, including how sites
+    were selected, sampling frequency and season, and who conducted the
+    surveys. Link the field sampling protocol or SOP here.]
+  </para>
+          <para>
+    At each sample, the crew recorded the location name, channel type
+    (side channel, main channel or backwater), bank (river right or
+    river left) and position (upstream, downstream or cross-current),
+    the gear used (beach seine with bag, 10, 25, 39, 50 or 100 feet in
+    length), a condition rating, weather, water temperature, flow, and
+    the dimensions of the haul (haul length, haul width and average
+    depth). Habitat in the sampled area was recorded as the stream
+    feature (riffle, run, glide or pool), all substrate types present
+    and all cover types present. Substrate classes were fine (small
+    gravel, 0-50 mm), small (medium gravel, 50-150 mm), medium (large
+    cobble, 150-300 mm), boulder (greater than 300 mm) and pavement
+    (boat ramp). Cover classes included no apparent cover, small
+    instream objects, large instream objects, overhead objects,
+    submerged aquatic vegetation or algae, and undercut bank. Free-text
+    comments were also recorded.
+  </para>
+          <para>
+    Captured fish were identified to species, or to the lowest taxonomic
+    group possible for juveniles that could not be identified, and
+    counted. Fork length was measured in millimeters for fish or length
+    classes. Salmonids were assigned a life stage (yolk-sac fry, fry,
+    parr, silvery parr, between parr and smolt, smolt or adult) and
+    Chinook salmon were assigned a run (fall, spring, late fall, winter
+    or unknown); the field datasheet lists length-at-date criteria for
+    each run. Fish with a clipped adipose fin were recorded. From 2015
+    onward, fish weight was also recorded for some fish.
+  </para>
+          <para>
+    Data sources and compilation
+  </para>
+          <para>
+    Data were compiled from three sources: a spreadsheet of individual
+    fish captured in 1997-2001, a spreadsheet of seine data for
+    2008-2014, and an Access database for 2015-2025. Observations in
+    1997-2001 are one row per individual fish; later periods record a
+    count for each species and length. Data for 2002-2007 and 2010-2012
+    are not included.
+  </para>
+          <para>
+    Data cleaning
+  </para>
+          <para>
+    All cleaning is scripted and is available in the project repository
+    (clean/clean-data.R). The main steps were:
+  </para>
+          <para>
+    Known limitations
+  </para>
+          <para>
+    Units for haul dimensions, depth and distance out differ between the
+    1997-2001 data (apparently feet) and the 2008-2025 data (apparently
+    meters) and have not been harmonized; see the attribute definitions.
+    Sample IDs are not unique across source periods; a sample can be
+    identified by date, location and sample ID together. Haul width is
+    largely missing for 2015-2025, so haul area is not available for
+    most of that period. [TODO: add any other known limitations, such as
+    changes in sampling effort or protocol between periods.]
+  </para>
+        </description>
+      </methodStep>
+    </methods>
+    <dataTable>
+      <entityName>Beach Seine Catch and Habitat Observations</entityName>
+      <entityDescription>Fish catch (species, count, fork length, life stage) and associated sample habitat and water quality measurements for beach seine hauls on the lower Feather River. Each row is one species/length record from a seine haul; sample-level measurements are repeated across rows of the same sample.</entityDescription>
+      <physical>
+        <objectName>all_seine_clean.csv</objectName>
+        <size unit="bytes">13261352</size>
+        <authentication method="MD5">4ee9ceb61ad55630119e6d416d4a2767</authentication>
+        <dataFormat>
+          <textFormat>
+            <numHeaderLines>1</numHeaderLines>
+            <recordDelimiter>\n</recordDelimiter>
+            <attributeOrientation>column</attributeOrientation>
+            <simpleDelimited>
+              <fieldDelimiter>,</fieldDelimiter>
+            </simpleDelimited>
+          </textFormat>
+        </dataFormat>
+      </physical>
+      <attributeList>
+        <attribute>
+          <attributeName>date</attributeName>
+          <attributeDefinition>Date the seine sample was collected.</attributeDefinition>
+          <storageType>date</storageType>
+          <measurementScale>
+            <dateTime>
+              <formatString>YYYY-MM-DD</formatString>
+              <dateTimeDomain/>
+            </dateTime>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not applicable</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>sample_id</attributeName>
+          <attributeDefinition>Identifier of the seine sample (one seine survey at one location on one date). From the source database sample ID for 2008-2025 and the source seine ID for 1997-2001. REVIEW: IDs are not unique across source periods (399 values are reused), so identify a sample by date + location + sample_id.</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Identifier of the seine sample (one seine survey at one location on one date). From the source database sample ID for 2008-2025 and the source seine ID for 1997-2001. REVIEW: IDs are not unique across source periods (399 values are reused), so identify a sample by date + location + sample_id.</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not applicable</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>location</attributeName>
+          <attributeDefinition>Name of the sampling location as recorded in the source data. Raw names are kept (spelling and format vary by source period and include side-channel, bank and upstream/downstream qualifiers); use river_mile to group locations by site.</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Name of the sampling location as recorded in the source data. Raw names are kept (spelling and format vary by source period and include side-channel, bank and upstream/downstream qualifiers); use river_mile to group locations by site.</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not applicable</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>channel</attributeName>
+          <attributeDefinition>Feather River channel the location is in: HFC (High Flow Channel), LFC (Low Flow Channel), or 'HFC DS LYR'. REVIEW: confirm the meaning of 'HFC DS LYR' (likely downstream of the Yuba River confluence). Not recorded for 1997-2014 data or a small number of 2015-2025 records.</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Feather River channel the location is in: HFC (High Flow Channel), LFC (Low Flow Channel), or 'HFC DS LYR'. REVIEW: confirm the meaning of 'HFC DS LYR' (likely downstream of the Yuba River confluence). Not recorded for 1997-2014 data or a small number of 2015-2025 records.</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>gear_type</attributeName>
+          <attributeDefinition>Sampling gear type. All records are beach seine (SEIN); other gear types in the source data (nets, electrofishing) were removed.</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Sampling gear type. All records are beach seine (SEIN); other gear types in the source data (nets, electrofishing) were removed.</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not applicable</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>gear_size</attributeName>
+          <attributeDefinition>Description of the beach seine used, by net length in feet (10, 25, 39, 50 or 100 foot beach seine with bag).</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Description of the beach seine used, by net length in feet (10, 25, 39, 50 or 100 foot beach seine with bag).</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>survey_condition</attributeName>
+          <attributeDefinition>Condition rating recorded by the crew for the survey: good, fair or poor; 'n/p' as entered in the source data. REVIEW: confirm what is being rated and the meaning of 'n/p' (assumed 'not provided').</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Condition rating recorded by the crew for the survey: good, fair or poor; 'n/p' as entered in the source data. REVIEW: confirm what is being rated and the meaning of 'n/p' (assumed 'not provided').</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>water_temp</attributeName>
+          <attributeDefinition>Water temperature at the time of sampling. 1997-2001 values were recorded in degrees Fahrenheit and converted to Celsius (a recorded value of 0 was treated as not recorded); a single entry of 147 for sample 1628 was corrected to 17 per the data owner.</attributeDefinition>
+          <storageType>float</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>celsius</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">6</minimum>
+                  <maximum exclusive="false">26.7</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>secchi</attributeName>
+          <attributeDefinition>Secchi depth, recorded in 1997-2001 data only (source column 'sechi'). REVIEW: about 99% of values are 0, which likely means not recorded, and units are not documented - confirm units or remove this column.</attributeDefinition>
+          <storageType>float</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>meter</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>whole</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">4</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded (all 2008-2025 data)</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>species</attributeName>
+          <attributeDefinition>Common name of the fish species (lower case) as standardized from source codes and spellings. Includes unidentified groups (e.g. unidentified juvenile minnow) and the composite 'sacramento pikeminnow or hardhead'. Chinook salmon and O. mykiss are not split by race or origin here; see run and adipose_clipped. Blank where no fish were caught.</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Common name of the fish species (lower case) as standardized from source codes and spellings. Includes unidentified groups (e.g. unidentified juvenile minnow) and the composite 'sacramento pikeminnow or hardhead'. Chinook salmon and O. mykiss are not split by race or origin here; see run and adipose_clipped. Blank where no fish were caught.</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>No fish caught or species not recorded</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>fork_length</attributeName>
+          <attributeDefinition>Fork length of the fish (1997-2001: individual fish; 2008-2025: length of the fish or length class counted in count), in millimeters. Blank where fish were counted but not measured (a recorded length of 0 was set to missing).</attributeDefinition>
+          <storageType>float</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>millimeter</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>natural</numberType>
+                <bounds>
+                  <minimum exclusive="false">1</minimum>
+                  <maximum exclusive="false">734</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>lifestage</attributeName>
+          <attributeDefinition>Life stage of salmonids recorded by the crew: yolk-sac fry, fry, parr, silvery parr, between parr and smolt, smolt, or adult; 'n/p' as entered in the source data (assumed 'not provided'). Recorded for salmonids only.</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Life stage of salmonids recorded by the crew: yolk-sac fry, fry, parr, silvery parr, between parr and smolt, smolt, or adult; 'n/p' as entered in the source data (assumed 'not provided'). Recorded for salmonids only.</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded or not applicable (non-salmonid)</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>run</attributeName>
+          <attributeDefinition>Chinook salmon run (Fall, Spring, Late Fall, Winter or Unknown), taken from the species entry in the source data. Blank for all non-Chinook records.</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Chinook salmon run (Fall, Spring, Late Fall, Winter or Unknown), taken from the species entry in the source data. Blank for all non-Chinook records.</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not applicable (non-Chinook species)</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>length</attributeName>
+          <attributeDefinition>Length of the seine haul. REVIEW (units differ by source period): 1997-2001 values appear to be in feet (e.g. round values such as 35 and 15 for a 39 ft seine), 2008-2025 values appear to be in meters (e.g. 4.572 = 15 ft). Not yet harmonized in the clean data - confirm with data owner. Source columns: 'length' (1997-2001) and 'bs_start_length' (2008-2025).</attributeDefinition>
+          <storageType>float</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>meter</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0.76219512195122</minimum>
+                  <maximum exclusive="false">332.317073170732</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>width</attributeName>
+          <attributeDefinition>Width of the seine haul at close of the haul. REVIEW (units differ by source period): 1997-2001 values appear to be in feet (e.g. round values such as 35 and 15 for a 39 ft seine), 2008-2025 values appear to be in meters (e.g. 4.572 = 15 ft). Not yet harmonized in the clean data - confirm with data owner. Source column 'bs_close_width' (2008-2025). REVIEW: 2015-2025 values are 0 to 0.6 and about 98% are missing, which does not look like a haul width.</attributeDefinition>
+          <storageType>float</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>meter</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">52</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>distance_out</attributeName>
+          <attributeDefinition>Distance from the bank that the seine was deployed. REVIEW (units differ by source period): 1997-2001 values appear to be in feet (e.g. round values such as 35 and 15 for a 39 ft seine), 2008-2025 values appear to be in meters (e.g. 4.572 = 15 ft). Not yet harmonized in the clean data - confirm with data owner. REVIEW: confirm the exact definition.</attributeDefinition>
+          <storageType>float</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>meter</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">1</minimum>
+                  <maximum exclusive="false">70</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>depth_1</attributeName>
+          <attributeDefinition>Water depth at the haul point farthest from shore ('full distance out'), recorded in 1997-2001 data only. REVIEW: depth units are probably feet for this period - confirm.</attributeDefinition>
+          <storageType>float</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>meter</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">6.8</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded (2008-2025 data)</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>depth_2</attributeName>
+          <attributeDefinition>Water depth at the haul point closest to shore, recorded in 1997-2001 data only. REVIEW: depth units are probably feet for this period - confirm.</attributeDefinition>
+          <storageType>float</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>meter</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">7</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded (2008-2025 data)</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>stream_feature</attributeName>
+          <attributeDefinition>Stream feature (mesohabitat unit) of the sampled area: Riffle, Run, Glide or Pool, or a combination joined with '&amp;' where more than one was recorded.</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Stream feature (mesohabitat unit) of the sampled area: Riffle, Run, Glide or Pool, or a combination joined with '&amp;' where more than one was recorded.</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>sample_area</attributeName>
+          <attributeDefinition>Area of the sampled haul. REVIEW (inconsistent between periods): 1997-2001 values are supplied in the source data and equal haul length x width; 2008-2025 values were calculated as length x width x average depth, which is a volume. Only 43 values exist for 2015-2025 and all are 0 because width is mostly missing. Confirm the definition and units before publishing.</attributeDefinition>
+          <storageType>float</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>squareMeter</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">1196</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>count</attributeName>
+          <attributeDefinition>Number of fish of this species (and length, where measured) in the record. Blank for 1997-2001 data, where each row is one individual fish.</attributeDefinition>
+          <storageType>float</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>number</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>whole</numberType>
+                <bounds>
+                  <minimum exclusive="false">0</minimum>
+                  <maximum exclusive="false">3741</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded (1997-2001 rows are individual fish)</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>depth_avg</attributeName>
+          <attributeDefinition>Average water depth of the haul. REVIEW (units differ by source period): 1997-2001 values appear to be in feet (e.g. round values such as 35 and 15 for a 39 ft seine), 2008-2025 values appear to be in meters (e.g. 4.572 = 15 ft). Not yet harmonized in the clean data - confirm with data owner. Source column 'bs_depth_1_2', confirmed by the data owner to be the average depth. Two entries missing a decimal point (samples 899 and 1066) were corrected.</attributeDefinition>
+          <storageType>float</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>meter</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0.01</minimum>
+                  <maximum exclusive="false">1.52439024390244</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded (1997-2001 data) or not entered</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>weight</attributeName>
+          <attributeDefinition>Weight of the fish, in grams. Recorded in 2015-2025 data only.</attributeDefinition>
+          <storageType>float</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>gram</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">0.07</minimum>
+                  <maximum exclusive="false">432</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>year</attributeName>
+          <attributeDefinition>Calendar year of the sample, derived from date.</attributeDefinition>
+          <storageType>date</storageType>
+          <measurementScale>
+            <dateTime>
+              <formatString>YYYY</formatString>
+              <dateTimeDomain/>
+            </dateTime>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not applicable</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>river_mile</attributeName>
+          <attributeDefinition>River mile of the standardized river-mile site assigned to the sampling location, measured in miles upstream from the Feather River's confluence with the Sacramento River (REVIEW: confirm RM 0 definition). Locations were assigned to a site using the program's Subsite Table, supplemented by manual assignments.</attributeDefinition>
+          <storageType>float</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>mile</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>real</numberType>
+                <bounds>
+                  <minimum exclusive="false">12.5</minimum>
+                  <maximum exclusive="false">66.5</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not applicable</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>n_hauls</attributeName>
+          <attributeDefinition>Number of seine hauls (pulls) made in the sample, parsed from free-text crew comments (e.g. '2 pulls'). Blank when no count was stated in the comments, which does not imply a single haul.</attributeDefinition>
+          <storageType>float</storageType>
+          <measurementScale>
+            <ratio>
+              <unit>
+                <standardUnit>number</standardUnit>
+              </unit>
+              <numericDomain>
+                <numberType>natural</numberType>
+                <bounds>
+                  <minimum exclusive="false">1</minimum>
+                  <maximum exclusive="false">4</maximum>
+                </bounds>
+              </numericDomain>
+            </ratio>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not stated in comments</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>substrate</attributeName>
+          <attributeDefinition>Substrate types present in the sampled area, as comma-separated categories: Fine (small gravel, 0-50 mm), Small (medium gravel, 50-150 mm), Medium (large cobble, 150-300 mm), Boulder (&gt;300 mm) or Pavement (boat ramp). All substrate present is recorded; the order listed does not indicate dominance.</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Substrate types present in the sampled area, as comma-separated categories: Fine (small gravel, 0-50 mm), Small (medium gravel, 50-150 mm), Medium (large cobble, 150-300 mm), Boulder (&gt;300 mm) or Pavement (boat ramp). All substrate present is recorded; the order listed does not indicate dominance.</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>cover</attributeName>
+          <attributeDefinition>Cover types present in the sampled area, as comma-separated categories (e.g. No Apparent Cover, Small Instream Objects/Woody Debris, Large Instream Objects/Woody Debris, Overhead Objects, Submerged Aquatic Veg/Algae, Undercut Bank). All cover present is recorded; the order listed does not indicate dominance.</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Cover types present in the sampled area, as comma-separated categories (e.g. No Apparent Cover, Small Instream Objects/Woody Debris, Large Instream Objects/Woody Debris, Overhead Objects, Submerged Aquatic Veg/Algae, Undercut Bank). All cover present is recorded; the order listed does not indicate dominance.</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not recorded</codeExplanation>
+          </missingValueCode>
+        </attribute>
+        <attribute>
+          <attributeName>adipose_clipped</attributeName>
+          <attributeDefinition>Whether the fish had a clipped adipose fin (TRUE/FALSE), derived from the species entry in the source data. Blank where not applicable or not recorded.</attributeDefinition>
+          <storageType>string</storageType>
+          <measurementScale>
+            <nominal>
+              <nonNumericDomain>
+                <textDomain>
+                  <definition>Whether the fish had a clipped adipose fin (TRUE/FALSE), derived from the species entry in the source data. Blank where not applicable or not recorded.</definition>
+                </textDomain>
+              </nonNumericDomain>
+            </nominal>
+          </measurementScale>
+          <missingValueCode>
+            <code>NA</code>
+            <codeExplanation>Not applicable or not recorded</codeExplanation>
+          </missingValueCode>
+        </attribute>
+      </attributeList>
+      <numberOfRecords>60699</numberOfRecords>
+    </dataTable>
+  </dataset>
+  <additionalMetadata>
+    <metadata>
+      <emlEditor>
+        <app>EMLassemblyline</app>
+        <release>3.6.1</release>
+      </emlEditor>
+    </metadata>
+  </additionalMetadata>
+</eml:eml>

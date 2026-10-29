@@ -1,1 +1,16 @@
-Insert your abstract here!
+This dataset contains fish catch and habitat observations from beach seine surveys of the lower Feather River,
+California, collected between 1997 and 2025. Surveys were conducted at 42 river-mile sites
+(225 distinct recorded location names) between river mile 12.5 and 66.5, in both the low flow and high
+flow channels, to monitor the fish community and the habitat where juvenile fish, particularly juvenile
+Chinook salmon, were found. [TODO: state who conducted the surveys and the purpose or monitoring program.]
+Data were compiled from three source periods (1997-2001, 2008-2014 and 2015-2025) and standardized into a
+single table of 60,699 records from about 2,000 seine samples. Sampling occurred in 1997-2001, 2008-2009,
+2013-2014 and 2015-2025; no data are included for 2002-2007 or 2010-2012. Most sampling occurred between
+January and August. Each record is a fish species (and, from 2008 onward, a count by length) captured in a
+seine haul, with fork length, life stage, Chinook salmon run and adipose fin clip status where recorded.
+Each record also carries the sample's water temperature, haul dimensions, depth, substrate, cover, stream
+feature, gear size and river mile. In total 42 species or taxonomic groups were recorded; Chinook salmon,
+Sacramento sucker and Sacramento pikeminnow were the most frequently recorded. Observations from 1997-2001
+are one row per individual fish, whereas 2008-2025 rows carry a count. Measurement units for haul dimensions
+and depth differ between source periods and are described in the attribute definitions. These data are
+published to support the Healthy Rivers and Landscapes Science Program.

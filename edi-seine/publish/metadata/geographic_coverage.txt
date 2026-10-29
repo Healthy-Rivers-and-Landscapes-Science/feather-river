@@ -1,1 +1,2 @@
 geographicDescription	northBoundingCoordinate	southBoundingCoordinate	eastBoundingCoordinate	westBoundingCoordinate
+Lower Feather River, California (river miles 12.5 to 66.5)	39.5177	38.9329	-121.5497	-121.6481
