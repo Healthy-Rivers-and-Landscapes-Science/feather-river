@@ -671,8 +671,9 @@ all_seine_combined |>
 
 all_seine_clean <- all_seine_combined |>
   # Raw accdb date-entry errors, each keyed on sample_id so they can only ever
-  # touch the intended row. No cross-era collision risk: accdb sample_ids run
-  # 352-1736, the 2008-2014 range is 50-351, and 1997-2001 has sample_id = NA.
+  # touch the intended row. No cross-era collision risk at this point: accdb
+  # sample_ids run 352-1736, the 2008-2014 range is 50-351, and 1997-2001 has
+  # sample_id = NA until seine_id is filled in below.
   #
   # sample_id 1704 is entered as 06/16/05, which parses to 2005 - outside this
   # dataset's 2015-2025 range. Typo for 06/16/25: sample_ids 1701-1705 are all
@@ -733,9 +734,19 @@ all_seine_clean <- all_seine_combined |>
   # species b is all NA for every other column except count of 1
   filter(species != "b") |>
   left_join(location_river_mile_lookup, by = "location") |>
+  mutate(location = river_mile_site) |> View()
   filter(!gear_type %in% c("NETS", "EF_SE", "EF-SE")) |>
+  # Sample IDs are only unique WITHIN a source database: the 1997-2001 seine
+  # IDs (2-686), 2008-2014 sample IDs (53-349) and 2015-2025 sample IDs
+  # (352-1736) overlap, so 399 IDs refer to different samples in different
+  # periods. Within a period each ID maps to exactly one date + location.
+  # Prefixing the source period makes the published ID unique across the whole
+  # table; the part after "_" is still the ID in the source database. This runs
+  # after the sample_id-keyed corrections above, which need the raw IDs.
   mutate(
     sample_id = coalesce(sample_id, seine_id),
+    sample_id = if_else(is.na(sample_id), NA_character_,
+                        paste(source, as.integer(sample_id), sep = "_")),
     gear_type = coalesce(gear_type, "SEIN"),
     n_hauls   = map_dbl(comments, extract_n_hauls)
   ) |>
@@ -807,8 +818,8 @@ all_seine_clean <- all_seine_combined |>
          -cover_1, -cover_2, -cover_3, -id, -source,
          -species_clean, -species_final,
          -depth_dist_1, -depth_dist_2,
-         -river_mile_site, -river_mile_site_id, -id_note,
-         -latitude, -longitude) |>
+         -river_mile_site_id, -id_note,
+         -latitude, -longitude, -year) |>
   # there are 37 rows with NA date and sample_id. These are being removed.
   filter(!is.na(date))
 
