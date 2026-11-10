@@ -1,241 +1,471 @@
-location,mission_group,channel_location,mission_label,date,redd_total
-Table Mountain,Upper Cottonwood to Table Mountain,LFC,#1,2025-09-04,0
-Lower Table Mountain,Upper Cottonwood to Table Mountain,LFC,#1,2025-09-04,4
-Hatchery Pipe,Upper Cottonwood to Table Mountain,LFC,#1,2025-09-04,0
-Upper Cottonwood,Upper Cottonwood to Table Mountain,LFC,#1,2025-09-04,0
-Upper Hatchery,Upper Cottonwood to Table Mountain,LFC,#1,2025-09-04,0
-Upper Cottonwood to Table Mountain-hatchery,Upper Cottonwood to Table Mountain,LFC,#1,2025-09-04,0
-Cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#1,2025-09-03,0
-Top of Auditorium,Top of Auditorium to Upper Cottonwood,LFC,#1,2025-09-03,3
-Top of Auditorium to Upper Cottonwood-hatchery,Top of Auditorium to Upper Cottonwood,LFC,#1,2025-09-03,0
-Upper Auditorium,Lower Auditorium to Upper Auditorium,LFC,#1,2025-09-03,0
-Middle Auditorium,Lower Auditorium to Upper Auditorium,LFC,#1,2025-09-03,0
-Lower Auditorium,Lower Auditorium to Upper Auditorium,LFC,#1,2025-09-03,3
-Bedrock,Lower Auditorium to Upper Auditorium,LFC,#1,2025-09-03,0
-Table Mountain,Upper Cottonwood to Table Mountain,LFC,#2,2025-09-09,3
-Lower Table Mountain,Upper Cottonwood to Table Mountain,LFC,#2,2025-09-09,0
-Hatchery Pipe,Upper Cottonwood to Table Mountain,LFC,#2,2025-09-09,0
-Upper Cottonwood,Upper Cottonwood to Table Mountain,LFC,#2,2025-09-09,11
-Upper Hatchery,Upper Cottonwood to Table Mountain,LFC,#2,2025-09-09,4
-Upper Cottonwood to Table Mountain-hatchery,Upper Cottonwood to Table Mountain,LFC,#2,2025-09-09,2
-Cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#2,2025-09-09,9
-Top of Auditorium,Top of Auditorium to Upper Cottonwood,LFC,#2,2025-09-09,11
-Top of Auditorium to Upper Cottonwood-hatchery,Top of Auditorium to Upper Cottonwood,LFC,#2,2025-09-09,0
-Upper Auditorium,Lower Auditorium to Upper Auditorium,LFC,#2,2025-09-09,15
-Middle Auditorium,Lower Auditorium to Upper Auditorium,LFC,#2,2025-09-09,0
-Lower Auditorium,Lower Auditorium to Upper Auditorium,LFC,#2,2025-09-09,12
-Bedrock,Lower Auditorium to Upper Auditorium,LFC,#2,2025-09-09,5
-Trailer Park,Lower Auditorium to Upper Auditorium,LFC,#2,2025-09-10,20
-Mathews,Lower Auditorium to Upper Auditorium,LFC,#2,2025-09-10,0
-Aleck,Lower Auditorium to Upper Auditorium,LFC,#2,2025-09-10,0
-Upper Robinson,Lower Auditorium to Upper Auditorium,LFC,#2,2025-09-10,0
-Lower Robinson,Lower Auditorium to Upper Auditorium,LFC,#2,2025-09-10,0
-Steep,"Steep, Weir",LFC,#2,2025-09-11,0
-Weir,"Steep, Weir",LFC,#2,2025-09-11,2
-Eye Main,"Eye Main, Eye Side Channel",LFC,#2,2025-09-11,3
-Eye Side Channel,"Eye Main, Eye Side Channel",LFC,#2,2025-09-11,0
-Upper Gateway,"Upper Gateway, Lower Gateway",LFC,#2,2025-09-11,0
-Lower Gateway,"Upper Gateway, Lower Gateway",LFC,#2,2025-09-11,0
-Table Mountain,Upper Cottonwood to Table Mountain,LFC,#3,2025-09-16,15
-Lower Table Mountain,Upper Cottonwood to Table Mountain,LFC,#3,2025-09-16,12
-Hatchery Pipe,Upper Cottonwood to Table Mountain,LFC,#3,2025-09-16,1
-Upper Cottonwood,Upper Cottonwood to Table Mountain,LFC,#3,2025-09-16,10
-Upper Hatchery,Upper Cottonwood to Table Mountain,LFC,#3,2025-09-16,9
-Upper Cottonwood to Table Mountain-hatchery,Upper Cottonwood to Table Mountain,LFC,#3,2025-09-16,9
-Cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#3,2025-09-16,30
-Top of Auditorium,Top of Auditorium to Upper Cottonwood,LFC,#3,2025-09-16,17
-Top of Auditorium to Upper Cottonwood-hatchery,Top of Auditorium to Upper Cottonwood,LFC,#3,2025-09-16,8
-Upper Auditorium,Lower Auditorium to Upper Auditorium,LFC,#3,2025-09-16,25
-Middle Auditorium,Lower Auditorium to Upper Auditorium,LFC,#3,2025-09-16,16
-Lower Auditorium,Lower Auditorium to Upper Auditorium,LFC,#3,2025-09-16,43
-Bedrock,Lower Auditorium to Upper Auditorium,LFC,#3,2025-09-16,31
-Table Mountain,Upper Cottonwood to Table Mountain,LFC,#4,2025-09-24,27
-Lower Table Mountain,Upper Cottonwood to Table Mountain,LFC,#4,2025-09-24,47
-Hatchery Pipe,Upper Cottonwood to Table Mountain,LFC,#4,2025-09-24,12
-Upper Cottonwood,Upper Cottonwood to Table Mountain,LFC,#4,2025-09-24,16
-Upper Hatchery,Upper Cottonwood to Table Mountain,LFC,#4,2025-09-24,29
-Upper Cottonwood to Table Mountain-hatchery,Upper Cottonwood to Table Mountain,LFC,#4,2025-09-24,5
-Cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#4,2025-09-24,35
-Top of Auditorium,Top of Auditorium to Upper Cottonwood,LFC,#4,2025-09-24,51
-Top of Auditorium to Upper Cottonwood-hatchery,Top of Auditorium to Upper Cottonwood,LFC,#4,2025-09-24,41
-Upper Auditorium,Lower Auditorium to Upper Auditorium,LFC,#4,2025-09-24,15
-Middle Auditorium,Lower Auditorium to Upper Auditorium,LFC,#4,2025-09-24,11
-Lower Auditorium,Lower Auditorium to Upper Auditorium,LFC,#4,2025-09-24,80
-Bedrock,Lower Auditorium to Upper Auditorium,LFC,#4,2025-09-26,144
-Trailer Park,Lower Auditorium to Upper Auditorium,LFC,#4,2025-09-24,104
-Mathews,Lower Auditorium to Upper Auditorium,LFC,#4,2025-09-24,7
-Aleck,Lower Auditorium to Upper Auditorium,LFC,#4,2025-09-25,11
-Upper Robinson,Lower Auditorium to Upper Auditorium,LFC,#4,2025-09-25,16
-Lower Robinson,Lower Auditorium to Upper Auditorium,LFC,#4,2025-09-25,25
-Steep,"Steep, Weir",LFC,#4,2025-09-26,5
-Weir,"Steep, Weir",LFC,#4,2025-09-26,14
-Eye Main,"Eye Main, Eye Side Channel",LFC,#4,2025-09-25,0
-Eye Side Channel,"Eye Main, Eye Side Channel",LFC,#4,2025-09-25,1
-Upper Gateway,"Upper Gateway, Lower Gateway",LFC,#4,2025-09-25,0
-Lower Gateway,"Upper Gateway, Lower Gateway",LFC,#4,2025-09-25,0
-Table Mountain,Upper Cottonwood to Table Mountain,LFC,#5,2025-10-02,26
-Lower Table Mountain,Upper Cottonwood to Table Mountain,LFC,#5,2025-10-02,46
-Hatchery Pipe,Upper Cottonwood to Table Mountain,LFC,#5,2025-10-02,4
-Upper Cottonwood,Upper Cottonwood to Table Mountain,LFC,#5,2025-10-02,11
-Upper Hatchery,Upper Cottonwood to Table Mountain,LFC,#5,2025-10-02,35
-Upper Cottonwood to Table Mountain-hatchery,Upper Cottonwood to Table Mountain,LFC,#5,2025-10-02,16
-Cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#5,2025-10-02,9
-Top of Auditorium,Top of Auditorium to Upper Cottonwood,LFC,#5,2025-10-02,22
-Top of Auditorium to Upper Cottonwood-hatchery,Top of Auditorium to Upper Cottonwood,LFC,#5,2025-10-02,43
-Upper Auditorium,Lower Auditorium to Upper Auditorium,LFC,#5,2025-10-02,11
-Middle Auditorium,Lower Auditorium to Upper Auditorium,LFC,#5,2025-10-02,5
-Lower Auditorium,Lower Auditorium to Upper Auditorium,LFC,#5,2025-10-02,11
-Bedrock,Lower Auditorium to Upper Auditorium,LFC,#5,2025-10-02,30
-Table Mountain,Upper Cottonwood to Table Mountain,LFC,#6,2025-10-08,15
-Lower Table Mountain,Upper Cottonwood to Table Mountain,LFC,#6,2025-10-08,8
-Hatchery Pipe,Upper Cottonwood to Table Mountain,LFC,#6,2025-10-08,4
-Upper Cottonwood,Upper Cottonwood to Table Mountain,LFC,#6,2025-10-08,4
-Upper Hatchery,Upper Cottonwood to Table Mountain,LFC,#6,2025-10-08,5
-Upper Cottonwood to Table Mountain-hatchery,Upper Cottonwood to Table Mountain,LFC,#6,2025-10-08,4
-Cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#6,2025-10-08,16
-Top of Auditorium,Top of Auditorium to Upper Cottonwood,LFC,#6,2025-10-08,32
-Top of Auditorium to Upper Cottonwood-hatchery,Top of Auditorium to Upper Cottonwood,LFC,#6,2025-10-08,3
-Upper Auditorium,Lower Auditorium to Upper Auditorium,LFC,#6,2025-10-08,19
-Middle Auditorium,Lower Auditorium to Upper Auditorium,LFC,#6,2025-10-08,8
-Lower Auditorium,Lower Auditorium to Upper Auditorium,LFC,#6,2025-10-08,24
-Bedrock,Lower Auditorium to Upper Auditorium,LFC,#6,2025-10-08,25
-Trailer Park,Lower Auditorium to Upper Auditorium,LFC,#6,2025-10-08,18
-Mathews,Lower Auditorium to Upper Auditorium,LFC,#6,2025-10-08,8
-Aleck,Lower Auditorium to Upper Auditorium,LFC,#6,2025-10-09,8
-Upper Robinson,Lower Auditorium to Upper Auditorium,LFC,#6,2025-10-09,15
-Lower Robinson,Lower Auditorium to Upper Auditorium,LFC,#6,2025-10-09,34
-Steep,"Steep, Weir",LFC,#6,2025-10-09,5
-Weir,"Steep, Weir",LFC,#6,2025-10-09,12
-Eye Main,"Eye Main, Eye Side Channel",LFC,#6,2025-10-09,0
-Eye Side Channel,"Eye Main, Eye Side Channel",LFC,#6,2025-10-09,0
-Upper Gateway,"Upper Gateway, Lower Gateway",LFC,#6,2025-10-09,0
-Lower Gateway,"Upper Gateway, Lower Gateway",LFC,#6,2025-10-09,0
-Table Mountain,Upper Cottonwood to Table Mountain,LFC,#7,2025-10-16,9
-Lower Table Mountain,Upper Cottonwood to Table Mountain,LFC,#7,2025-10-16,32
-Hatchery Pipe,Upper Cottonwood to Table Mountain,LFC,#7,2025-10-16,8
-Upper Cottonwood,Upper Cottonwood to Table Mountain,LFC,#7,2025-10-16,2
-Upper Hatchery,Upper Cottonwood to Table Mountain,LFC,#7,2025-10-16,14
-Upper Cottonwood to Table Mountain-hatchery,Upper Cottonwood to Table Mountain,LFC,#7,2025-10-16,8
-Cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#7,2025-10-16,9
-Top of Auditorium,Top of Auditorium to Upper Cottonwood,LFC,#7,2025-10-16,33
-Top of Auditorium to Upper Cottonwood-hatchery,Top of Auditorium to Upper Cottonwood,LFC,#7,2025-10-16,26
-Upper Auditorium,Lower Auditorium to Upper Auditorium,LFC,#7,2025-10-16,7
-Middle Auditorium,Lower Auditorium to Upper Auditorium,LFC,#7,2025-10-16,12
-Lower Auditorium,Lower Auditorium to Upper Auditorium,LFC,#7,2025-10-16,49
-Bedrock,Lower Auditorium to Upper Auditorium,LFC,#7,2025-10-16,51
-Table Mountain,Upper Cottonwood to Table Mountain,LFC,#8,2025-10-24,13
-Lower Table Mountain,Upper Cottonwood to Table Mountain,LFC,#8,2025-10-24,15
-Hatchery Pipe,Upper Cottonwood to Table Mountain,LFC,#8,2025-10-24,6
-Upper Cottonwood,Upper Cottonwood to Table Mountain,LFC,#8,2025-10-24,6
-Upper Hatchery,Upper Cottonwood to Table Mountain,LFC,#8,2025-10-24,0
-Upper Cottonwood to Table Mountain-hatchery,Upper Cottonwood to Table Mountain,LFC,#8,2025-10-24,0
-Cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#8,2025-10-24,12
-Top of Auditorium,Top of Auditorium to Upper Cottonwood,LFC,#8,2025-10-24,14
-Top of Auditorium to Upper Cottonwood-hatchery,Top of Auditorium to Upper Cottonwood,LFC,#8,2025-10-24,9
-Upper Auditorium,Lower Auditorium to Upper Auditorium,LFC,#8,2025-10-24,17
-Middle Auditorium,Lower Auditorium to Upper Auditorium,LFC,#8,2025-10-24,22
-Lower Auditorium,Lower Auditorium to Upper Auditorium,LFC,#8,2025-10-24,67
-Bedrock,Lower Auditorium to Upper Auditorium,LFC,#8,2025-10-24,66
-Table Mountain,Upper Cottonwood to Table Mountain,LFC,#9,2025-10-29,4
-Lower Table Mountain,Upper Cottonwood to Table Mountain,LFC,#9,2025-10-29,2
-Hatchery Pipe,Upper Cottonwood to Table Mountain,LFC,#9,2025-10-29,3
-Upper Cottonwood,Upper Cottonwood to Table Mountain,LFC,#9,2025-10-29,2
-Upper Hatchery,Upper Cottonwood to Table Mountain,LFC,#9,2025-10-29,0
-Upper Cottonwood to Table Mountain-hatchery,Upper Cottonwood to Table Mountain,LFC,#9,2025-10-29,0
-Cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#9,2025-10-29,2
-Top of Auditorium,Top of Auditorium to Upper Cottonwood,LFC,#9,2025-10-29,3
-Top of Auditorium to Upper Cottonwood-hatchery,Top of Auditorium to Upper Cottonwood,LFC,#9,2025-10-29,1
-Upper Auditorium,Lower Auditorium to Upper Auditorium,LFC,#9,2025-10-29,3
-Middle Auditorium,Lower Auditorium to Upper Auditorium,LFC,#9,2025-10-29,1
-Lower Auditorium,Lower Auditorium to Upper Auditorium,LFC,#9,2025-10-29,3
-Bedrock,Lower Auditorium to Upper Auditorium,LFC,#9,2025-10-29,22
-Trailer Park,Lower Auditorium to Upper Auditorium,LFC,#9,2025-10-28,81
-Mathews,Lower Auditorium to Upper Auditorium,LFC,#9,2025-10-28,9
-Aleck,Lower Auditorium to Upper Auditorium,LFC,#9,2025-10-28,37
-Upper Robinson,Lower Auditorium to Upper Auditorium,LFC,#9,2025-10-28,18
-Lower Robinson,Lower Auditorium to Upper Auditorium,LFC,#9,2025-10-28,44
-Steep,"Steep, Weir",LFC,#9,2025-10-28,10
-Weir,"Steep, Weir",LFC,#9,2025-10-28,41
-Eye Main,"Eye Main, Eye Side Channel",LFC,#9,2025-10-28,2
-Eye Side Channel,"Eye Main, Eye Side Channel",LFC,#9,2025-10-28,8
-Upper Gateway,"Upper Gateway, Lower Gateway",LFC,#9,2025-10-28,0
-Lower Gateway,"Upper Gateway, Lower Gateway",LFC,#9,2025-10-28,5
-Table Mountain,Upper Cottonwood to Table Mountain,LFC,#10,2025-11-07,0
-Lower Table Mountain,Upper Cottonwood to Table Mountain,LFC,#10,2025-11-07,0
-Hatchery Pipe,Upper Cottonwood to Table Mountain,LFC,#10,2025-11-07,0
-Upper Cottonwood,Upper Cottonwood to Table Mountain,LFC,#10,2025-11-07,0
-Upper Hatchery,Upper Cottonwood to Table Mountain,LFC,#10,2025-11-07,0
-Upper Cottonwood to Table Mountain-hatchery,Upper Cottonwood to Table Mountain,LFC,#10,2025-11-07,0
-Cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#10,2025-11-07,0
-Top of Auditorium,Top of Auditorium to Upper Cottonwood,LFC,#10,2025-11-07,0
-Top of Auditorium to Upper Cottonwood-hatchery,Top of Auditorium to Upper Cottonwood,LFC,#10,2025-11-07,2
-Upper Auditorium,Lower Auditorium to Upper Auditorium,LFC,#10,2025-11-07,0
-Middle Auditorium,Lower Auditorium to Upper Auditorium,LFC,#10,2025-11-07,0
-Lower Auditorium,Lower Auditorium to Upper Auditorium,LFC,#10,2025-11-07,0
-Bedrock,Lower Auditorium to Upper Auditorium,LFC,#10,2025-11-07,3
-Table Mountain,Upper Cottonwood to Table Mountain,LFC,#11,2025-11-12,0
-Lower Table Mountain,Upper Cottonwood to Table Mountain,LFC,#11,2025-11-12,0
-Hatchery Pipe,Upper Cottonwood to Table Mountain,LFC,#11,2025-11-12,0
-Upper Cottonwood,Upper Cottonwood to Table Mountain,LFC,#11,2025-11-12,0
-Upper Hatchery,Upper Cottonwood to Table Mountain,LFC,#11,2025-11-12,0
-Upper Cottonwood to Table Mountain-hatchery,Upper Cottonwood to Table Mountain,LFC,#11,2025-11-12,0
-Cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#11,2025-11-12,0
-Top of Auditorium,Top of Auditorium to Upper Cottonwood,LFC,#11,2025-11-12,0
-Top of Auditorium to Upper Cottonwood-hatchery,Top of Auditorium to Upper Cottonwood,LFC,#11,2025-11-12,0
-Upper Auditorium,Lower Auditorium to Upper Auditorium,LFC,#11,2025-11-12,0
-Middle Auditorium,Lower Auditorium to Upper Auditorium,LFC,#11,2025-11-12,0
-Lower Auditorium,Lower Auditorium to Upper Auditorium,LFC,#11,2025-11-12,0
-Bedrock,Lower Auditorium to Upper Auditorium,LFC,#11,2025-11-12,0
-Trailer Park,Lower Auditorium to Upper Auditorium,LFC,#12,2025-11-18,6
-Mathews,Lower Auditorium to Upper Auditorium,LFC,#12,2025-11-18,0
-Aleck,Lower Auditorium to Upper Auditorium,LFC,#12,2025-11-18,0
-Upper Robinson,Lower Auditorium to Upper Auditorium,LFC,#12,2025-11-18,0
-Lower Robinson,Lower Auditorium to Upper Auditorium,LFC,#12,2025-11-18,2
-Steep,"Steep, Weir",LFC,#12,2025-11-18,0
-Weir,"Steep, Weir",LFC,#12,2025-11-18,3
-Eye Main,"Eye Main, Eye Side Channel",LFC,#12,2025-11-18,1
-Eye Side Channel,"Eye Main, Eye Side Channel",LFC,#12,2025-11-18,0
-Upper Gateway,"Upper Gateway, Lower Gateway",LFC,#12,2025-11-18,0
-Lower Gateway,"Upper Gateway, Lower Gateway",LFC,#12,2025-11-18,1
-Vance East,"Vance East, Vance West, Lower Vance East",HFC,#8,2025-10-22,40
-Vance West,"Vance East, Vance West, Lower Vance East",HFC,#8,2025-10-22,24
-Lower Vance East,"Vance East, Vance West, Lower Vance East",HFC,#8,2025-10-22,17
-Big Hole East,"Big Hole East, Big Hole West",HFC,#8,2025-10-22,95
-Big Hole West,"Big Hole East, Big Hole West",HFC,#8,2025-10-22,16
-Below Big Hole East,"Big Hole East, Big Hole West",HFC,#8,2025-10-22,22
-G95 West,"G95 West, G95 Main, G95 East Top",HFC,#8,2025-10-22,26
-G95 Main,"G95 West, G95 Main, G95 East Top",HFC,#8,2025-10-22,31
-G95 East Top,"G95 West, G95 Main, G95 East Top",HFC,#8,2025-10-22,28
-G95 East Bottom,"G95 Main, G95 East Top",HFC,#8,2025-10-22,35
-Upper Hour,"G95 Main, G95 East Top",HFC,#8,2025-10-22,20
-Lower Hour,"G95 Main, G95 East Top",HFC,#8,2025-10-22,42
-Keister,"G95 Main, G95 East Top",HFC,#8,2025-10-22,30
-Goose,"G95 Main, G95 East Top",HFC,#8,2025-10-23,6
-Big Riffle,"G95 Main, G95 East Top",HFC,#8,2025-10-23,21
-Below Big Riffle,"G95 Main, G95 East Top",HFC,#8,2025-10-23,4
-Big Bar,"G95 Main, G95 East Top",HFC,#8,2025-10-23,12
-Upper McFarland,"G95 Main, G95 East Top",HFC,#8,2025-10-23,12
-Lower McFarland,"G95 Main, G95 East Top",HFC,#8,2025-10-23,1
-Developing,"G95 Main, G95 East Top",HFC,#8,2025-10-23,0
-Vance East,"Vance East, Vance West, Lower Vance East",HFC,#10,2025-11-06,14
-Vance West,"Vance East, Vance West, Lower Vance East",HFC,#10,2025-11-06,2
-Lower Vance East,"Vance East, Vance West, Lower Vance East",HFC,#10,2025-11-06,2
-Big Hole East,"Big Hole East, Big Hole West",HFC,#10,2025-11-06,10
-Big Hole West,"Big Hole East, Big Hole West",HFC,#10,2025-11-06,5
-Below Big Hole East,"Big Hole East, Big Hole West",HFC,#10,2025-11-06,3
-G95 Main,"G95 Main, G95 East Top",HFC,#10,2025-11-06,0
-G95 East Top,"G95 Main, G95 East Top",HFC,#10,2025-11-06,0
-G95 West,"G95 Main, G95 East Top",HFC,#10,2025-11-06,2
-G95 East Bottom,"G95 Main, G95 East Top",HFC,#10,2025-11-06,2
-Upper Hour,"G95 Main, G95 East Top",HFC,#10,2025-11-06,1
-Lower Hour,"G95 Main, G95 East Top",HFC,#10,2025-11-06,4
-Keister,"G95 Main, G95 East Top",HFC,#10,2025-11-06,0
-G95 Main,"G95 Main, G95 East Top",HFC,#11,2025-11-12,10
-G95 East Top,"G95 Main, G95 East Top",HFC,#11,2025-11-12,4
-Goose,"G95 Main, G95 East Top",HFC,#11,2025-11-10,0
-Big Riffle,"G95 Main, G95 East Top",HFC,#11,2025-11-10,5
-Below Big Riffle,"G95 Main, G95 East Top",HFC,#11,2025-11-10,2
-Big Bar,"G95 Main, G95 East Top",HFC,#11,2025-11-10,1
-Upper McFarland,"G95 Main, G95 East Top",HFC,#11,2025-11-10,0
-Lower McFarland,"G95 Main, G95 East Top",HFC,#11,2025-11-10,0
-Developing,"G95 Main, G95 East Top",HFC,#11,2025-11-10,0
+location,edi_location,mission_group,channel_location,mission_label,date,redd_total,redd_total_source
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#1,2025-09-04,0,flight schedule
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#1,2025-09-04,4,flight schedule
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#1,2025-09-04,0,flight schedule
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#1,2025-09-04,0,flight schedule
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#1,2025-09-04,0,flight schedule
+Upper Cottonwood to Table Mountain-hatchery,hatchery,Upper Cottonwood to Table Mountain,LFC,#1,2025-09-04,0,flight schedule
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#1,2025-09-03,0,flight schedule
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#1,2025-09-03,3,flight schedule
+Top of Auditorium to Upper Cottonwood-hatchery,hatchery,Top of Auditorium to Upper Cottonwood,LFC,#1,2025-09-03,0,flight schedule
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#1,2025-09-03,0,flight schedule
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#1,2025-09-03,0,flight schedule
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#1,2025-09-03,3,flight schedule
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#1,2025-09-03,0,flight schedule
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#2,2025-09-09,3,flight schedule
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#2,2025-09-09,0,flight schedule
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#2,2025-09-09,0,flight schedule
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#2,2025-09-09,11,flight schedule
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#2,2025-09-09,4,flight schedule
+Upper Cottonwood to Table Mountain-hatchery,hatchery,Upper Cottonwood to Table Mountain,LFC,#2,2025-09-09,2,flight schedule
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#2,2025-09-09,9,flight schedule
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#2,2025-09-09,11,flight schedule
+Top of Auditorium to Upper Cottonwood-hatchery,hatchery,Top of Auditorium to Upper Cottonwood,LFC,#2,2025-09-09,0,flight schedule
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#2,2025-09-09,15,flight schedule
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#2,2025-09-09,0,flight schedule
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#2,2025-09-09,12,flight schedule
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#2,2025-09-09,5,flight schedule
+Trailer Park,trailerpark,Lower Auditorium to Upper Auditorium,LFC,#2,2025-09-10,20,flight schedule
+Mathews,mathews,Lower Auditorium to Upper Auditorium,LFC,#2,2025-09-10,0,flight schedule
+Aleck,aleck,Lower Auditorium to Upper Auditorium,LFC,#2,2025-09-10,0,flight schedule
+Upper Robinson,upperrobinson,Lower Auditorium to Upper Auditorium,LFC,#2,2025-09-10,0,flight schedule
+Lower Robinson,lowerrobinson,Lower Auditorium to Upper Auditorium,LFC,#2,2025-09-10,0,flight schedule
+Steep,steep,"Steep, Weir",LFC,#2,2025-09-11,0,flight schedule
+Weir,weir,"Steep, Weir",LFC,#2,2025-09-11,2,flight schedule
+Eye Main,eye,"Eye Main, Eye Side Channel",LFC,#2,2025-09-11,3,flight schedule
+Eye Side Channel,eyesidechannel,"Eye Main, Eye Side Channel",LFC,#2,2025-09-11,0,flight schedule
+Upper Gateway,gateway,"Upper Gateway, Lower Gateway",LFC,#2,2025-09-11,0,flight schedule
+Lower Gateway,gateway,"Upper Gateway, Lower Gateway",LFC,#2,2025-09-11,0,flight schedule
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#3,2025-09-16,15,flight schedule
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#3,2025-09-16,12,flight schedule
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#3,2025-09-16,1,flight schedule
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#3,2025-09-16,10,flight schedule
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#3,2025-09-16,9,flight schedule
+Upper Cottonwood to Table Mountain-hatchery,hatchery,Upper Cottonwood to Table Mountain,LFC,#3,2025-09-16,9,flight schedule
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#3,2025-09-16,30,flight schedule
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#3,2025-09-16,17,flight schedule
+Top of Auditorium to Upper Cottonwood-hatchery,hatchery,Top of Auditorium to Upper Cottonwood,LFC,#3,2025-09-16,8,flight schedule
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#3,2025-09-16,25,flight schedule
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#3,2025-09-16,16,flight schedule
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#3,2025-09-16,43,flight schedule
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#3,2025-09-16,31,flight schedule
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#4,2025-09-24,27,flight schedule
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#4,2025-09-24,47,flight schedule
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#4,2025-09-24,12,flight schedule
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#4,2025-09-24,16,flight schedule
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#4,2025-09-24,29,flight schedule
+Upper Cottonwood to Table Mountain-hatchery,hatchery,Upper Cottonwood to Table Mountain,LFC,#4,2025-09-24,5,flight schedule
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#4,2025-09-24,35,flight schedule
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#4,2025-09-24,51,flight schedule
+Top of Auditorium to Upper Cottonwood-hatchery,hatchery,Top of Auditorium to Upper Cottonwood,LFC,#4,2025-09-24,41,flight schedule
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#4,2025-09-24,15,flight schedule
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#4,2025-09-24,11,flight schedule
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#4,2025-09-24,80,flight schedule
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#4,2025-09-26,144,flight schedule
+Trailer Park,trailerpark,Lower Auditorium to Upper Auditorium,LFC,#4,2025-09-24,104,flight schedule
+Mathews,mathews,Lower Auditorium to Upper Auditorium,LFC,#4,2025-09-24,7,flight schedule
+Aleck,aleck,Lower Auditorium to Upper Auditorium,LFC,#4,2025-09-25,11,flight schedule
+Upper Robinson,upperrobinson,Lower Auditorium to Upper Auditorium,LFC,#4,2025-09-25,16,flight schedule
+Lower Robinson,lowerrobinson,Lower Auditorium to Upper Auditorium,LFC,#4,2025-09-25,25,flight schedule
+Steep,steep,"Steep, Weir",LFC,#4,2025-09-26,5,flight schedule
+Weir,weir,"Steep, Weir",LFC,#4,2025-09-26,14,flight schedule
+Eye Main,eye,"Eye Main, Eye Side Channel",LFC,#4,2025-09-25,0,flight schedule
+Eye Side Channel,eyesidechannel,"Eye Main, Eye Side Channel",LFC,#4,2025-09-25,1,flight schedule
+Upper Gateway,gateway,"Upper Gateway, Lower Gateway",LFC,#4,2025-09-25,0,flight schedule
+Lower Gateway,gateway,"Upper Gateway, Lower Gateway",LFC,#4,2025-09-25,0,flight schedule
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#5,2025-10-02,26,flight schedule
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#5,2025-10-02,46,flight schedule
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#5,2025-10-02,4,flight schedule
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#5,2025-10-02,11,flight schedule
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#5,2025-10-02,35,flight schedule
+Upper Cottonwood to Table Mountain-hatchery,hatchery,Upper Cottonwood to Table Mountain,LFC,#5,2025-10-02,16,flight schedule
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#5,2025-10-02,9,flight schedule
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#5,2025-10-02,22,flight schedule
+Top of Auditorium to Upper Cottonwood-hatchery,hatchery,Top of Auditorium to Upper Cottonwood,LFC,#5,2025-10-02,43,flight schedule
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#5,2025-10-02,11,flight schedule
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#5,2025-10-02,5,flight schedule
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#5,2025-10-02,11,flight schedule
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#5,2025-10-02,30,flight schedule
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#6,2025-10-08,15,flight schedule
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#6,2025-10-08,8,flight schedule
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#6,2025-10-08,4,flight schedule
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#6,2025-10-08,4,flight schedule
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#6,2025-10-08,5,flight schedule
+Upper Cottonwood to Table Mountain-hatchery,hatchery,Upper Cottonwood to Table Mountain,LFC,#6,2025-10-08,4,flight schedule
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#6,2025-10-08,16,flight schedule
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#6,2025-10-08,32,flight schedule
+Top of Auditorium to Upper Cottonwood-hatchery,hatchery,Top of Auditorium to Upper Cottonwood,LFC,#6,2025-10-08,3,flight schedule
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#6,2025-10-08,19,flight schedule
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#6,2025-10-08,8,flight schedule
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#6,2025-10-08,24,flight schedule
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#6,2025-10-08,25,flight schedule
+Trailer Park,trailerpark,Lower Auditorium to Upper Auditorium,LFC,#6,2025-10-08,18,flight schedule
+Mathews,mathews,Lower Auditorium to Upper Auditorium,LFC,#6,2025-10-08,8,flight schedule
+Aleck,aleck,Lower Auditorium to Upper Auditorium,LFC,#6,2025-10-09,8,flight schedule
+Upper Robinson,upperrobinson,Lower Auditorium to Upper Auditorium,LFC,#6,2025-10-09,15,flight schedule
+Lower Robinson,lowerrobinson,Lower Auditorium to Upper Auditorium,LFC,#6,2025-10-09,34,flight schedule
+Steep,steep,"Steep, Weir",LFC,#6,2025-10-09,5,flight schedule
+Weir,weir,"Steep, Weir",LFC,#6,2025-10-09,12,flight schedule
+Eye Main,eye,"Eye Main, Eye Side Channel",LFC,#6,2025-10-09,0,flight schedule
+Eye Side Channel,eyesidechannel,"Eye Main, Eye Side Channel",LFC,#6,2025-10-09,0,flight schedule
+Upper Gateway,gateway,"Upper Gateway, Lower Gateway",LFC,#6,2025-10-09,0,flight schedule
+Lower Gateway,gateway,"Upper Gateway, Lower Gateway",LFC,#6,2025-10-09,0,flight schedule
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#7,2025-10-16,9,flight schedule
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#7,2025-10-16,32,flight schedule
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#7,2025-10-16,8,flight schedule
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#7,2025-10-16,2,flight schedule
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#7,2025-10-16,14,flight schedule
+Upper Cottonwood to Table Mountain-hatchery,hatchery,Upper Cottonwood to Table Mountain,LFC,#7,2025-10-16,8,flight schedule
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#7,2025-10-16,9,flight schedule
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#7,2025-10-16,33,flight schedule
+Top of Auditorium to Upper Cottonwood-hatchery,hatchery,Top of Auditorium to Upper Cottonwood,LFC,#7,2025-10-16,26,flight schedule
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#7,2025-10-16,7,flight schedule
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#7,2025-10-16,12,flight schedule
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#7,2025-10-16,49,flight schedule
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#7,2025-10-16,51,flight schedule
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#8,2025-10-24,13,flight schedule
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#8,2025-10-24,15,flight schedule
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#8,2025-10-24,6,flight schedule
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#8,2025-10-24,6,flight schedule
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#8,2025-10-24,0,flight schedule
+Upper Cottonwood to Table Mountain-hatchery,hatchery,Upper Cottonwood to Table Mountain,LFC,#8,2025-10-24,0,flight schedule
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#8,2025-10-24,12,flight schedule
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#8,2025-10-24,14,flight schedule
+Top of Auditorium to Upper Cottonwood-hatchery,hatchery,Top of Auditorium to Upper Cottonwood,LFC,#8,2025-10-24,9,flight schedule
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#8,2025-10-24,17,flight schedule
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#8,2025-10-24,22,flight schedule
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#8,2025-10-24,67,flight schedule
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#8,2025-10-24,66,flight schedule
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#9,2025-10-29,4,flight schedule
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#9,2025-10-29,2,flight schedule
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#9,2025-10-29,3,flight schedule
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#9,2025-10-29,2,flight schedule
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#9,2025-10-29,0,flight schedule
+Upper Cottonwood to Table Mountain-hatchery,hatchery,Upper Cottonwood to Table Mountain,LFC,#9,2025-10-29,0,flight schedule
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#9,2025-10-29,2,flight schedule
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#9,2025-10-29,3,flight schedule
+Top of Auditorium to Upper Cottonwood-hatchery,hatchery,Top of Auditorium to Upper Cottonwood,LFC,#9,2025-10-29,1,flight schedule
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#9,2025-10-29,3,flight schedule
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#9,2025-10-29,1,flight schedule
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#9,2025-10-29,3,flight schedule
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#9,2025-10-29,22,flight schedule
+Trailer Park,trailerpark,Lower Auditorium to Upper Auditorium,LFC,#9,2025-10-28,81,flight schedule
+Mathews,mathews,Lower Auditorium to Upper Auditorium,LFC,#9,2025-10-28,9,flight schedule
+Aleck,aleck,Lower Auditorium to Upper Auditorium,LFC,#9,2025-10-28,37,flight schedule
+Upper Robinson,upperrobinson,Lower Auditorium to Upper Auditorium,LFC,#9,2025-10-28,18,flight schedule
+Lower Robinson,lowerrobinson,Lower Auditorium to Upper Auditorium,LFC,#9,2025-10-28,44,flight schedule
+Steep,steep,"Steep, Weir",LFC,#9,2025-10-28,10,flight schedule
+Weir,weir,"Steep, Weir",LFC,#9,2025-10-28,41,flight schedule
+Eye Main,eye,"Eye Main, Eye Side Channel",LFC,#9,2025-10-28,2,flight schedule
+Eye Side Channel,eyesidechannel,"Eye Main, Eye Side Channel",LFC,#9,2025-10-28,8,flight schedule
+Upper Gateway,gateway,"Upper Gateway, Lower Gateway",LFC,#9,2025-10-28,0,flight schedule
+Lower Gateway,gateway,"Upper Gateway, Lower Gateway",LFC,#9,2025-10-28,5,flight schedule
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#10,2025-11-07,0,flight schedule
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#10,2025-11-07,0,flight schedule
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#10,2025-11-07,0,flight schedule
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#10,2025-11-07,0,flight schedule
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#10,2025-11-07,0,flight schedule
+Upper Cottonwood to Table Mountain-hatchery,hatchery,Upper Cottonwood to Table Mountain,LFC,#10,2025-11-07,0,flight schedule
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#10,2025-11-07,0,flight schedule
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#10,2025-11-07,0,flight schedule
+Top of Auditorium to Upper Cottonwood-hatchery,hatchery,Top of Auditorium to Upper Cottonwood,LFC,#10,2025-11-07,2,flight schedule
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#10,2025-11-07,0,flight schedule
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#10,2025-11-07,0,flight schedule
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#10,2025-11-07,0,flight schedule
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#10,2025-11-07,3,flight schedule
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#11,2025-11-12,0,flight schedule
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#11,2025-11-12,0,flight schedule
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#11,2025-11-12,0,flight schedule
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#11,2025-11-12,0,flight schedule
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#11,2025-11-12,0,flight schedule
+Upper Cottonwood to Table Mountain-hatchery,hatchery,Upper Cottonwood to Table Mountain,LFC,#11,2025-11-12,0,flight schedule
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#11,2025-11-12,0,flight schedule
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#11,2025-11-12,0,flight schedule
+Top of Auditorium to Upper Cottonwood-hatchery,hatchery,Top of Auditorium to Upper Cottonwood,LFC,#11,2025-11-12,0,flight schedule
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#11,2025-11-12,0,flight schedule
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#11,2025-11-12,0,flight schedule
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#11,2025-11-12,0,flight schedule
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#11,2025-11-12,0,flight schedule
+Trailer Park,trailerpark,Lower Auditorium to Upper Auditorium,LFC,#12,2025-11-18,6,flight schedule
+Mathews,mathews,Lower Auditorium to Upper Auditorium,LFC,#12,2025-11-18,0,flight schedule
+Aleck,aleck,Lower Auditorium to Upper Auditorium,LFC,#12,2025-11-18,0,flight schedule
+Upper Robinson,upperrobinson,Lower Auditorium to Upper Auditorium,LFC,#12,2025-11-18,0,flight schedule
+Lower Robinson,lowerrobinson,Lower Auditorium to Upper Auditorium,LFC,#12,2025-11-18,2,flight schedule
+Steep,steep,"Steep, Weir",LFC,#12,2025-11-18,0,flight schedule
+Weir,weir,"Steep, Weir",LFC,#12,2025-11-18,3,flight schedule
+Eye Main,eye,"Eye Main, Eye Side Channel",LFC,#12,2025-11-18,1,flight schedule
+Eye Side Channel,eyesidechannel,"Eye Main, Eye Side Channel",LFC,#12,2025-11-18,0,flight schedule
+Upper Gateway,gateway,"Upper Gateway, Lower Gateway",LFC,#12,2025-11-18,0,flight schedule
+Lower Gateway,gateway,"Upper Gateway, Lower Gateway",LFC,#12,2025-11-18,1,flight schedule
+Vance East,vanceeast,"Vance East, Vance West, Lower Vance East",HFC,#8,2025-10-22,40,flight schedule
+Vance West,vancewest,"Vance East, Vance West, Lower Vance East",HFC,#8,2025-10-22,24,flight schedule
+Lower Vance East,lowervanceeast,"Vance East, Vance West, Lower Vance East",HFC,#8,2025-10-22,17,flight schedule
+Big Hole East,bigholeeast,"Big Hole East, Big Hole West",HFC,#8,2025-10-22,95,flight schedule
+Big Hole West,bigholewest,"Big Hole East, Big Hole West",HFC,#8,2025-10-22,16,flight schedule
+Below Big Hole East,belowbigholeeast,"Big Hole East, Big Hole West",HFC,#8,2025-10-22,22,flight schedule
+G95 West,g95westsidechannel,"G95 West, G95 Main, G95 East Top",HFC,#8,2025-10-22,26,flight schedule
+G95 Main,g95main,"G95 West, G95 Main, G95 East Top",HFC,#8,2025-10-22,31,flight schedule
+G95 East Top,g95eastsidechanneltop,"G95 West, G95 Main, G95 East Top",HFC,#8,2025-10-22,28,flight schedule
+G95 East Bottom,g95eastsidechannelbottom,"G95 Main, G95 East Top",HFC,#8,2025-10-22,35,flight schedule
+Upper Hour,upperhour,"G95 Main, G95 East Top",HFC,#8,2025-10-22,20,flight schedule
+Lower Hour,lowerhour,"G95 Main, G95 East Top",HFC,#8,2025-10-22,42,flight schedule
+Keister,keister,"G95 Main, G95 East Top",HFC,#8,2025-10-22,30,flight schedule
+Goose,goose,"G95 Main, G95 East Top",HFC,#8,2025-10-23,6,flight schedule
+Big Riffle,bigriffle,"G95 Main, G95 East Top",HFC,#8,2025-10-23,21,flight schedule
+Below Big Riffle,lowerbig,"G95 Main, G95 East Top",HFC,#8,2025-10-23,4,flight schedule
+Big Bar,bigbar,"G95 Main, G95 East Top",HFC,#8,2025-10-23,12,flight schedule
+Upper McFarland,uppermcfarland,"G95 Main, G95 East Top",HFC,#8,2025-10-23,12,flight schedule
+Lower McFarland,lowermcfarland,"G95 Main, G95 East Top",HFC,#8,2025-10-23,1,flight schedule
+Developing,developing,"G95 Main, G95 East Top",HFC,#8,2025-10-23,0,flight schedule
+Vance East,vanceeast,"Vance East, Vance West, Lower Vance East",HFC,#10,2025-11-06,14,flight schedule
+Vance West,vancewest,"Vance East, Vance West, Lower Vance East",HFC,#10,2025-11-06,2,flight schedule
+Lower Vance East,lowervanceeast,"Vance East, Vance West, Lower Vance East",HFC,#10,2025-11-06,2,flight schedule
+Big Hole East,bigholeeast,"Big Hole East, Big Hole West",HFC,#10,2025-11-06,10,flight schedule
+Big Hole West,bigholewest,"Big Hole East, Big Hole West",HFC,#10,2025-11-06,5,flight schedule
+Below Big Hole East,belowbigholeeast,"Big Hole East, Big Hole West",HFC,#10,2025-11-06,3,flight schedule
+G95 Main,g95main,"G95 Main, G95 East Top",HFC,#10,2025-11-06,0,flight schedule
+G95 East Top,g95eastsidechanneltop,"G95 Main, G95 East Top",HFC,#10,2025-11-06,0,flight schedule
+G95 West,g95westsidechannel,"G95 Main, G95 East Top",HFC,#10,2025-11-06,2,flight schedule
+G95 East Bottom,g95eastsidechannelbottom,"G95 Main, G95 East Top",HFC,#10,2025-11-06,2,flight schedule
+Upper Hour,upperhour,"G95 Main, G95 East Top",HFC,#10,2025-11-06,1,flight schedule
+Lower Hour,lowerhour,"G95 Main, G95 East Top",HFC,#10,2025-11-06,4,flight schedule
+Keister,keister,"G95 Main, G95 East Top",HFC,#10,2025-11-06,0,flight schedule
+G95 Main,g95main,"G95 Main, G95 East Top",HFC,#11,2025-11-12,10,flight schedule
+G95 East Top,g95eastsidechanneltop,"G95 Main, G95 East Top",HFC,#11,2025-11-12,4,flight schedule
+Goose,goose,"G95 Main, G95 East Top",HFC,#11,2025-11-10,0,flight schedule
+Big Riffle,bigriffle,"G95 Main, G95 East Top",HFC,#11,2025-11-10,5,flight schedule
+Below Big Riffle,lowerbig,"G95 Main, G95 East Top",HFC,#11,2025-11-10,2,flight schedule
+Big Bar,bigbar,"G95 Main, G95 East Top",HFC,#11,2025-11-10,1,flight schedule
+Upper McFarland,uppermcfarland,"G95 Main, G95 East Top",HFC,#11,2025-11-10,0,flight schedule
+Lower McFarland,lowermcfarland,"G95 Main, G95 East Top",HFC,#11,2025-11-10,0,flight schedule
+Developing,developing,"G95 Main, G95 East Top",HFC,#11,2025-11-10,0,flight schedule
+Aleck,aleck,Lower Auditorium to Upper Auditorium,LFC,#3,2024-09-24,4,inferred from redd points
+Aleck,aleck,Lower Auditorium to Upper Auditorium,LFC,#4,2024-10-02,3,inferred from redd points
+Aleck,aleck,Lower Auditorium to Upper Auditorium,LFC,#6,2024-10-16,9,inferred from redd points
+Aleck,aleck,Lower Auditorium to Upper Auditorium,LFC,#8,2024-10-30,49,inferred from redd points
+Aleck,aleck,Lower Auditorium to Upper Auditorium,LFC,#10,2024-11-14,2,inferred from redd points
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#1,2024-09-09,2,inferred from redd points
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#2,2024-09-18,31,inferred from redd points
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#3,2024-09-23,18,inferred from redd points
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#4,2024-09-30,21,inferred from redd points
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#5,2024-10-07,31,inferred from redd points
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#6,2024-10-15,135,inferred from redd points
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#7,2024-10-21,127,inferred from redd points
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#8,2024-10-28,90,inferred from redd points
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#9,2024-11-04,20,inferred from redd points
+Bedrock,bedrock,Lower Auditorium to Upper Auditorium,LFC,#10,2024-11-12,13,inferred from redd points
+Below Big,lowerbig,NA,HFC,#7,2024-10-22,12,inferred from redd points
+Below Big,lowerbig,NA,HFC,#9,2024-11-08,5,inferred from redd points
+Below Big,lowerbig,NA,HFC,#11,2024-11-18,0,inferred from redd points
+Big Bar,bigbar,NA,HFC,#7,2024-10-22,13,inferred from redd points
+Big Bar,bigbar,NA,HFC,#9,2024-11-08,1,inferred from redd points
+Big Bar,bigbar,NA,HFC,#11,2024-11-18,0,inferred from redd points
+Big Hole East,bigholeeast,NA,HFC,#7,2024-10-23,22,inferred from redd points
+Big Hole East,bigholeeast,NA,HFC,#9,2024-11-07,4,inferred from redd points
+Big Hole East,bigholeeast,NA,HFC,#11,2024-11-19,7,inferred from redd points
+Big Hole West,bigholewest,NA,HFC,#7,2024-10-23,4,inferred from redd points
+Big Hole West,bigholewest,NA,HFC,#9,2024-11-07,5,inferred from redd points
+Big Hole West,bigholewest,NA,HFC,#11,2024-11-19,0,inferred from redd points
+Big Riffle,bigriffle,NA,HFC,#7,2024-10-22,19,inferred from redd points
+Big Riffle,bigriffle,NA,HFC,#9,2024-11-08,2,inferred from redd points
+Big Riffle,bigriffle,NA,HFC,#11,2024-11-18,2,inferred from redd points
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#1,2024-09-09,6,inferred from redd points
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#2,2024-09-18,23,inferred from redd points
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#3,2024-09-23,25,inferred from redd points
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#4,2024-09-30,7,inferred from redd points
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#5,2024-10-07,6,inferred from redd points
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#6,2024-10-15,15,inferred from redd points
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#7,2024-10-21,30,inferred from redd points
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#8,2024-10-28,18,inferred from redd points
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#9,2024-11-04,4,inferred from redd points
+Cottonwood,cottonwood,Top of Auditorium to Upper Cottonwood,LFC,#10,2024-11-12,0,inferred from redd points
+Developing,developing,NA,HFC,#7,2024-10-22,0,inferred from redd points
+Developing,developing,NA,HFC,#9,2024-11-08,0,inferred from redd points
+Developing,developing,NA,HFC,#11,2024-11-18,0,inferred from redd points
+Eye Main,eye,Lower Auditorium to Upper Auditorium,LFC,#3,2024-09-25,0,inferred from redd points
+Eye Main,eye,Lower Auditorium to Upper Auditorium,LFC,#4,2024-10-03,0,inferred from redd points
+Eye Main,eye,Lower Auditorium to Upper Auditorium,LFC,#6,2024-10-17,5,inferred from redd points
+Eye Main,eye,Lower Auditorium to Upper Auditorium,LFC,#8,2024-10-31,2,inferred from redd points
+Eye Main,eye,Lower Auditorium to Upper Auditorium,LFC,#10,2024-11-13,NA,inferred from redd points
+Eye Side Channel,eyesidechannel,Lower Auditorium to Upper Auditorium,LFC,#3,2024-09-25,0,inferred from redd points
+Eye Side Channel,eyesidechannel,Lower Auditorium to Upper Auditorium,LFC,#4,2024-10-03,0,inferred from redd points
+Eye Side Channel,eyesidechannel,Lower Auditorium to Upper Auditorium,LFC,#6,2024-10-17,0,inferred from redd points
+Eye Side Channel,eyesidechannel,Lower Auditorium to Upper Auditorium,LFC,#8,2024-10-31,8,inferred from redd points
+Eye Side Channel,eyesidechannel,Lower Auditorium to Upper Auditorium,LFC,#10,2024-11-13,NA,inferred from redd points
+G95 East Bottom,g95eastsidechannelbottom,NA,HFC,#7,2024-10-23,16,inferred from redd points
+G95 East Bottom,g95eastsidechannelbottom,NA,HFC,#9,2024-11-07,4,inferred from redd points
+G95 East Bottom,g95eastsidechannelbottom,NA,HFC,#11,2024-11-19,0,inferred from redd points
+G95 East Top,g95eastsidechanneltop,NA,HFC,#7,2024-10-23,17,inferred from redd points
+G95 East Top,g95eastsidechanneltop,NA,HFC,#9,2024-11-07,6,inferred from redd points
+G95 East Top,g95eastsidechanneltop,NA,HFC,#11,2024-11-19,0,inferred from redd points
+G95 Main,g95main,NA,HFC,#7,2024-10-23,11,inferred from redd points
+G95 Main,g95main,NA,HFC,#9,2024-11-07,2,inferred from redd points
+G95 Main,g95main,NA,HFC,#11,2024-11-19,2,inferred from redd points
+G95 West Bottom,g95westsidechannel,NA,HFC,#7,2024-10-23,5,inferred from redd points
+G95 West Bottom,g95westsidechannel,NA,HFC,#9,2024-11-07,4,inferred from redd points
+G95 West Bottom,g95westsidechannel,NA,HFC,#11,2024-11-19,0,inferred from redd points
+G95 West Top,g95westsidechannel,NA,HFC,#7,2024-10-23,3,inferred from redd points
+G95 West Top,g95westsidechannel,NA,HFC,#9,2024-11-07,0,inferred from redd points
+G95 West Top,g95westsidechannel,NA,HFC,#11,2024-11-19,1,inferred from redd points
+Goose,goose,NA,HFC,#11,2024-11-18,0,inferred from redd points
+Hatchery,hatchery,Upper Cottonwood to Table Mountain; Top of Auditorium to Upper Cottonwood,LFC,#1,2024-09-09,4,inferred from redd points
+Hatchery,hatchery,Upper Cottonwood to Table Mountain; Top of Auditorium to Upper Cottonwood,LFC,#2,2024-09-18,31,inferred from redd points
+Hatchery,hatchery,Upper Cottonwood to Table Mountain; Top of Auditorium to Upper Cottonwood,LFC,#3,2024-09-23,28,inferred from redd points
+Hatchery,hatchery,Upper Cottonwood to Table Mountain; Top of Auditorium to Upper Cottonwood,LFC,#4,2024-09-30,4,inferred from redd points
+Hatchery,hatchery,Upper Cottonwood to Table Mountain; Top of Auditorium to Upper Cottonwood,LFC,#5,2024-10-07,3,inferred from redd points
+Hatchery,hatchery,Upper Cottonwood to Table Mountain; Top of Auditorium to Upper Cottonwood,LFC,#6,2024-10-15,17,inferred from redd points
+Hatchery,hatchery,Upper Cottonwood to Table Mountain; Top of Auditorium to Upper Cottonwood,LFC,#7,2024-10-21,37,inferred from redd points
+Hatchery,hatchery,Upper Cottonwood to Table Mountain; Top of Auditorium to Upper Cottonwood,LFC,#8,2024-10-28,33,inferred from redd points
+Hatchery,hatchery,Upper Cottonwood to Table Mountain; Top of Auditorium to Upper Cottonwood,LFC,#9,2024-11-04,8,inferred from redd points
+Hatchery,hatchery,Upper Cottonwood to Table Mountain; Top of Auditorium to Upper Cottonwood,LFC,#10,2024-11-12,0,inferred from redd points
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#1,2024-09-09,10,inferred from redd points
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#2,2024-09-18,22,inferred from redd points
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#3,2024-09-23,6,inferred from redd points
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#4,2024-09-30,9,inferred from redd points
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#5,2024-10-07,10,inferred from redd points
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#6,2024-10-15,24,inferred from redd points
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#7,2024-10-21,24,inferred from redd points
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#8,2024-10-28,21,inferred from redd points
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#9,2024-11-04,0,inferred from redd points
+Hatchery Pipe,hatcherypipe,Upper Cottonwood to Table Mountain,LFC,#10,2024-11-12,0,inferred from redd points
+Keister,keister,NA,HFC,#7,2024-10-23,15,inferred from redd points
+Keister,keister,NA,HFC,#9,2024-11-07,5,inferred from redd points
+Keister,keister,NA,HFC,#11,2024-11-19,3,inferred from redd points
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#1,2024-09-09,9,inferred from redd points
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#2,2024-09-18,32,inferred from redd points
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#3,2024-09-23,33,inferred from redd points
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#4,2024-09-30,38,inferred from redd points
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#5,2024-10-07,18,inferred from redd points
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#6,2024-10-15,38,inferred from redd points
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#7,2024-10-21,57,inferred from redd points
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#8,2024-10-28,47,inferred from redd points
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#9,2024-11-04,8,inferred from redd points
+Lower Auditorium,lowerauditorium,Lower Auditorium to Upper Auditorium,LFC,#10,2024-11-12,9,inferred from redd points
+Lower Gateway,gateway,Lower Auditorium to Upper Auditorium,LFC,#3,2024-09-25,0,inferred from redd points
+Lower Gateway,gateway,Lower Auditorium to Upper Auditorium,LFC,#4,2024-10-03,0,inferred from redd points
+Lower Gateway,gateway,Lower Auditorium to Upper Auditorium,LFC,#6,2024-10-17,0,inferred from redd points
+Lower Gateway,gateway,Lower Auditorium to Upper Auditorium,LFC,#8,2024-10-31,2,inferred from redd points
+Lower Gateway,gateway,Lower Auditorium to Upper Auditorium,LFC,#10,2024-11-14,2,inferred from redd points
+Lower Hour,lowerhour,NA,HFC,#7,2024-10-23,27,inferred from redd points
+Lower Hour,lowerhour,NA,HFC,#9,2024-11-07,13,inferred from redd points
+Lower Hour,lowerhour,NA,HFC,#11,2024-11-19,2,inferred from redd points
+Lower McFarland,lowermcfarland,NA,HFC,#7,2024-10-22,6,inferred from redd points
+Lower McFarland,lowermcfarland,NA,HFC,#9,2024-11-08,2,inferred from redd points
+Lower McFarland,lowermcfarland,NA,HFC,#11,2024-11-18,1,inferred from redd points
+Lower Robinson,lowerrobinson,Lower Auditorium to Upper Auditorium,LFC,#3,2024-09-24,1,inferred from redd points
+Lower Robinson,lowerrobinson,Lower Auditorium to Upper Auditorium,LFC,#4,2024-10-02,1,inferred from redd points
+Lower Robinson,lowerrobinson,Lower Auditorium to Upper Auditorium,LFC,#6,2024-10-16,56,inferred from redd points
+Lower Robinson,lowerrobinson,Lower Auditorium to Upper Auditorium,LFC,#8,2024-10-30,95,inferred from redd points
+Lower Robinson,lowerrobinson,Lower Auditorium to Upper Auditorium,LFC,#10,2024-11-14,7,inferred from redd points
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#1,2024-09-09,34,inferred from redd points
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#2,2024-09-18,65,inferred from redd points
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#3,2024-09-23,8,inferred from redd points
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#4,2024-09-30,8,inferred from redd points
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#5,2024-10-07,10,inferred from redd points
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#6,2024-10-15,25,inferred from redd points
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#7,2024-10-21,15,inferred from redd points
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#8,2024-10-28,11,inferred from redd points
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#9,2024-11-04,3,inferred from redd points
+Lower Table Mountain,lowertablemountain,Upper Cottonwood to Table Mountain,LFC,#10,2024-11-12,0,inferred from redd points
+Lower Vance East,lowervanceeast,NA,HFC,#7,2024-10-24,6,inferred from redd points
+Lower Vance East,lowervanceeast,NA,HFC,#9,2024-11-07,0,inferred from redd points
+Lower Vance East,lowervanceeast,NA,HFC,#11,2024-11-19,0,inferred from redd points
+Mathews,mathews,Lower Auditorium to Upper Auditorium,LFC,#3,2024-09-24,0,inferred from redd points
+Mathews,mathews,Lower Auditorium to Upper Auditorium,LFC,#4,2024-10-02,11,inferred from redd points
+Mathews,mathews,Lower Auditorium to Upper Auditorium,LFC,#6,2024-10-16,10,inferred from redd points
+Mathews,mathews,Lower Auditorium to Upper Auditorium,LFC,#8,2024-10-30,16,inferred from redd points
+Mathews,mathews,Lower Auditorium to Upper Auditorium,LFC,#10,2024-11-14,2,inferred from redd points
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#1,2024-09-09,0,inferred from redd points
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#2,2024-09-18,4,inferred from redd points
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#3,2024-09-23,7,inferred from redd points
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#4,2024-09-30,7,inferred from redd points
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#5,2024-10-07,5,inferred from redd points
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#6,2024-10-15,13,inferred from redd points
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#7,2024-10-21,25,inferred from redd points
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#8,2024-10-28,21,inferred from redd points
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#9,2024-11-04,7,inferred from redd points
+Middle Auditorium,middleauditorium,Lower Auditorium to Upper Auditorium,LFC,#10,2024-11-12,0,inferred from redd points
+Steep,steep,Lower Auditorium to Upper Auditorium,LFC,#3,2024-09-25,0,inferred from redd points
+Steep,steep,Lower Auditorium to Upper Auditorium,LFC,#4,2024-10-03,2,inferred from redd points
+Steep,steep,Lower Auditorium to Upper Auditorium,LFC,#6,2024-10-17,7,inferred from redd points
+Steep,steep,Lower Auditorium to Upper Auditorium,LFC,#8,2024-10-31,16,inferred from redd points
+Steep,steep,Lower Auditorium to Upper Auditorium,LFC,#10,2024-11-13,1,inferred from redd points
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#1,2024-09-09,19,inferred from redd points
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#2,2024-09-18,28,inferred from redd points
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#3,2024-09-23,29,inferred from redd points
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#4,2024-09-30,14,inferred from redd points
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#5,2024-10-07,20,inferred from redd points
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#6,2024-10-15,32,inferred from redd points
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#7,2024-10-21,30,inferred from redd points
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#8,2024-10-28,18,inferred from redd points
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#9,2024-11-04,3,inferred from redd points
+Table Mountain,tablemountain,Upper Cottonwood to Table Mountain,LFC,#10,2024-11-12,2,inferred from redd points
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#1,2024-09-09,29,inferred from redd points
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#2,2024-09-18,77,inferred from redd points
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#3,2024-09-23,31,inferred from redd points
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#4,2024-09-30,35,inferred from redd points
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#5,2024-10-07,15,inferred from redd points
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#6,2024-10-15,22,inferred from redd points
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#7,2024-10-21,26,inferred from redd points
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#8,2024-10-28,18,inferred from redd points
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#9,2024-11-04,2,inferred from redd points
+Top of Auditorium,topofauditorium,Top of Auditorium to Upper Cottonwood,LFC,#10,2024-11-12,1,inferred from redd points
+Trailer Park,trailerpark,Lower Auditorium to Upper Auditorium,LFC,#3,2024-09-24,55,inferred from redd points
+Trailer Park,trailerpark,Lower Auditorium to Upper Auditorium,LFC,#4,2024-10-02,16,inferred from redd points
+Trailer Park,trailerpark,Lower Auditorium to Upper Auditorium,LFC,#6,2024-10-16,104,inferred from redd points
+Trailer Park,trailerpark,Lower Auditorium to Upper Auditorium,LFC,#8,2024-10-30,153,inferred from redd points
+Trailer Park,trailerpark,Lower Auditorium to Upper Auditorium,LFC,#10,2024-11-14,32,inferred from redd points
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#1,2024-09-09,9,inferred from redd points
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#2,2024-09-18,27,inferred from redd points
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#3,2024-09-23,15,inferred from redd points
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#4,2024-09-30,10,inferred from redd points
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#5,2024-10-07,7,inferred from redd points
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#6,2024-10-15,7,inferred from redd points
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#7,2024-10-21,7,inferred from redd points
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#8,2024-10-28,3,inferred from redd points
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#9,2024-11-04,10,inferred from redd points
+Upper Auditorium,upperauditorium,Lower Auditorium to Upper Auditorium,LFC,#10,2024-11-12,4,inferred from redd points
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#1,2024-09-09,16,inferred from redd points
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#2,2024-09-18,35,inferred from redd points
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#3,2024-09-23,16,inferred from redd points
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#4,2024-09-30,31,inferred from redd points
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#5,2024-10-07,6,inferred from redd points
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#6,2024-10-15,11,inferred from redd points
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#7,2024-10-21,7,inferred from redd points
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#8,2024-10-28,8,inferred from redd points
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#9,2024-11-04,0,inferred from redd points
+Upper Cottonwood,uppercottonwood,Upper Cottonwood to Table Mountain,LFC,#10,2024-11-12,0,inferred from redd points
+Upper Gateway,gateway,Lower Auditorium to Upper Auditorium,LFC,#3,2024-09-25,0,inferred from redd points
+Upper Gateway,gateway,Lower Auditorium to Upper Auditorium,LFC,#10,2024-11-14,1,inferred from redd points
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#1,2024-09-09,7,inferred from redd points
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#2,2024-09-18,18,inferred from redd points
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#3,2024-09-23,8,inferred from redd points
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#4,2024-09-30,0,inferred from redd points
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#5,2024-10-07,3,inferred from redd points
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#6,2024-10-15,28,inferred from redd points
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#7,2024-10-21,16,inferred from redd points
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#8,2024-10-28,16,inferred from redd points
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#9,2024-11-04,0,inferred from redd points
+Upper Hatchery,upperhatchery,Upper Cottonwood to Table Mountain,LFC,#10,2024-11-12,0,inferred from redd points
+Upper Hour,upperhour,NA,HFC,#7,2024-10-23,13,inferred from redd points
+Upper Hour,upperhour,NA,HFC,#9,2024-11-07,10,inferred from redd points
+Upper Hour,upperhour,NA,HFC,#11,2024-11-19,0,inferred from redd points
+Upper McFarland,uppermcfarland,NA,HFC,#7,2024-10-22,8,inferred from redd points
+Upper McFarland,uppermcfarland,NA,HFC,#9,2024-11-08,2,inferred from redd points
+Upper McFarland,uppermcfarland,NA,HFC,#11,2024-11-18,1,inferred from redd points
+Upper Robinson,upperrobinson,Lower Auditorium to Upper Auditorium,LFC,#3,2024-09-24,2,inferred from redd points
+Upper Robinson,upperrobinson,Lower Auditorium to Upper Auditorium,LFC,#4,2024-10-02,0,inferred from redd points
+Upper Robinson,upperrobinson,Lower Auditorium to Upper Auditorium,LFC,#6,2024-10-16,21,inferred from redd points
+Upper Robinson,upperrobinson,Lower Auditorium to Upper Auditorium,LFC,#8,2024-10-30,54,inferred from redd points
+Upper Robinson,upperrobinson,Lower Auditorium to Upper Auditorium,LFC,#10,2024-11-14,0,inferred from redd points
+Vance East,vanceeast,NA,HFC,#7,2024-10-24,18,inferred from redd points
+Vance East,vanceeast,NA,HFC,#9,2024-11-07,12,inferred from redd points
+Vance East,vanceeast,NA,HFC,#11,2024-11-19,5,inferred from redd points
+Vance West,vancewest,NA,HFC,#7,2024-10-24,4,inferred from redd points
+Vance West,vancewest,NA,HFC,#9,2024-11-07,1,inferred from redd points
+Vance West,vancewest,NA,HFC,#11,2024-11-19,0,inferred from redd points
+Weir,weir,Lower Auditorium to Upper Auditorium,LFC,#3,2024-09-25,0,inferred from redd points
+Weir,weir,Lower Auditorium to Upper Auditorium,LFC,#4,2024-10-03,8,inferred from redd points
+Weir,weir,Lower Auditorium to Upper Auditorium,LFC,#6,2024-10-17,36,inferred from redd points
+Weir,weir,Lower Auditorium to Upper Auditorium,LFC,#8,2024-10-31,43,inferred from redd points
+Weir,weir,Lower Auditorium to Upper Auditorium,LFC,#10,2024-11-13,21,inferred from redd points

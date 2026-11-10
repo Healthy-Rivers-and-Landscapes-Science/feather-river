@@ -1,0 +1,49 @@
+drone_location,edi_location,basis,note,n_points,n_inside_own,n_inside_other,n_outside_all,n_no_polygon,most_common_other_boundary,edi_site_has_polygon
+Below Big,lowerbig,proposed,18 of 23 points fall inside the 'LowerBig' polygon; EDI has 'lowerbig' but no 'belowbig',23,18,0,5,0,NA,TRUE
+Eye Main,eye,proposed,11 of 16 points fall inside the ground-survey 'Eye' polygon; EDI has 'eye' but no 'eyemain',16,11,0,5,0,NA,TRUE
+G95 East Bottom,g95eastsidechannelbottom,proposed,points fall inside the G95EastSideChannelBottom polygon,57,28,0,29,0,NA,TRUE
+G95 East Top,g95eastsidechanneltop,proposed,points fall inside the G95EastSideChannelTop polygon,55,22,0,33,0,NA,TRUE
+G95 West,g95westsidechannel,proposed,points fall inside the G95WestSideChannel polygon,28,14,0,14,0,NA,TRUE
+G95 West Bottom,g95westsidechannel,low - confirm,"only a handful of points, all near the G95WestSideChannel polygon; EDI has no separate west bottom/top site",9,5,0,4,0,NA,TRUE
+G95 West Top,g95westsidechannel,low - confirm,"only a handful of points, all near the G95WestSideChannel polygon; EDI has no separate west bottom/top site",4,1,0,3,0,NA,TRUE
+Lower Gateway,gateway,proposed,EDI has a single 'gateway' site; most points fall inside the Gateway polygon,10,8,0,2,0,NA,TRUE
+Top of Auditorium to Upper Cottonwood-hatchery,hatchery,pending Hatchery decision,temporary mission-group rename in clean-data.R; zero-redd rows only,0,0,0,0,0,NA,TRUE
+Upper Cottonwood to Table Mountain-hatchery,hatchery,pending Hatchery decision,temporary mission-group rename in clean-data.R; zero-redd rows only,0,0,0,0,0,NA,TRUE
+Upper Gateway,gateway,proposed,EDI has a single 'gateway' site; the one point is ~7 m from the Gateway polygon,1,0,0,1,0,NA,TRUE
+Aleck,aleck,exact name match,NA,123,123,0,0,0,NA,TRUE
+Bedrock,bedrock,exact name match,NA,865,788,0,77,0,NA,TRUE
+Below Big Hole East,belowbigholeeast,exact name match,NA,25,3,0,22,0,NA,TRUE
+Big,big,exact name match,NA,26,21,0,5,0,NA,TRUE
+Big Bar,bigbar,exact name match,NA,27,24,0,3,0,NA,TRUE
+Big Hole East,bigholeeast,exact name match,NA,138,75,0,63,0,NA,TRUE
+Big Hole West,bigholewest,exact name match,NA,30,26,0,4,0,NA,TRUE
+Big Riffle,bigriffle,exact name match,NA,23,0,0,0,23,NA,FALSE
+Cottonwood,cottonwood,exact name match,NA,256,193,0,63,0,NA,TRUE
+Developing,developing,exact name match,NA,0,0,0,0,0,NA,TRUE
+Eye Side Channel,eyesidechannel,exact name match,NA,19,11,0,8,0,NA,TRUE
+G95 Main,g95main,exact name match,NA,56,0,0,0,56,NA,FALSE
+Goose,goose,exact name match,NA,6,0,0,6,0,NA,TRUE
+Hatchery,hatchery,exact name match,NA,342,330,7,5,0,UpperAuditorium,TRUE
+Hatchery Pipe,hatcherypipe,exact name match,NA,164,158,0,6,0,NA,TRUE
+Keister,keister,exact name match,NA,56,37,0,19,0,NA,TRUE
+Lower Auditorium,lowerauditorium,exact name match,NA,591,445,136,10,0,BelowLowerAuditorium,TRUE
+Lower Hour,lowerhour,exact name match,NA,88,78,0,10,0,NA,TRUE
+Lower McFarland,lowermcfarland,exact name match,NA,10,5,0,5,0,NA,TRUE
+Lower Robinson,lowerrobinson,exact name match,NA,265,251,0,14,0,NA,TRUE
+Lower Table Mountain,lowertablemountain,exact name match,NA,345,242,100,3,0,HatcheryPipe,TRUE
+Lower Vance East,lowervanceeast,exact name match,NA,25,0,0,0,25,NA,FALSE
+Mathews,mathews,exact name match,NA,63,35,28,0,0,UpperMathews,TRUE
+Middle Auditorium,middleauditorium,exact name match,NA,164,155,3,6,0,LowerAuditorium,TRUE
+Steep,steep,exact name match,NA,46,35,0,11,0,NA,TRUE
+Table Mountain,tablemountain,exact name match,NA,307,255,35,17,0,LowerTableMountain,TRUE
+Top of Auditorium,topofauditorium,exact name match,NA,442,322,44,76,0,Cottonwood,TRUE
+Trailer Park,trailerpark,exact name match,NA,588,257,67,264,0,UpperMathews,TRUE
+Upper Auditorium,upperauditorium,exact name match,NA,211,205,1,5,0,MiddleAuditorium,TRUE
+Upper Cottonwood,uppercottonwood,exact name match,NA,192,154,31,7,0,HatcheryPipe,TRUE
+Upper Hatchery,upperhatchery,exact name match,NA,192,179,12,1,0,Hatchery,TRUE
+Upper Hour,upperhour,exact name match,NA,44,26,0,18,0,NA,TRUE
+Upper McFarland,uppermcfarland,exact name match,NA,23,7,0,16,0,NA,TRUE
+Upper Robinson,upperrobinson,exact name match,NA,126,66,0,60,0,NA,TRUE
+Vance East,vanceeast,exact name match,NA,89,12,0,77,0,NA,TRUE
+Vance West,vancewest,exact name match,NA,31,15,0,16,0,NA,TRUE
+Weir,weir,exact name match,NA,180,151,0,29,0,NA,TRUE

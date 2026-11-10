@@ -1,0 +1,50 @@
+drone_location,edi_location,basis,note
+Below Big,lowerbig,proposed,18 of 23 points fall inside the 'LowerBig' polygon; EDI has 'lowerbig' but no 'belowbig'
+Below Big Riffle,lowerbig,low - confirm,"appears only in the 2025 flight schedule (2 rows with redds); assumed to be the same site as ""Below Big"" - confirm"
+Eye Main,eye,proposed,11 of 16 points fall inside the ground-survey 'Eye' polygon; EDI has 'eye' but no 'eyemain'
+G95 East Bottom,g95eastsidechannelbottom,proposed,points fall inside the G95EastSideChannelBottom polygon
+G95 East Top,g95eastsidechanneltop,proposed,points fall inside the G95EastSideChannelTop polygon
+G95 West,g95westsidechannel,proposed,points fall inside the G95WestSideChannel polygon
+G95 West Bottom,g95westsidechannel,low - confirm,"only a handful of points, all near the G95WestSideChannel polygon; EDI has no separate west bottom/top site"
+G95 West Top,g95westsidechannel,low - confirm,"only a handful of points, all near the G95WestSideChannel polygon; EDI has no separate west bottom/top site"
+Lower Gateway,gateway,proposed,EDI has a single 'gateway' site; most points fall inside the Gateway polygon
+Top of Auditorium to Upper Cottonwood-hatchery,hatchery,pending Hatchery decision,temporary mission-group rename in clean-data.R; zero-redd rows only
+Upper Cottonwood to Table Mountain-hatchery,hatchery,pending Hatchery decision,temporary mission-group rename in clean-data.R; zero-redd rows only
+Upper Gateway,gateway,proposed,EDI has a single 'gateway' site; the one point is ~7 m from the Gateway polygon
+Aleck,aleck,exact name match,
+Bedrock,bedrock,exact name match,
+Below Big Hole East,belowbigholeeast,exact name match,
+Big,big,exact name match,
+Big Bar,bigbar,exact name match,
+Big Hole East,bigholeeast,exact name match,
+Big Hole West,bigholewest,exact name match,
+Big Riffle,bigriffle,exact name match,
+Cottonwood,cottonwood,exact name match,
+Developing,developing,exact name match,
+Eye Side Channel,eyesidechannel,exact name match,
+G95 Main,g95main,exact name match,
+Goose,goose,exact name match,
+Hatchery,hatchery,exact name match,
+Hatchery Pipe,hatcherypipe,exact name match,
+Keister,keister,exact name match,
+Lower Auditorium,lowerauditorium,exact name match,
+Lower Hour,lowerhour,exact name match,
+Lower McFarland,lowermcfarland,exact name match,
+Lower Robinson,lowerrobinson,exact name match,
+Lower Table Mountain,lowertablemountain,exact name match,
+Lower Vance East,lowervanceeast,exact name match,
+Mathews,mathews,exact name match,
+Middle Auditorium,middleauditorium,exact name match,
+Steep,steep,exact name match,
+Table Mountain,tablemountain,exact name match,
+Top of Auditorium,topofauditorium,exact name match,
+Trailer Park,trailerpark,exact name match,
+Upper Auditorium,upperauditorium,exact name match,
+Upper Cottonwood,uppercottonwood,exact name match,
+Upper Hatchery,upperhatchery,exact name match,
+Upper Hour,upperhour,exact name match,
+Upper McFarland,uppermcfarland,exact name match,
+Upper Robinson,upperrobinson,exact name match,
+Vance East,vanceeast,exact name match,
+Vance West,vancewest,exact name match,
+Weir,weir,exact name match,

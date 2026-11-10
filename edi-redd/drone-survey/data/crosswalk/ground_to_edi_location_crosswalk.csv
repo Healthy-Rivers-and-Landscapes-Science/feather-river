@@ -1,0 +1,28 @@
+ground_location,edi_location,basis,note
+Bedrock Riffle,bedrock,proposed,"drops the ""Riffle"" suffix; 40 of 44 points inside the Bedrock polygon"
+Eye Riffle,eye,proposed,"drops the ""Riffle"" suffix; all 6 points inside the Eye polygon"
+Gateway Riffle,gateway,low - confirm,"drops the ""Riffle"" suffix, but only 1 of 12 points is inside the Gateway polygon (10 are ~190 m away)"
+Hatchery Riffle,hatchery,proposed,"drops the ""Riffle"" suffix; 31 of 41 points inside the Hatchery polygon, 9 in UpperHatchery"
+Steep Riffle,steep,proposed,"drops the ""Riffle"" suffix; 19 of 22 points inside the Steep polygon"
+Steep Side,steepsidechannel,proposed,"""Side"" = side channel; 11 of 18 points inside SteepSideChannel, the rest within ~7 m"
+Upper Hatchery Riffle,upperhatchery,proposed,"drops the ""Riffle"" suffix; 39 of 40 points inside the UpperHatchery polygon"
+Upper Mathews Side Channel,uppermathews,low - confirm,EDI has no separate Upper Mathews side channel site; none of its 9 points is inside a polygon (nearest TrailerPark / UpperMathews) - confirm
+Weir Riffle,weir,proposed,"drops the ""Riffle"" suffix; 26 of 30 points inside the Weir polygon"
+Below Lower Auditorium,belowlowerauditorium,exact name match,
+Cottonwood,cottonwood,exact name match,
+Eye Side Channel,eyesidechannel,exact name match,
+Great  western,greatwestern,exact name match,
+Hatchery Pipe,hatcherypipe,exact name match,
+Lower Auditorium,lowerauditorium,exact name match,
+Lower Robinson,lowerrobinson,exact name match,
+Lower Table Mountain,lowertablemountain,exact name match,
+Middle Auditorium,middleauditorium,exact name match,
+Moe's Side Channel,moessidechannel,exact name match,
+Table Mountain,tablemountain,exact name match,
+Top of Auditorium,topofauditorium,exact name match,
+Trailer Park,trailerpark,exact name match,
+Upper Auditorium,upperauditorium,exact name match,
+Upper Cottonwood,uppercottonwood,exact name match,
+Upper Mathews,uppermathews,exact name match,
+Upper Robinson,upperrobinson,exact name match,
+Vance West,vancewest,exact name match,

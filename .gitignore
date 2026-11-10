@@ -49,3 +49,9 @@ po/*~
 rsconnect/
 
 .DS_Store
+
+# Office lock/temp files
+~$*
+
+# renv library and settings
+renv/

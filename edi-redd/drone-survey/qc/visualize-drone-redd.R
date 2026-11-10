@@ -18,35 +18,163 @@ redd_pts <- drone_redd_clean_all |>
 
 flight_routes <- st_read(file.path(clean_data_dir, "drone_flight_routes_compiled.shp"), quiet = TRUE)
 
-# Redd points that sat inside more than one mission's buffer and had to be
-# resolved to a single mission (nearest distance, or an exact mission-name
-# match overriding distance) - see clean-data.R. Shown as their own map layer
-# below so each decision can be reviewed against its actual location.
 diagnostics_dir <- file.path(clean_data_dir, "diagnostics")
-ambiguous_path  <- file.path(diagnostics_dir, "ambiguous_mission_matches.csv")
-ambiguous_pts <- if (file.exists(ambiguous_path)) {
-  read_csv(ambiguous_path, show_col_types = FALSE) |>
-    st_as_sf(coords = c("longitude", "latitude"), crs = 4326, remove = FALSE)
-} else {
-  NULL
-}
 
-# collapse the mission x location rows back to one polygon per distinct
-# geometry (a mission spanning several locations still has one shape) so the
-# map draws each flight route once, with all of its matched locations in the
-# popup rather than the same outline stacked on top of itself
-flight_routes_map <- flight_routes |>
-  group_by(mission) |>
-  summarise(
-    locations = paste(sort(unique(location)), collapse = ", "),
-    n_redds = sum(n_redds, na.rm = TRUE),
-    .groups = "drop"
-  )
+# the flight route shapefile is pure geometry keyed by `mission` (no location
+# or redd count - see clean-data.R), so it's plotted as is
+flight_routes_map <- flight_routes
+
+# Ground (walking) redd survey location polygons - the spawning-location
+# boundaries Chris used to assign each drone redd to a `location` (not the
+# flight route mission boundaries). Each gdb layer is one location polygon, so
+# they're read into a single sf with the layer name as `location`.
+gdb_path <- here::here("edi-redd", "data-raw", "shapefiles", "b105_redd_survey_locations_maps_2021.gdb")
+
+ground_survey_locations <- st_layers(gdb_path)$name |>
+  map(function(layer_name) {
+    st_read(dsn = gdb_path, layer = layer_name, quiet = TRUE) |>
+      st_transform(4326) |>
+      st_zm(drop = TRUE, what = "ZM") |>
+      transmute(location = layer_name)
+  }) |>
+  list_rbind() |>
+  st_as_sf()
+
+ground_color <- "#1a7f4b"
 
 channel_pal <- colorFactor(c("#2a78d6", "#eb6834"), domain = c("HFC", "LFC"))
 route_color <- "black"
-resolution_pal <- colorFactor(c("#eda100", "#1baf7a", "#9085e9"),
-                              domain = c("exact name match", "location starts with mission name", "nearest distance"))
+
+### Drone location name -> published EDI location name QC ----
+
+# Goal: map every drone `location` to a location name in the published ground
+# survey EDI package (edi.1802: data/survey_site_area.csv and
+# data/redd_observations.csv - lowercase, no spaces, e.g. "uppercottonwood").
+# The ground survey location boundaries (gdb layers) are named the same way,
+# so each redd's EDI name is also checked against its boundary. The result goes
+# in drone_to_edi_location_qc.csv and in each redd's popup on the map below.
+#
+# The crosswalk is the hand-editable file
+# data/crosswalk/drone_to_edi_location_crosswalk.csv (one row per drone
+# location; `basis` records exact name match vs a proposed match awaiting
+# confirmation). clean-data.R applies it to add `edi_location`; this script just
+# checks it against the boundaries. A drone location missing from the file is
+# flagged UNMATCHED, never guessed.
+
+norm_name <- function(x) str_replace_all(str_to_lower(x), "[^a-z0-9]", "")
+
+edi_sites <- union(
+  read_csv(here::here("edi-redd", "data", "survey_site_area.csv"), show_col_types = FALSE)$location,
+  read_csv(here::here("edi-redd", "data", "redd_observations.csv"), col_select = location, show_col_types = FALSE)$location
+) |> unique()
+
+crosswalk <- drone_redd_clean_all |>
+  distinct(drone_location = location) |>
+  left_join(
+    read_csv(file.path(drone_survey_dir, "data", "crosswalk", "drone_to_edi_location_crosswalk.csv"),
+             show_col_types = FALSE),
+    by = "drone_location"
+  ) |>
+  mutate(basis = if_else(is.na(edi_location), "UNMATCHED", basis)) |>
+  select(drone_location, edi_location, basis, note)
+
+if (any(crosswalk$basis == "UNMATCHED")) {
+  warning("drone location(s) with no EDI name in the crosswalk: ", paste(crosswalk$drone_location[crosswalk$basis == "UNMATCHED"], collapse = ", "))
+}
+if (any(!na.omit(crosswalk$edi_location) %in% edi_sites)) {
+  warning("crosswalk edi_location(s) not found in the published EDI data: ",
+          paste(setdiff(na.omit(crosswalk$edi_location), edi_sites), collapse = ", "))
+}
+
+# ground survey boundaries are keyed by their normalized layer name, which
+# equals the EDI location name
+ground_poly <- ground_survey_locations |>
+  rename(polygon_name = location) |>
+  mutate(key = norm_name(polygon_name))
+
+polys_m <- st_transform(ground_poly, 3310)
+
+# (drone_redd_clean.csv already carries edi_location from clean-data.R; it's
+# re-derived here from the crosswalk file so this check still works if the
+# crosswalk is edited before clean-data.R is re-run)
+redd_pts_xw <- redd_pts |>
+  select(-any_of("edi_location")) |>
+  left_join(crosswalk |> select(drone_location, edi_location, basis), by = c("location" = "drone_location"))
+
+pts_m   <- st_transform(redd_pts_xw, 3310)
+own_idx <- match(redd_pts_xw$edi_location, ground_poly$key)  # NA when the EDI site has no boundary polygon
+hits    <- st_intersects(pts_m, polys_m)
+
+own_dist <- rep(NA_real_, nrow(pts_m))
+has_own  <- which(!is.na(own_idx))
+own_dist[has_own] <- as.numeric(st_distance(pts_m[has_own, ], polys_m[own_idx[has_own], ], by_element = TRUE))
+
+position_levels <- c(
+  "inside own boundary", "inside a different boundary",
+  "outside all boundaries", "EDI site has no boundary polygon"
+)
+
+redd_pts_xw <- redd_pts_xw |>
+  mutate(
+    contained_in = map_chr(hits, \(i) paste(ground_poly$polygon_name[i], collapse = " + ")),
+    own_dist_m   = own_dist,
+    position = case_when(
+      is.na(own_idx)                                    ~ "EDI site has no boundary polygon",
+      map2_lgl(hits, own_idx, \(h, o) o %in% h)         ~ "inside own boundary",
+      contained_in != ""                                ~ "inside a different boundary",
+      TRUE                                              ~ "outside all boundaries"
+    ),
+    position = factor(position, levels = position_levels)
+  )
+
+# per drone location evidence behind each crosswalk row
+crosswalk_qc <- crosswalk |>
+  left_join(
+    redd_pts_xw |> st_drop_geometry() |>
+      group_by(drone_location = location) |>
+      summarise(
+        n_points = n(),
+        n_inside_own = sum(position == "inside own boundary"),
+        n_inside_other = sum(position == "inside a different boundary"),
+        n_outside_all = sum(position == "outside all boundaries"),
+        n_no_polygon = sum(position == "EDI site has no boundary polygon"),
+        most_common_other_boundary = {
+          o <- contained_in[position == "inside a different boundary"]
+          if (length(o) == 0) NA_character_ else names(sort(table(o), decreasing = TRUE))[1]
+        },
+        .groups = "drop"
+      ),
+    by = "drone_location"
+  ) |>
+  mutate(
+    across(starts_with("n_"), \(x) replace_na(x, 0L)),
+    edi_site_has_polygon = edi_location %in% ground_poly$key
+  ) |>
+  arrange(basis != "UNMATCHED", str_detect(basis, "exact"), drone_location)
+
+write_csv(crosswalk_qc, file.path(diagnostics_dir, "drone_to_edi_location_qc.csv"))
+
+# which drone location name(s) map to each ground boundary's EDI name (shown
+# in the boundary popup)
+mapped_to <- crosswalk |>
+  filter(!is.na(edi_location)) |>
+  group_by(key = edi_location) |>
+  summarise(drone_names = paste(sort(drone_location), collapse = ", "), .groups = "drop")
+
+poly_map <- ground_poly |>
+  left_join(mapped_to, by = "key") |>
+  mutate(has_drone_name = !is.na(drone_names))
+
+### Map: ground survey boundaries, drone flight routes, drone redds ----
+
+point_popup <- ~paste0(
+  "<b>Drone redd location name:</b> ", location, "<br>",
+  "<b>Published EDI location name:</b> ", edi_location, "<br>",
+  date, " (", channel_location, ")<br>",
+  position,
+  if_else(contained_in != "", paste0("<br>inside boundary: ", contained_in), ""),
+  if_else(!is.na(own_dist_m) & own_dist_m > 0, paste0("<br>", round(own_dist_m, 1), " m from its own boundary"), "")
+)
 
 # OpenStreetMap's own tile servers block requests with no Referer header,
 # which is exactly what happens when this map is opened as a local file or an
@@ -56,76 +184,40 @@ resolution_pal <- colorFactor(c("#eda100", "#1baf7a", "#9085e9"),
 drone_map <- leaflet() |>
   addProviderTiles("Esri.WorldStreetMap", group = "Street") |>
   addProviderTiles("Esri.WorldImagery", group = "Satellite") |>
+  # added first so the flight routes and redd points draw on top of it
+  addPolygons(
+    data = poly_map,
+    color = ground_color, fillColor = ground_color, weight = 2, fillOpacity = 0.25,
+    label = ~polygon_name,
+    popup = ~paste0(
+      "<b>Published EDI location name:</b> ", key, "<br>",
+      "<b>Drone redd location name(s):</b> ", replace_na(drone_names, "none")
+    ),
+    group = "Ground survey locations"
+  ) |>
   addPolygons(
     data = flight_routes_map,
-    color = route_color,
-    weight = 2,
-    fillOpacity = 0.08,
+    color = route_color, weight = 2, fillOpacity = 0.08,
     label = ~mission,
-    popup = ~paste0(
-      "<b>Mission:</b> ", mission, "<br>",
-      "<b>Location(s):</b> ", locations, "<br>",
-      "<b>Redds inside:</b> ", n_redds
-    ),
+    popup = ~paste0("<b>Flight route (mission):</b> ", mission),
     group = "Flight routes"
   ) |>
   addCircleMarkers(
-    data = filter(redd_pts, channel_location == "HFC"),
+    data = redd_pts_xw,
     radius = 4, stroke = FALSE, fillOpacity = 0.8,
     fillColor = ~channel_pal(channel_location),
-    popup = ~paste0("<b>", location, "</b><br>", date, "<br>", channel_location),
-    group = "HFC redds"
+    popup = point_popup,
+    group = "Drone redds"
   ) |>
-  addCircleMarkers(
-    data = filter(redd_pts, channel_location == "LFC"),
-    radius = 4, stroke = FALSE, fillOpacity = 0.8,
-    fillColor = ~channel_pal(channel_location),
-    popup = ~paste0("<b>", location, "</b><br>", date, "<br>", channel_location),
-    group = "LFC redds"
-  )
-
-# Points that intersected more than one mission's buffer, shown so each
-# resolution can be reviewed - gold for an exact mission-name match, teal
-# where the location is a named sub-area of the mission (e.g. "G95 West
-# Bottom" under mission "G95 West"), purple where nearest distance decided
-# it outright with no name-based rule applying.
-if (!is.null(ambiguous_pts)) {
-  drone_map <- drone_map |>
-    addCircleMarkers(
-      data = ambiguous_pts,
-      radius = 9, stroke = TRUE, color = "#000000", weight = 1.5,
-      fillOpacity = 0.95, fillColor = ~resolution_pal(resolved_by),
-      label = ~paste0(location, " -> ", assigned_mission, " (", resolved_by, ")"),
-      popup = ~paste0(
-        "<b>Location:</b> ", location, "<br>",
-        "<b>Assigned mission:</b> ", assigned_mission, "<br>",
-        "<b>Resolved by:</b> ", resolved_by, "<br>",
-        "<b>All candidates:</b> ", all_candidates
-      ),
-      group = "Ambiguous mission matches (review)"
-    )
-}
-
-overlay_groups <- c("Flight routes", "HFC redds", "LFC redds")
-legend_colors  <- c("#2a78d6", "#eb6834", "black")
-legend_labels  <- c("HFC redd", "LFC redd", "flight route")
-
-if (!is.null(ambiguous_pts)) {
-  overlay_groups <- c(overlay_groups, "Ambiguous mission matches (review)")
-  legend_colors  <- c(legend_colors, "#eda100", "#1baf7a", "#9085e9")
-  legend_labels  <- c(legend_labels, "Ambiguous: exact name match", "Ambiguous: location starts with mission name", "Ambiguous: nearest distance")
-}
-
-drone_map <- drone_map |>
   addLayersControl(
-    baseGroups = c( "Street", "Satellite"),
-    overlayGroups = overlay_groups,
+    baseGroups = c("Street", "Satellite"),
+    overlayGroups = c("Ground survey locations", "Flight routes", "Drone redds"),
     options = layersControlOptions(collapsed = FALSE)
   ) |>
   addLegend(
     position = "bottomright",
-    colors = legend_colors,
-    labels = legend_labels,
+    colors = c("#2a78d6", "#eb6834", "black", ground_color),
+    labels = c("HFC redd", "LFC redd", "flight route", "ground survey location"),
     title = "Legend"
   )
 
@@ -134,48 +226,13 @@ drone_map
 # selfcontained = TRUE inlines all JS/CSS as data URIs into the one .html file
 # (verified: the saved file has zero references to a "_files" folder), so it
 # opens correctly as a standalone email attachment with no companion files
-# needed - only the live map tiles (OpenStreetMap/Esri) need an internet
-# connection when the recipient opens it. saveWidget still leaves behind a
-# "_files" support folder as build scratch even in selfcontained mode; it's
-# not referenced by the html and is removed here so it isn't mistaken for a
-# required companion file.
+# needed - only the live map tiles (Esri) need an internet connection when the
+# recipient opens it. saveWidget still leaves behind a "_files" support folder
+# as build scratch even in selfcontained mode; it's not referenced by the html
+# and is removed here so it isn't mistaken for a required companion file.
 map_path <- file.path(diagnostics_dir, "drone_flight_redd_map.html")
 saveWidget(drone_map, map_path, selfcontained = TRUE)
 unlink(file.path(diagnostics_dir, "drone_flight_redd_map_files"), recursive = TRUE)
 
-### Summary charts ----
-
-channel_colors <- c(HFC = "#2a78d6", LFC = "#eb6834")
-
-redds_by_location <- drone_redd_clean_all |>
-  group_by(location, channel_location) |>
-  summarise(n_redds = sum(n_redds), .groups = "drop") |>
-  mutate(location = fct_reorder(location, n_redds, .fun = sum))
-
-p_by_location <- ggplot(redds_by_location, aes(x = n_redds, y = location, fill = channel_location)) +
-  geom_col() +
-  scale_fill_manual(values = channel_colors, name = NULL) +
-  labs(
-    title = "Drone-surveyed redds by location",
-    x = "Number of redds", y = NULL
-  ) +
-  theme_minimal(base_size = 11) +
-  theme(legend.position = "top")
-
-ggsave(file.path(diagnostics_dir, "redds_by_location.png"), p_by_location, width = 8, height = 10, dpi = 150)
-
-redds_by_date <- drone_redd_clean_all |>
-  group_by(date, channel_location) |>
-  summarise(n_redds = sum(n_redds), .groups = "drop")
-
-p_by_date <- ggplot(redds_by_date, aes(x = date, y = n_redds, fill = channel_location)) +
-  geom_col() +
-  scale_fill_manual(values = channel_colors, name = NULL) +
-  labs(
-    title = "Drone-surveyed redds by survey date",
-    x = NULL, y = "Number of redds"
-  ) +
-  theme_minimal(base_size = 11) +
-  theme(legend.position = "top")
-
-ggsave(file.path(diagnostics_dir, "redds_by_date.png"), p_by_date, width = 9, height = 5, dpi = 150)
+print(count(crosswalk_qc, basis))
+print(redd_pts_xw |> st_drop_geometry() |> count(position))

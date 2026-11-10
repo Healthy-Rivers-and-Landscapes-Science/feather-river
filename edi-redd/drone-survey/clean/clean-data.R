@@ -7,6 +7,54 @@ library(sf)
 
 source(here::here("edi-redd", "drone-survey", "ingest", "read-data.R"))
 
+### Drone location -> published EDI location crosswalk ----
+
+# Drone `location` names are kept as recorded; `edi_location` is added next to
+# them so each drone redd can be tied to the location names in the published
+# ground survey package (edi.1802). The mapping lives in a hand-editable CSV -
+# one row per drone location - so changing a match (e.g. once Chris confirms
+# the "proposed" ones) is an edit to that file, not to this script:
+#   data/crosswalk/drone_to_edi_location_crosswalk.csv
+#   columns: drone_location, edi_location, basis, note
+location_crosswalk <- read_csv(
+  here::here("edi-redd", "drone-survey", "data", "crosswalk", "drone_to_edi_location_crosswalk.csv"),
+  show_col_types = FALSE
+)
+stopifnot(!anyDuplicated(location_crosswalk$drone_location))
+
+# same idea for the ground survey data, whose location names differ from both
+# the drone names and EDI (e.g. "Bedrock Riffle" -> bedrock):
+#   data/crosswalk/ground_to_edi_location_crosswalk.csv
+#   columns: ground_location, edi_location, basis, note
+ground_location_crosswalk <- read_csv(
+  here::here("edi-redd", "drone-survey", "data", "crosswalk", "ground_to_edi_location_crosswalk.csv"),
+  show_col_types = FALSE
+)
+stopifnot(!anyDuplicated(ground_location_crosswalk$ground_location))
+
+published_edi_sites <- union(
+  read_csv(here::here("edi-redd", "data", "survey_site_area.csv"), show_col_types = FALSE)$location,
+  read_csv(here::here("edi-redd", "data", "redd_observations.csv"), col_select = location, show_col_types = FALSE)$location
+) |> unique()
+
+bad_edi <- setdiff(na.omit(c(location_crosswalk$edi_location, ground_location_crosswalk$edi_location)), published_edi_sites)
+if (length(bad_edi) > 0) {
+  warning("crosswalk edi_location(s) not found in the published EDI data: ", paste(bad_edi, collapse = ", "))
+}
+
+# adds `edi_location` right after `location`; warns (rather than guessing) on
+# any drone location the crosswalk doesn't cover
+add_edi_location <- function(df, crosswalk = location_crosswalk, name_col = "drone_location") {
+  out <- df |>
+    left_join(select(crosswalk, all_of(c(name_col, "edi_location"))), by = c("location" = name_col)) |>
+    relocate(edi_location, .after = location)
+  missing_locs <- unique(out$location[is.na(out$edi_location)])
+  if (length(missing_locs) > 0) {
+    warning("no EDI location in the crosswalk for: ", paste(missing_locs, collapse = ", "))
+  }
+  out
+}
+
 # 2024 and 2025 are NOT byte-identical: 2024's LFC sheet has a "Lattitude"
 # typo that 2025's does not (already spelled correctly), and the date column
 # is named "Survey Date" in 2024 vs "Date" in 2025. Each year's actual columns
@@ -34,7 +82,7 @@ raw_redd_hfc_2025 <- raw_hfc_2025 |>
   janitor::clean_names() |>
   rename(survey_date = date)
 
-raw_redd <- bind_rows(raw_redd_hfc, raw_redd_lfc, raw_redd_hfc_2025, raw_redd_lfc_2025)
+raw_redd <- bind_rows(raw_redd_hfc, raw_redd_lfc, raw_redd_hfc_2025, raw_redd_lfc_2025) |> glimpse()
 
 ### Compile clean redd point dataset ----
 
@@ -49,9 +97,9 @@ drone_redd_clean <- raw_redd |>
   mutate(n_redds = 1) |> # every point is a redd. This is important for if we want to add surveyed dates that there were no redds.
   glimpse()
 
-# not written yet - the mission spatial join below needs real point
-# geometries, so drone_redd_clean stays points-only until the flight-schedule
-# zero-redd rows (no coordinates) are appended at the very end of this script
+# not written yet - drone_redd_clean stays points-only until the
+# flight-schedule zero-redd rows (no coordinates) are appended at the very end
+# of this script
 
 ### Compile clean ground survey redd dataset ----
 
@@ -97,6 +145,8 @@ ground_redd_clean <- bind_rows(raw_ground_2024_clean, raw_ground_2025_clean) |>
   ) |>
   arrange(date, location) |>
   glimpse()
+
+ground_redd_clean <- add_edi_location(ground_redd_clean, ground_location_crosswalk, "ground_location")
 
 write_csv(ground_redd_clean, here::here("edi-redd", "drone-survey", "data", "clean", "ground_redd_clean.csv"))
 
@@ -165,23 +215,11 @@ parse_flight_schedule_block <- function(raw, cols, channel) {
     select(location, mission_group, channel_location, mission_label, date, redd_total)
 }
 
-flight_schedule_2024 <- if (!is.null(raw_flight_schedule_2024)) {
-  # Assumes the same wide LFC (cols 1-26) / HFC (cols 27-42) layout as 2025 -
-  # verify this against the actual file once it arrives rather than trusting
-  # the assumption.
-  bind_rows(
-    parse_flight_schedule_block(raw_flight_schedule_2024, cols = 1:26,  channel = "LFC"),
-    parse_flight_schedule_block(raw_flight_schedule_2024, cols = 27:42, channel = "HFC")
-  )
-} else {
-  NULL
-}
-
-flight_schedule_clean <- bind_rows(
+flight_schedule_2025 <- bind_rows(
   parse_flight_schedule_block(raw_flight_schedule_2025, cols = 1:26,  channel = "LFC"),
-  parse_flight_schedule_block(raw_flight_schedule_2025, cols = 27:42, channel = "HFC"),
-  flight_schedule_2024
+  parse_flight_schedule_block(raw_flight_schedule_2025, cols = 27:42, channel = "HFC")
 ) |>
+  mutate(redd_total_source = "flight schedule") |>
   # TEMPORARY per-name fix, not a general rule: "Hatchery" is used for two
   # different, adjacent stretches of river and reports two different
   # non-zero redd totals on the same date depending on which flight route it
@@ -192,6 +230,92 @@ flight_schedule_clean <- bind_rows(
   mutate(location = if_else(location == "Hatchery",
                             paste0(mission_group, "-hatchery"),
                             location))
+
+# 2024 schedule: dates only (no redd totals), so how many redds each flight
+# found is INFERRED from the redd points instead - the same location on the
+# same date with redd points = that many redds, and a scheduled flight with no
+# points at all = a true zero. (Checked on 2025, where the schedule does give
+# totals: its totals equal the point counts in 148 of 168 location-days with
+# redds, and every 0 in the schedule had no points.) Where a flight has no points on
+# its scheduled date but does the next day, the total is left NA rather than
+# calling it a zero - the date is more likely off by a day than the site empty.
+parse_flight_schedule_2024 <- function(raw) {
+  names(raw) <- paste0("c", seq_len(ncol(raw)))
+  date_cols  <- setdiff(names(raw), "c1")
+  channel <- NA_character_; group <- NA_character_; labels <- NULL
+  out <- vector("list", nrow(raw))
+
+  for (i in seq_len(nrow(raw))) {
+    name <- raw$c1[i]
+    if (is.na(name) || str_detect(name, "Survey Week and Survey Mission")) next
+    vals <- unlist(raw[i, date_cols], use.names = FALSE)
+
+    if (str_detect(name, "^Flight Routes")) {          # LFC / HFC header row with the #1..#11 labels
+      channel <- str_extract(name, "LFC|HFC"); group <- NA_character_
+      labels  <- setNames(as.character(vals), date_cols)
+      next
+    }
+    if (all(is.na(vals))) { group <- name; next }       # mission group label row
+
+    serial <- suppressWarnings(as.numeric(vals))
+    ok <- !is.na(serial)
+    out[[i]] <- tibble(
+      sched_name       = name,
+      mission_group    = group,
+      channel_location = channel,
+      mission_label    = unname(labels[date_cols][ok]),
+      date             = as.Date(serial[ok], origin = "1899-12-30")
+    )
+  }
+  bind_rows(out)
+}
+
+flight_schedule_2024 <- if (!is.null(raw_flight_schedule_2024)) {
+  # combined / differently-spelled rows -> one row per location (hand-editable)
+  schedule_2024_name_map <- read_csv(
+    here::here("edi-redd", "drone-survey", "data", "crosswalk", "schedule_2024_name_map.csv"),
+    show_col_types = FALSE
+  )
+
+  points_by_day <- drone_redd_clean |>
+    mutate(date = as.Date(date)) |>
+    count(location, date, name = "n_points")
+  points_next_day <- points_by_day |> mutate(date = date - 1) |> rename(n_next_day = n_points)
+
+  parse_flight_schedule_2024(raw_flight_schedule_2024) |>
+    left_join(schedule_2024_name_map, by = c("sched_name" = "schedule_name"), relationship = "many-to-many") |>
+    mutate(location = coalesce(location, sched_name)) |>
+    # a location listed under two missions on the same date (e.g. Hatchery)
+    # is one flight-day for the redd count, so collapse to one row
+    group_by(location, channel_location, date) |>
+    summarise(
+      mission_group = na_if(paste(unique(na.omit(mission_group)), collapse = "; "), ""),
+      mission_label = paste(unique(mission_label), collapse = "/"),
+      .groups = "drop"
+    ) |>
+    left_join(points_by_day,   by = c("location", "date")) |>
+    left_join(points_next_day, by = c("location", "date")) |>
+    mutate(
+      redd_total = case_when(
+        !is.na(n_points)   ~ as.numeric(n_points),
+        !is.na(n_next_day) ~ NA_real_,
+        TRUE               ~ 0
+      ),
+      redd_total_source = "inferred from redd points"
+    ) |>
+    select(location, mission_group, channel_location, mission_label, date, redd_total, redd_total_source,
+           n_next_day)
+} else {
+  NULL
+}
+
+date_off_by_one <- flight_schedule_2024 |> filter(is.na(redd_total))
+if (nrow(date_off_by_one) > 0) {
+  warning(nrow(date_off_by_one), " 2024 scheduled flight(s) have no redd points on the scheduled date but do the next day - redd_total left NA (not a zero): ",
+          paste0(date_off_by_one$location, " ", date_off_by_one$date, collapse = "; "))
+}
+
+flight_schedule_clean <- bind_rows(flight_schedule_2025, select(flight_schedule_2024, -n_next_day))
 
 # sanity checks - both should be empty/zero once the above is correct
 duplicate_schedule_rows <- flight_schedule_clean |>
@@ -204,194 +328,32 @@ if (any(!format(flight_schedule_clean$date, "%Y") %in% c("2024", "2025"))) {
   warning("flight_schedule_clean has date(s) outside 2024/2025 - likely a column-pairing error")
 }
 
-write_csv(flight_schedule_clean, here::here("edi-redd", "drone-survey", "data", "clean", "flight_schedule_clean.csv"))
+flight_schedule_clean <- add_edi_location(flight_schedule_clean)
+
+write_csv(flight_schedule_clean,here::here("edi-redd", "drone-survey", "data", "clean", "flight_schedule_clean.csv"))
 
 ### Compile flight route mission shapefiles ----
-# NOTE: this section intentionally uses only drone_redd_clean. Ground surveys
-# are walked, not flown, so they have no corresponding mission flight route
-# polygon to spatially join against.
+# Published as pure route geometry, keyed by `mission` (the name each flight
+# route shapefile was given by hand in the field). There is deliberately no
+# `location` or `n_redds` here:
+#   - Redd `location` comes from the ground redd survey location map (see
+#     drone_redd_clean), NOT from the flight route boundaries - several
+#     routes cover multiple spawning locations, and one location (e.g.
+#     Hatchery) can sit under more than one route.
+#   - A per-mission redd count would sum every survey date and depend on a
+#     point-in-polygon join that isn't the basis for location assignment.
+# If a mission-to-location link is ever needed, take it from the flight
+# schedule's `mission_group` (flight_schedule_clean) instead of re-deriving it
+# spatially.
 
-# each mission shapefile is a drone flight route polygon named by hand in the
-# field; those names mostly match `location` in drone_redd_clean but a few
-# missions were flown as one combined route over several locations (e.g.
-# "Low Aud to Upp Aud" covers Lower/Middle/Upper Auditorium). Rather than
-# guess a name crosswalk, spatially join each mission polygon against the
-# redd points it actually contains and use that to assign location name(s).
-
-mission_polys <- map(mission_files, function(f) {
+drone_flight_routes <- map(mission_files, function(f) {
   st_read(f, quiet = TRUE) |>
     st_zm() |>
     st_transform(4326) |>
-    transmute(mission = tools::file_path_sans_ext(basename(f)), feature_id = row_number())
+    transmute(mission = tools::file_path_sans_ext(basename(f)))
 }) |>
   list_rbind() |>
   st_as_sf()
-
-redd_pts <- drone_redd_clean |>
-  st_as_sf(coords = c("longitude", "latitude"), crs = 4326, remove = FALSE) |>
-  mutate(pt_id = row_number())
-
-# 2m buffer only absorbs floating-point/edge-snapping noise between a mission
-# polygon and the points recorded inside it; it's too small to bleed into a
-# neighboring mission's polygon
-mission_polys_buf <- mission_polys |>
-  st_transform(3310) |>
-  st_buffer(2) |>
-  st_transform(4326)
-
-matches_raw <- st_join(mission_polys_buf, redd_pts, join = st_intersects) |>
-  st_drop_geometry()
-
-# A handful of redd points sit close enough to a mission boundary to
-# intersect two adjacent missions' 2m buffers at once (e.g. some "G95 West
-# Bottom" points are caught by both "G95 East Top" and "G95 West"). Left as
-# is, that redd gets counted under both missions' n_redds. Resolve each such
-# point to whichever mission's ACTUAL (unbuffered) polygon it is physically
-# nearest to - "nearest mission wins" - so every redd is assigned to exactly
-# one mission.
-ambiguous_pt_ids <- matches_raw |>
-  filter(!is.na(pt_id)) |>
-  distinct(pt_id, mission, feature_id) |>
-  count(pt_id) |>
-  filter(n > 1) |>
-  pull(pt_id)
-
-if (length(ambiguous_pt_ids) > 0) {
-  redd_pts_m      <- st_transform(redd_pts, 3310)
-  mission_polys_m <- st_transform(mission_polys, 3310)
-
-  candidate_dists <- matches_raw |>
-    filter(pt_id %in% ambiguous_pt_ids) |>
-    distinct(pt_id, location, mission, feature_id) |>
-    rowwise() |>
-    mutate(
-      dist_m = as.numeric(st_distance(
-        st_geometry(redd_pts_m)[redd_pts_m$pt_id == pt_id],
-        st_geometry(mission_polys_m)[mission_polys_m$mission == mission & mission_polys_m$feature_id == feature_id]
-      ))
-    ) |>
-    ungroup() |>
-    # Name-based rules take priority over distance, ranked most to least
-    # specific:
-    #   0. EXACT match (trimmed, case-insensitive) between a candidate
-    #      mission's name and the redd's own `location` - e.g. a redd
-    #      recorded under location "Trailer Park" should be assigned to the
-    #      "Trailer Park" mission even where the "Mathews" mission's polygon
-    #      happens to be marginally closer at that point.
-    #   1. The `location` starts with a candidate mission's name - i.e. the
-    #      location is a named sub-area of that mission (e.g. location "G95
-    #      West Bottom" is part of the "G95 West" mission, not "G95 East
-    #      Top", regardless of which polygon edge is nearer).
-    #   2. No name-based rule applies - fall back to nearest distance.
-    mutate(
-      location_norm = str_to_lower(str_trim(location)),
-      mission_norm  = str_to_lower(str_trim(mission)),
-      match_rank = case_when(
-        mission_norm == location_norm        ~ 0L,
-        str_starts(location_norm, mission_norm) ~ 1L,
-        TRUE                                  ~ 2L
-      )
-    )
-
-  winners <- candidate_dists |>
-    group_by(pt_id) |>
-    arrange(match_rank, dist_m, .by_group = TRUE) |>
-    slice(1) |>
-    ungroup()
-
-  # what would nearest-distance ALONE have picked, purely so the log below
-  # can flag the cases where a name-based rule actually changed the outcome
-  nearest_only <- candidate_dists |>
-    group_by(pt_id) |>
-    slice_min(dist_m, n = 1, with_ties = FALSE) |>
-    ungroup() |>
-    select(pt_id, nearest_mission = mission)
-
-  ambiguous_resolution_log <- winners |>
-    left_join(nearest_only, by = "pt_id") |>
-    mutate(
-      resolved_by = case_when(
-        match_rank == 0L ~ "exact name match",
-        match_rank == 1L ~ "location starts with mission name",
-        TRUE             ~ "nearest distance"
-      ),
-      changed_from_nearest = mission != nearest_mission
-    ) |>
-    left_join(
-      st_drop_geometry(redd_pts_m) |> select(pt_id, longitude, latitude),
-      by = "pt_id"
-    ) |>
-    left_join(
-      candidate_dists |>
-        arrange(pt_id, dist_m) |>
-        group_by(pt_id) |>
-        summarise(all_candidates = paste0(mission, " (", round(dist_m), "m)", collapse = " | "), .groups = "drop"),
-      by = "pt_id"
-    ) |>
-    select(pt_id, location, longitude, latitude, assigned_mission = mission,
-           resolved_by, changed_from_nearest, all_candidates)
-
-  message(
-    nrow(ambiguous_resolution_log),
-    " redd point(s) intersected more than one mission's buffer. ",
-    sum(ambiguous_resolution_log$changed_from_nearest),
-    " flipped away from the nearest-distance pick by a name-based rule; the rest kept nearest distance:"
-  )
-  print(ambiguous_resolution_log |> select(pt_id, location, assigned_mission, resolved_by, all_candidates))
-
-  write_csv(
-    ambiguous_resolution_log,
-    here::here("edi-redd", "drone-survey", "data", "clean", "diagnostics", "ambiguous_mission_matches.csv")
-  )
-
-  winners <- winners |> select(pt_id, mission, feature_id)
-
-  # keep every row for missions with zero matches (pt_id is NA) and every
-  # non-ambiguous point match untouched; for ambiguous points, keep only the
-  # winning row (name-match override where one applies, else nearest)
-  matches_raw <- bind_rows(
-    matches_raw |> filter(is.na(pt_id) | !(pt_id %in% ambiguous_pt_ids)),
-    matches_raw |> semi_join(winners, by = c("pt_id", "mission", "feature_id"))
-  )
-}
-
-matches <- matches_raw |>
-  count(mission, feature_id, location, name = "n_redds")
-
-# one row per mission x matched location; missions with no drone_redd_clean
-# points inside them (new mission areas not yet reflected in the redd data)
-# keep their own mission name as the location so nothing is silently dropped
-location_lookup <- matches |>
-  mutate(matched = !is.na(location), location = if_else(matched, location, mission)) |>
-  arrange(mission, feature_id, desc(n_redds))
-
-multi_location_missions <- location_lookup |>
-  count(mission, feature_id) |>
-  filter(n > 1)
-if (nrow(multi_location_missions) > 0) {
-  message("Missions spanning more than one drone_redd_clean location:")
-  print(multi_location_missions)
-}
-
-unmatched_missions <- location_lookup |>
-  filter(!matched) |>
-  distinct(mission)
-if (nrow(unmatched_missions) > 0) {
-  warning(nrow(unmatched_missions), " mission shapefile(s) had no matching drone_redd_clean location and kept their own mission name: ",
-          paste(unmatched_missions$mission, collapse = ", "))
-}
-
-# mission = mission name, which overlaps with location name but not always. TODO - do we need this?
-# location = redd location name, from redd dataset
-# NOTE: there are redundant polygons in this approach because it is mapped to the location.
-# `matched` kept even though it's redundant with n_redds in most rows -
-# qc/visualize-drone-redd.R relies on it to tell a genuinely-unmatched
-# mission (location fell back to the mission's own name, n_redds is a join
-# artifact rather than a real count) apart from a mission whose one real
-# matched location just happens to share its name.
-drone_flight_routes <- mission_polys |>
-  left_join(location_lookup, by = c("mission", "feature_id")) |>
-  select(mission, location, n_redds)
 
 st_write(
   drone_flight_routes,
@@ -407,8 +369,7 @@ st_write(
 # drone_redd_clean can't otherwise tell apart from "never surveyed here."
 # Only 0-count rows are added; anything >0 is already represented by actual
 # redd points above, so re-adding it here would double count. These rows have
-# no flight coordinates, so they're appended after (not before) the mission
-# spatial join above, which needs real point geometries to work.
+# no coordinates.
 zero_redd_rows <- flight_schedule_clean |>
   filter(redd_total == 0) |>
   transmute(
@@ -430,7 +391,9 @@ if (nrow(zero_redd_conflicts) > 0) {
 }
 
 drone_redd_clean <- bind_rows(drone_redd_clean, zero_redd_rows) |>
+  add_edi_location() |>
   arrange(channel_location, location, date) |>
   glimpse()
 
 write_csv(drone_redd_clean, here::here("edi-redd", "drone-survey", "data", "clean", "drone_redd_clean.csv"))
+

@@ -62,12 +62,12 @@ raw_flight_schedule_2025 <- suppressMessages(read_excel(
 
 # 2024 flight route schedule --------------------------------------------------
 
-# Not received from the data source yet (confirmed absent, not just
-# unlooked-for). Placeholder path so that dropping the file in later - same
-# name, same wide LFC/HFC-side-by-side layout as the 2025 schedule - is the
-# only change needed; clean/clean-data.R already parses it conditionally.
+# NOT the same layout as 2025: one date per flight mission (#1 - #11) per
+# location, with NO redd totals, LFC (row 2 header) and HFC (row 30 header)
+# stacked vertically rather than side by side, and some locations combined in
+# one row (e.g. "Steep, Weir"). See clean/clean-data.R for how it's tidied.
 flight_schedule_2024_path <- here::here("edi-redd", "drone-survey", "data", "raw",
-                                        "2024 Aerial Chinook Salmon Redd Survey Flight Route Schedule.xlsx")
+                                        "2024 Chinook Salmon Aerial Redd Survey Flight Route Mission Schedule.xlsx")
 
 raw_flight_schedule_2024 <- if (file.exists(flight_schedule_2024_path)) {
   suppressMessages(read_excel(flight_schedule_2024_path, sheet = "Sheet1", col_names = FALSE))
