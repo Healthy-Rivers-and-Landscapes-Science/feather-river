@@ -5,7 +5,7 @@ library(tidyverse)
 library(ggalluvial)
 
 drone_redd_clean <- read_csv(
-  here::here("edi-redd", "drone-survey", "data", "clean", "drone_redd_clean.csv"),
+  here::here("edi-redd", "data", "clean", "drone_redd_clean.csv"),
   show_col_types = FALSE
 )
 
@@ -63,7 +63,7 @@ if (qc_summary$duplicate_points > 0) warning(qc_summary$duplicate_points, " dupl
 
 ### Figures ----
 
-diagnostics_dir <- here::here("edi-redd", "drone-survey", "data", "clean", "diagnostics")
+diagnostics_dir <- here::here("edi-redd", "data", "clean", "diagnostics")
 
 drone_redd_clean |>
   group_by(date, location, channel_location) |>
@@ -122,12 +122,12 @@ ggsave(file.path(diagnostics_dir, "redds_by_date.png"), p_by_date, width = 9, he
 # exactly are gray; the matches still awaiting confirmation are colored, so the
 # ones to check stand out.
 
-crosswalk_dir <- here::here("edi-redd", "drone-survey", "data", "crosswalk")
+crosswalk_dir <- here::here("edi-redd", "data", "crosswalk")
 drone_xw  <- read_csv(file.path(crosswalk_dir, "drone_to_edi_location_crosswalk.csv"), show_col_types = FALSE)
 ground_xw <- read_csv(file.path(crosswalk_dir, "ground_to_edi_location_crosswalk.csv"), show_col_types = FALSE)
 
 ground_redd_clean <- read_csv(
-  here::here("edi-redd", "drone-survey", "data", "clean", "ground_redd_clean.csv"),
+  here::here("edi-redd", "data", "clean", "ground_redd_clean.csv"),
   show_col_types = FALSE
 )
 
@@ -178,6 +178,9 @@ p_drone_names <- plot_name_alluvial(
   "Drone redd location names -> published EDI location names",
   "Gray = exact name match; colored = proposed match to confirm with Chris."
 )
+
+p_drone_names
+
 ggsave(file.path(diagnostics_dir, "drone_location_names_to_edi.png"), p_drone_names, width = 9, height = 15, dpi = 110)
 
 # ground: each row is one redd
@@ -217,6 +220,8 @@ p_effort <- ggplot(drone_effort, aes(x = date, y = fct_rev(factor(location)))) +
   theme_minimal(base_size = 9) +
   theme(panel.grid.minor = element_blank(), legend.position = "top", strip.text = element_text(face = "bold"))
 
+p_effort
+
 ggsave(file.path(diagnostics_dir, "drone_survey_effort.png"), p_effort, width = 12, height = 10, dpi = 110)
 
 # drone and ground redds by published EDI location. Where both methods cover
@@ -239,5 +244,7 @@ p_methods <- ggplot(redds_by_method, aes(x = n, y = edi_location, color = method
   ) +
   theme_minimal(base_size = 10) +
   theme(legend.position = "top")
+
+p_methods
 
 ggsave(file.path(diagnostics_dir, "redds_by_edi_location_and_method.png"), p_methods, width = 8, height = 9, dpi = 110)

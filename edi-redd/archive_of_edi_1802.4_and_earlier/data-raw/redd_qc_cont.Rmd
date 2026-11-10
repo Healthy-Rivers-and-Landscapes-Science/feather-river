@@ -40,7 +40,7 @@ Summary of work that has been done so far:
     * "type" is removed
     * 2023 number_redds set all to 1 
     * note that 7 data entries in the raw data that had "0" in number_redds, those were set to 1
-    * Data file output: "data-raw/combined_raw_data.csv"
+    * Data file output: edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/combined_raw_data.csv
     
   * *mapping-qc-exploration*: exploration script - looks into latitude longitude and identifies issues. 
     
@@ -48,10 +48,10 @@ Summary of work that has been done so far:
 
 ```{r, include=FALSE}
 # redd survey points
-redd_data <- read.csv(here::here("edi-redd", "data-raw", "combined_raw_data.csv"))
+redd_data <- read.csv(here::here("edi-redd", "archive_of_edi_1802.4_and_earlier", "data-raw", "combined_raw_data.csv"))
 
 # surveying sites from gis data map
-gdb_path <- here::here("edi-redd", "data-raw", "shapefiles", "b105_redd_survey_locations_maps_2021.gdb")
+gdb_path <- here::here("edi-redd", "archive_of_edi_1802.4_and_earlier", "data-raw", "shapefiles", "b105_redd_survey_locations_maps_2021.gdb")
 
 layers <- st_layers(gdb_path)$name
 ```
@@ -79,7 +79,7 @@ data_zero_removed <- redd_data |>
 
 
 # Chris shared the correct lat/long for some of these records, and decided to delete some of the entries
-fixed_zeros <- read.csv(here::here("edi-redd", "data-raw", "qc-processing-files", "Faulty_lat_long_records_edits_Chris_111224.csv")) |> # csv with Chris' notes
+fixed_zeros <- read.csv(here::here("edi-redd", "archive_of_edi_1802.4_and_earlier", "data-raw", "qc-processing-files", "Faulty_lat_long_records_edits_Chris_111224.csv")) |> # csv with Chris' notes
   select(-1) |> 
   mutate(Northing = str_trim(Northing)) |>
   filter(Northing != "Erase this data") |> #erasing the 6 data entries he indicates to delete
@@ -120,7 +120,7 @@ off_channel_removed <- redd_data_fixed_zeros |>
 glimpse()
 
 #reding in Chris' file with corrections
-fixed_off_channel <- read.csv(here::here("edi-redd", "data-raw", "qc-processing-files", "Off_channel_records_edit_Chris_110524.csv")) |> 
+fixed_off_channel <- read.csv(here::here("edi-redd", "archive_of_edi_1802.4_and_earlier", "data-raw", "qc-processing-files", "Off_channel_records_edit_Chris_110524.csv")) |> 
   glimpse()
 
 fixed_off_channel <- fixed_off_channel |> 
@@ -261,7 +261,7 @@ Reference map to check where redds are located geographically
 
 ```{r echo=FALSE, warning=FALSE}
 # pulling layers from survey location map for reference
-gdb_path <- "edi-redd/data-raw/shapefiles/b105_redd_survey_locations_maps_2021.gdb"
+gdb_path <- "edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/shapefiles/b105_redd_survey_locations_maps_2021.gdb"
 layers <- st_layers(gdb_path)$name
 
 name_check_map <- leaflet() |> 
@@ -402,7 +402,7 @@ print(unique(redd_observations_clean_2$location[!redd_observations_clean_2$locat
 #     location == "middleauditorium" & date == "2014-11-07" & latitude == "39.4098841591031" & longitude == "-121.625766739867") |>
 #   glimpse()
 # 
-# write.csv(redd_questions, "data-raw/redd_questions_0125.csv")
+# write.csv(redd_questions, here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/redd_questions_0125.csv"))
 ```
 
 Listing redd location names that remain unmatched to any survey locations (should be 0)
@@ -435,15 +435,15 @@ redd_observations <- redd_observations_wnames |>
 
 ```{r, include=FALSE}
 # save clean data - keeping survey week to use as reference (identify when 0 redds were observed)
-write.csv(redd_observations_wnames, "edi-redd/data-raw/qc-processing-files/redd_observations_survey_wk.csv", row.names = FALSE)
+write.csv(redd_observations_wnames, "edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/qc-processing-files/redd_observations_survey_wk.csv", row.names = FALSE)
 
 # save clean data
-write.csv(redd_observations, "edi-redd/data/redd_observations.csv", row.names = FALSE)
+write.csv(redd_observations, "edi-redd/archive_of_edi_1802.4_and_earlier/data/redd_observations.csv", row.names = FALSE)
 ```
 
 
 ```{r, include=FALSE}
-read.csv("edi-redd/data/redd_observations.csv") |> glimpse()
+read.csv("edi-redd/archive_of_edi_1802.4_and_earlier/data/redd_observations.csv") |> glimpse()
 ```
 
 

@@ -5,7 +5,7 @@
 library(janitor)
 library(sf)
 
-source(here::here("edi-redd", "drone-survey", "ingest", "read-data.R"))
+source(here::here("edi-redd", "ingest", "read-data.R"))
 
 ### Drone location -> published EDI location crosswalk ----
 
@@ -17,7 +17,7 @@ source(here::here("edi-redd", "drone-survey", "ingest", "read-data.R"))
 #   data/crosswalk/drone_to_edi_location_crosswalk.csv
 #   columns: drone_location, edi_location, basis, note
 location_crosswalk <- read_csv(
-  here::here("edi-redd", "drone-survey", "data", "crosswalk", "drone_to_edi_location_crosswalk.csv"),
+  here::here("edi-redd", "data", "crosswalk", "drone_to_edi_location_crosswalk.csv"),
   show_col_types = FALSE
 )
 stopifnot(!anyDuplicated(location_crosswalk$drone_location))
@@ -27,14 +27,14 @@ stopifnot(!anyDuplicated(location_crosswalk$drone_location))
 #   data/crosswalk/ground_to_edi_location_crosswalk.csv
 #   columns: ground_location, edi_location, basis, note
 ground_location_crosswalk <- read_csv(
-  here::here("edi-redd", "drone-survey", "data", "crosswalk", "ground_to_edi_location_crosswalk.csv"),
+  here::here("edi-redd", "data", "crosswalk", "ground_to_edi_location_crosswalk.csv"),
   show_col_types = FALSE
 )
 stopifnot(!anyDuplicated(ground_location_crosswalk$ground_location))
 
 published_edi_sites <- union(
-  read_csv(here::here("edi-redd", "data", "survey_site_area.csv"), show_col_types = FALSE)$location,
-  read_csv(here::here("edi-redd", "data", "redd_observations.csv"), col_select = location, show_col_types = FALSE)$location
+  read_csv(here::here("edi-redd", "archive_of_edi_1802.4_and_earlier", "data", "survey_site_area.csv"), show_col_types = FALSE)$location,
+  read_csv(here::here("edi-redd", "archive_of_edi_1802.4_and_earlier", "data", "redd_observations.csv"), col_select = location, show_col_types = FALSE)$location
 ) |> unique()
 
 bad_edi <- setdiff(na.omit(c(location_crosswalk$edi_location, ground_location_crosswalk$edi_location)), published_edi_sites)
@@ -148,7 +148,7 @@ ground_redd_clean <- bind_rows(raw_ground_2024_clean, raw_ground_2025_clean) |>
 
 ground_redd_clean <- add_edi_location(ground_redd_clean, ground_location_crosswalk, "ground_location")
 
-write_csv(ground_redd_clean, here::here("edi-redd", "drone-survey", "data", "clean", "ground_redd_clean.csv"))
+write_csv(ground_redd_clean, here::here("edi-redd", "data", "clean", "ground_redd_clean.csv"))
 
 ### Compile clean flight route schedule ----
 
@@ -273,7 +273,7 @@ parse_flight_schedule_2024 <- function(raw) {
 flight_schedule_2024 <- if (!is.null(raw_flight_schedule_2024)) {
   # combined / differently-spelled rows -> one row per location (hand-editable)
   schedule_2024_name_map <- read_csv(
-    here::here("edi-redd", "drone-survey", "data", "crosswalk", "schedule_2024_name_map.csv"),
+    here::here("edi-redd", "data", "crosswalk", "schedule_2024_name_map.csv"),
     show_col_types = FALSE
   )
 
@@ -330,7 +330,7 @@ if (any(!format(flight_schedule_clean$date, "%Y") %in% c("2024", "2025"))) {
 
 flight_schedule_clean <- add_edi_location(flight_schedule_clean)
 
-write_csv(flight_schedule_clean,here::here("edi-redd", "drone-survey", "data", "clean", "flight_schedule_clean.csv"))
+write_csv(flight_schedule_clean,here::here("edi-redd", "data", "clean", "flight_schedule_clean.csv"))
 
 ### Compile flight route mission shapefiles ----
 # Published as pure route geometry, keyed by `mission` (the name each flight
@@ -357,7 +357,7 @@ drone_flight_routes <- map(mission_files, function(f) {
 
 st_write(
   drone_flight_routes,
-  here::here("edi-redd", "drone-survey", "data", "clean", "drone_flight_routes_compiled.shp"),
+  here::here("edi-redd", "data", "clean", "drone_flight_routes_compiled.shp"),
   delete_dsn = TRUE,
   quiet = TRUE
 )
@@ -395,5 +395,5 @@ drone_redd_clean <- bind_rows(drone_redd_clean, zero_redd_rows) |>
   arrange(channel_location, location, date) |>
   glimpse()
 
-write_csv(drone_redd_clean, here::here("edi-redd", "drone-survey", "data", "clean", "drone_redd_clean.csv"))
+write_csv(drone_redd_clean, here::here("edi-redd", "data", "clean", "drone_redd_clean.csv"))
 

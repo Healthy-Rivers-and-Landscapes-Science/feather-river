@@ -14,7 +14,7 @@ library(lubridate)
 # for the survey weeks that do not correspond to a number, I am assigning a numeric value, for the sake of code simplicity
 
 survey_dates_raw <- read_csv(
-  "edi-redd/data-raw/qc-processing-files/survey_wk/survey_week_date_reference.csv"
+  "edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/qc-processing-files/survey_wk/survey_week_date_reference.csv"
 )
 
 # filtering out non-numeric survey weeks
@@ -40,12 +40,12 @@ survey_dates <- survey_dates_raw |>
 
 ## CODE FOR UPDATE ----
 # Save the dataset
-# write_csv(survey_dates, "data-raw/edi-update-files/survey_week_date_reference.csv")
+# write_csv(survey_dates, here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/edi-update-files/survey_week_date_reference.csv"))
 
 # feather redd data team also provided documentation of a yearly description for which survey week was each site surveyed "General Chinook Salmon Redd Survey Methods with Yearly Summaries"
 # survey_week_site_reference_2014_2023.csv was manually created as a translation of that document
 survey_sites <- read_csv(
-  "edi-redd/data-raw/qc-processing-files/survey_wk/surveyed_sites_per_sv_week_summary.csv"
+  "edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/qc-processing-files/survey_wk/surveyed_sites_per_sv_week_summary.csv"
 )
 survey_sites <- survey_sites |>
   select(2, 3, 6, 8) |>
@@ -69,7 +69,7 @@ survey_sites_clean <- survey_sites |>
 
 ## CODE FOR UPDATE ----
 # Save the dataset
-# write_csv(survey_sites_clean, "data-raw/edi-update-files/surveyed_sites_per_sv_week_summary.csv")
+# write_csv(survey_sites_clean, here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/edi-update-files/surveyed_sites_per_sv_week_summary.csv"))
 
 # join with survey_dates to get start and end dates
 survey_combined <- survey_sites_clean |>
@@ -82,7 +82,7 @@ surveyed_sites <- survey_combined |>
 
 
 # Save the cleaned dataset
-write_csv(surveyed_sites, "edi-redd/data/survey_site_dates.csv")
+write_csv(surveyed_sites, "edi-redd/archive_of_edi_1802.4_and_earlier/data/survey_site_dates.csv")
 
 
 ### Adding zeros to data ----
@@ -91,7 +91,7 @@ write_csv(surveyed_sites, "edi-redd/data/survey_site_dates.csv")
 # reading feather redd data (with survey week)
 
 redd_data <- read.csv(
-  "data-raw/qc-processing-files/survey_wk/redd_observations_survey_wk_clean.csv"
+  here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/qc-processing-files/survey_wk/redd_observations_survey_wk_clean.csv")
 ) |>
   mutate(date = as.Date(date)) |>
   glimpse()
@@ -100,7 +100,7 @@ glimpse(survey_sites_clean)
 
 ## CODE FOR UPDATE ----
 # Save the dataset
-# write.xlsx(redd_data, "data-raw/edi-update-files/redd_data_for_binding_update.xlsx")
+# write.xlsx(redd_data, here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/edi-update-files/redd_data_for_binding_update.xlsx"))
 
 # todo identify those locations/dates when survey_sites_clean surveyed == TRUE, but redd_data has no records
 surveyed_sites_summary <- survey_combined |>
@@ -138,13 +138,11 @@ redd_data_updated <- redd_data |>
   glimpse()
 
 # save redd data with zeros added
-write_csv(redd_data_updated, "data/redd_observation_w_zeros.csv")
+write_csv(redd_data_updated, here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data/redd_observation_w_zeros.csv"))
 
 ### Adding the survey_area table
 
-survey_area_raw <- readxl::read_xlsx(here::here(
-  "edi-redd",
-  "data-raw",
+survey_area_raw <- readxl::read_xlsx(here::here("edi-redd", "archive_of_edi_1802.4_and_earlier", "data-raw",
   "qc-processing-files",
   "FR_Redd_Survey_Locations_area_restored_rm.xlsx"
 ))
@@ -161,4 +159,4 @@ survey_area <- survey_area_raw |>
   ) |> 
   select(location, area_ft2, if_restored, when_restored, river_mile_from_confluence)
 
-write_csv(survey_area, here::here("edi-redd","data","survey_site_area.csv"))
+write_csv(survey_area, here::here("edi-redd", "archive_of_edi_1802.4_and_earlier", "data","survey_site_area.csv"))

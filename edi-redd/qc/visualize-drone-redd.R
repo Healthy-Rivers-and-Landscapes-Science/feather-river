@@ -3,8 +3,8 @@ library(sf)
 library(leaflet)
 library(htmlwidgets)
 
-drone_survey_dir <- here::here("edi-redd", "drone-survey")
-clean_data_dir   <- file.path(drone_survey_dir, "data", "clean")
+project_dir      <- here::here("edi-redd")
+clean_data_dir   <- file.path(project_dir, "data", "clean")
 
 drone_redd_clean_all <- read_csv(file.path(clean_data_dir, "drone_redd_clean.csv"), show_col_types = FALSE)
 
@@ -28,7 +28,7 @@ flight_routes_map <- flight_routes
 # boundaries Chris used to assign each drone redd to a `location` (not the
 # flight route mission boundaries). Each gdb layer is one location polygon, so
 # they're read into a single sf with the layer name as `location`.
-gdb_path <- here::here("edi-redd", "data-raw", "shapefiles", "b105_redd_survey_locations_maps_2021.gdb")
+gdb_path <- here::here("edi-redd", "archive_of_edi_1802.4_and_earlier", "data-raw", "shapefiles", "b105_redd_survey_locations_maps_2021.gdb")
 
 ground_survey_locations <- st_layers(gdb_path)$name |>
   map(function(layer_name) {
@@ -64,14 +64,14 @@ route_color <- "black"
 norm_name <- function(x) str_replace_all(str_to_lower(x), "[^a-z0-9]", "")
 
 edi_sites <- union(
-  read_csv(here::here("edi-redd", "data", "survey_site_area.csv"), show_col_types = FALSE)$location,
-  read_csv(here::here("edi-redd", "data", "redd_observations.csv"), col_select = location, show_col_types = FALSE)$location
+  read_csv(here::here("edi-redd", "archive_of_edi_1802.4_and_earlier", "data", "survey_site_area.csv"), show_col_types = FALSE)$location,
+  read_csv(here::here("edi-redd", "archive_of_edi_1802.4_and_earlier", "data", "redd_observations.csv"), col_select = location, show_col_types = FALSE)$location
 ) |> unique()
 
 crosswalk <- drone_redd_clean_all |>
   distinct(drone_location = location) |>
   left_join(
-    read_csv(file.path(drone_survey_dir, "data", "crosswalk", "drone_to_edi_location_crosswalk.csv"),
+    read_csv(file.path(project_dir, "data", "crosswalk", "drone_to_edi_location_crosswalk.csv"),
              show_col_types = FALSE),
     by = "drone_location"
   ) |>

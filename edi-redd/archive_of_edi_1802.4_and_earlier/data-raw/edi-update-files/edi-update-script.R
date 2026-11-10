@@ -4,19 +4,19 @@ library(readxl)
 
 
 # reading survey_dates table
-survey_dates_reference <- read_csv("data-raw/edi-update-files/survey_week_date_reference.csv")
+survey_dates_reference <- read_csv(here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/edi-update-files/survey_week_date_reference.csv"))
 
 # reading your new data and biding
-# survey_dates_reference_updated <- read_csv("data-raw/edi-update-files/yyyy_survey_week_date_reference.cvs") |>
+# survey_dates_reference_updated <- read_csv(here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/edi-update-files/yyyy_survey_week_date_reference.cvs")) |>
 #   bind_rows(survey_dates_reference) |>
 #   glimpse()
 
 
 # reading survey_sites reference table
-survey_sites_reference <- read_csv("data-raw/edi-update-files/surveyed_sites_per_sv_week_summary.csv")
+survey_sites_reference <- read_csv(here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/edi-update-files/surveyed_sites_per_sv_week_summary.csv"))
 
 # reading your new data and binding
-# survey_sites_reference_updated <-read_csv("data-raw/edi-update-files/yyyy_surveyed_sites_per_sv_week_summary.csv") |>
+# survey_sites_reference_updated <-read_csv(here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/edi-update-files/yyyy_surveyed_sites_per_sv_week_summary.csv")) |>
 #   bind_rows(survey_sites_reference) |>
 #   glimpse()
 
@@ -34,10 +34,10 @@ surveyed_sites <- survey_combined |>
 
 
 # Save the cleaned dataset
-# write_csv(surveyed_sites, "data/updated_surveyed_sites_table.csv")
+# write_csv(surveyed_sites, here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data/updated_surveyed_sites_table.csv"))
 
 # reading redd data file
-redd_data <- readxl::read_excel(here::here("data-raw", "edi-update-files", "redd_data_for_binding_update.xlsx")) |>
+redd_data <- readxl::read_excel(here::here("edi-redd", "archive_of_edi_1802.4_and_earlier", "data-raw", "edi-update-files", "redd_data_for_binding_update.xlsx")) |>
   glimpse()
 
 # reading your new redd data
@@ -84,5 +84,5 @@ redd_data_updated <- redd_data |>
   glimpse()
 
 # save redd data with zeros added
-# write_csv(redd_data, "data/updated_redd_observation_w_zeros.csv") # by running this scrip, data will be overwitten
+# write_csv(redd_data, here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data/updated_redd_observation_w_zeros.csv")) # by running this scrip, data will be overwitten
 

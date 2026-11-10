@@ -6,7 +6,7 @@ library(readxl)
 
 # 2024 aerial (drone) redd survey XY data -----------------------------------
 
-xy_data_path <- here::here("edi-redd", "drone-survey", "data", "raw",
+xy_data_path <- here::here("edi-redd", "data", "raw",
                            "2024 Aerial Chinook Salmon Redd Survey XY Data.xlsx")
 
 raw_lfc <- read_excel(xy_data_path, sheet = "LFC")
@@ -17,7 +17,7 @@ raw_hfc <- read_excel(xy_data_path, sheet = "HFC")
 # Same LFC/HFC sheet structure as 2024, but NOT byte-identical columns - see
 # the rename in clean/clean-data.R for the two differences (date column name,
 # and 2024 LFC's "Lattitude" typo that 2025 doesn't have).
-xy_data_path_2025 <- here::here("edi-redd", "drone-survey", "data", "raw",
+xy_data_path_2025 <- here::here("edi-redd", "data", "raw",
                                 "2025 Aerial Chinook Salmon Redd Survey Data.xlsx")
 
 raw_lfc_2025 <- read_excel(xy_data_path_2025, sheet = "LFC")
@@ -25,7 +25,7 @@ raw_hfc_2025 <- read_excel(xy_data_path_2025, sheet = "HFC")
 
 # flight route mission shapefiles --------------------------------------------
 
-mission_dir <- here::here("edi-redd", "drone-survey", "data", "raw",
+mission_dir <- here::here("edi-redd", "data", "raw",
                           "Aerial Chinook Salmon Redd Survey Flight Route Mission Shapefiles")
 mission_files <- list.files(mission_dir, pattern = "\\.shp$", full.names = TRUE)
 
@@ -39,9 +39,9 @@ mission_files <- list.files(mission_dir, pattern = "\\.shp$", full.names = TRUE)
 # redd can be recorded by both - the two datasets are NOT a census when
 # combined and are kept separate through cleaning rather than merged with
 # drone_redd_clean.
-raw_ground_2024 <- read_excel(here::here("edi-redd", "drone-survey", "data", "raw",
+raw_ground_2024 <- read_excel(here::here("edi-redd", "data", "raw",
                                          "2024 Chinook Salmon Redd Survey Ground Survey Data.xlsx"))
-raw_ground_2025 <- read_excel(here::here("edi-redd", "drone-survey", "data", "raw",
+raw_ground_2025 <- read_excel(here::here("edi-redd", "data", "raw",
                                          "2025 Chinook Salmon Redd Survey Ground Survey Data.xlsx"))
 
 # 2025 flight route schedule --------------------------------------------------
@@ -55,7 +55,7 @@ raw_ground_2025 <- read_excel(here::here("edi-redd", "drone-survey", "data", "ra
 # see clean/clean-data.R for how this gets tidied, and the integration
 # workflow notes for open questions about how to handle it.
 raw_flight_schedule_2025 <- suppressMessages(read_excel(
-  here::here("edi-redd", "drone-survey", "data", "raw",
+  here::here("edi-redd", "data", "raw",
              "2025 Aerial Chinook Salmon Redd Survey Flight Route Schedule.xlsx"),
   sheet = "Sheet1", col_names = FALSE
 ))
@@ -66,7 +66,7 @@ raw_flight_schedule_2025 <- suppressMessages(read_excel(
 # location, with NO redd totals, LFC (row 2 header) and HFC (row 30 header)
 # stacked vertically rather than side by side, and some locations combined in
 # one row (e.g. "Steep, Weir"). See clean/clean-data.R for how it's tidied.
-flight_schedule_2024_path <- here::here("edi-redd", "drone-survey", "data", "raw",
+flight_schedule_2024_path <- here::here("edi-redd", "data", "raw",
                                         "2024 Chinook Salmon Aerial Redd Survey Flight Route Mission Schedule.xlsx")
 
 raw_flight_schedule_2024 <- if (file.exists(flight_schedule_2024_path)) {

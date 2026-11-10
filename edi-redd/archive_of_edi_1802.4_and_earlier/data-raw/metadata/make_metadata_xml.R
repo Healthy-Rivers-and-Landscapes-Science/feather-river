@@ -5,20 +5,20 @@ library(readxl)
 library(EML)
 
 datatable_metadata <-
-  dplyr::tibble(filepath = c("edi-redd/data/redd_observation_w_zeros.csv", "edi-redd/data/survey_site_dates.csv", "edi-redd/data/survey_site_area.csv" ),
-                attribute_info = c("edi-redd/data-raw/metadata/feather_redd_metadata.xlsx", "edi-redd/data-raw/metadata/feather_redd_survey_dates_metadata.xlsx", "edi-redd/data-raw/metadata/feather_redd_survey_site_area_metadata.xlsx"),
+  dplyr::tibble(filepath = c("edi-redd/archive_of_edi_1802.4_and_earlier/data/redd_observation_w_zeros.csv", "edi-redd/archive_of_edi_1802.4_and_earlier/data/survey_site_dates.csv", "edi-redd/archive_of_edi_1802.4_and_earlier/data/survey_site_area.csv" ),
+                attribute_info = c("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/metadata/feather_redd_metadata.xlsx", "edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/metadata/feather_redd_survey_dates_metadata.xlsx", "edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/metadata/feather_redd_survey_site_area_metadata.xlsx"),
                 datatable_description = c("Redd observations from Feather River redd surveys", "Surveyed locations and dates", "Survey site areas"),
-                datatable_url = paste0("https://raw.githubusercontent.com/Healthy-Rivers-and-Landscapes-Science/feather-river/main/edi-redd/data/",
+                datatable_url = paste0("https://raw.githubusercontent.com/Healthy-Rivers-and-Landscapes-Science/feather-river/main/edi-redd/archive_of_edi_1802.4_and_earlier/data/",
                                        c("redd_observation_w_zeros.csv", "survey_site_dates.csv", "survey_site_area.csv")))
 
 # save cleaned data to `data/`
-excel_path <- "edi-redd/data-raw/metadata/feather_redd_project_metadata.xlsx" 
+excel_path <- "edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/metadata/feather_redd_project_metadata.xlsx" 
 sheets <- readxl::excel_sheets(excel_path)
 metadata <- lapply(sheets, function(x) readxl::read_excel(excel_path, sheet = x))
 names(metadata) <- sheets
 
-abstract_docx <- "edi-redd/data-raw/metadata/abstract.docx"
-methods_docx <- "edi-redd/data-raw/metadata/methods.md"
+abstract_docx <- "edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/metadata/abstract.docx"
+methods_docx <- "edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/metadata/methods.md"
 
 #edi_number <- reserve_edi_id(user_id = Sys.getenv("EDI_USER_ID"), password = Sys.getenv("EDI_PASSWORD"))
 edi_number <- "edi.1802.4"
@@ -53,9 +53,9 @@ eml <- list(packageId = edi_number,
             additionalMetadata = list(metadata = list(unitList = unitList))
 )
 edi_number
-EML::write_eml(eml, paste0("edi-redd/", edi_number, ".xml"))
-EML::eml_validate(paste0("edi-redd/",edi_number, ".xml"))
+EML::write_eml(eml, paste0("edi-redd/archive_of_edi_1802.4_and_earlier/", edi_number, ".xml"))
+EML::eml_validate(paste0("edi-redd/archive_of_edi_1802.4_and_earlier/", edi_number, ".xml"))
 EMLaide::evaluate_edi_package(Sys.getenv("edi_user_id"), 
                               Sys.getenv("edi_password"),
-                              paste0("edi-redd/",edi_number, ".xml"))
+                              paste0("edi-redd/archive_of_edi_1802.4_and_earlier/", edi_number, ".xml"))
 # EMLaide::upload_edi_package(Sys.getenv("edi_user_id"), Sys.getenv("edi_password"), paste0(edi_number, ".xml"))

@@ -54,10 +54,10 @@ gcs_global_bucket(bucket = Sys.getenv("GCS_DEFAULT_BUCKET"))
 
 gcs_get_object(object_name = "adult-holding-redd-and-carcass-surveys/feather-river/data/feather_redd.csv",
                bucket = gcs_get_global_bucket(),
-               saveToDisk = here::here("data-raw", "feather-redd.csv"),
+               saveToDisk = here::here("edi-redd", "archive_of_edi_1802.4_and_earlier", "data-raw", "archive", "feather-redd.csv"),
                overwrite = TRUE)
 
-feather_redd_raw <- read_csv("data-raw/feather-redd.csv")
+feather_redd_raw <- read_csv(here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/archive/feather-redd.csv"))
 ```
 
 ## What data are collected?

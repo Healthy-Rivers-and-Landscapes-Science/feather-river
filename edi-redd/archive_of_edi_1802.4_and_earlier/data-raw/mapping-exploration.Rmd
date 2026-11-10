@@ -43,10 +43,10 @@ Goal of this document is to review the Feather River redd survey locations and t
 
 ```{r, include=FALSE}
 # redd survey points
-redd_data <- read.csv("data-raw/combined_raw_data.csv")
+redd_data <- read.csv(here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/combined_raw_data.csv"))
 
 # surveying sites from gis data map
-gdb_path <- "data-raw/shapefiles/b105_redd_survey_locations_maps_2021.gdb"
+gdb_path <- here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/shapefiles/b105_redd_survey_locations_maps_2021.gdb")
 
 layers <- st_layers(gdb_path)$name
 ```
@@ -117,7 +117,7 @@ trouble_lat_long <- redd_data |>
   filter(latitude == 0 |
          longitude == 0) 
 # # saving those data entries to share with Chris and Casey - this has been deleted to avoid confusion on files generated
-# write.csv(trouble_lat_long, "data-raw/qc-processing-files/faulty_lat_long_records.csv")
+# write.csv(trouble_lat_long, here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/qc-processing-files/faulty_lat_long_records.csv"))
 
 # •	2022 – 1 data entry
 # •	2020 – 4 data entries 
@@ -663,7 +663,7 @@ off_channel<- redd_data |>
 glimpse()
 
 # # saving off-channel redd survey locations - this has been removed to avoid confusion on files generated
-# write.csv(off_channel, "data/off_channel_redds.csv")
+# write.csv(off_channel, here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data/off_channel_redds.csv"))
   
 ```
   

@@ -27,7 +27,7 @@ Goals:
   - grouping sites into gsa, lfc, hfc and spawning areas (to help understand documentation)
 
 ```{r}
-redd_observations <- read_csv("data-raw/qc-processing-files/redd_observations_survey_wk.csv")
+redd_observations <- read_csv(here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/qc-processing-files/redd_observations_survey_wk.csv"))
 ```
 
 
@@ -469,7 +469,7 @@ sum(is.na(redd_2014_clean$survey_wk))
 # combine all survey weeks that need fix
 # pending_fix_sw <- bind_rows(sv_wk_2014, sv_wk_2015, sv_wk_2018, sv_wk_2019, sv_wk_2020, sv_wk_2022)
 # 
-# write.csv(pending_fix_sw, "data-raw/pending_sv_wk.csv")
+# write.csv(pending_fix_sw, here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/pending_sv_wk.csv"))
 ```
 
 Combine all years
@@ -486,7 +486,7 @@ clean_redd |>
   view()
 
 
-write.csv(clean_redd, "data-raw/qc-processing-files/survey_wk/redd_observations_survey_wk_clean.csv", row.names = FALSE)
+write.csv(clean_redd, here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/qc-processing-files/survey_wk/redd_observations_survey_wk_clean.csv"), row.names = FALSE)
 ```
 
 
@@ -528,7 +528,7 @@ survey_table <- clean_redd |>
 print(survey_table)
 
 #save table
-# write.csv(survey_table, "data-raw/redd_survey_locations_check.csv")
+# write.csv(survey_table, here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/redd_survey_locations_check.csv"))
 ```
 
 ```{r}
@@ -646,7 +646,7 @@ table_test_3 <- clean_redd |>
 print(table_test_3)
 
 #save table
-# write.csv(table_test_3, "data-raw/redd_survey_locations_check_2.csv")
+# write.csv(table_test_3, here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/redd_survey_locations_check_2.csv"))
 ```
 
 ```{r}
@@ -707,6 +707,6 @@ table_for_crosscheck <- expanded_data |>
 
 print(table_for_crosscheck)
 
-# write.csv(table_for_crosscheck, "data-raw/table_for_crosscheck.csv")
+# write.csv(table_for_crosscheck, here::here("edi-redd/archive_of_edi_1802.4_and_earlier/data-raw/table_for_crosscheck.csv"))
 ```
 
