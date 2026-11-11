@@ -183,15 +183,15 @@ point_popup <- ~paste0(
 # the Satellite layer below, which doesn't have that restriction.
 drone_map <- leaflet() |>
   addProviderTiles("Esri.WorldStreetMap", group = "Street") |>
-  addProviderTiles("Esri.WorldImagery", group = "Satellite") |>
+  #addProviderTiles("Esri.WorldImagery", group = "Satellite") |>
   # added first so the flight routes and redd points draw on top of it
   addPolygons(
     data = poly_map,
     color = ground_color, fillColor = ground_color, weight = 2, fillOpacity = 0.25,
-    label = ~polygon_name,
-    popup = ~paste0(
-      "<b>Published EDI location name:</b> ", key, "<br>",
-      "<b>Drone redd location name(s):</b> ", replace_na(drone_names, "none")
+    #label = ~polygon_name,
+    popup = ~paste0("<b>Ground Survey Name: </b>", polygon_name
+      # "<b>Published EDI location name:</b> ", key, "<br>",
+      # "<b>Drone redd location name(s):</b> ", replace_na(drone_names, "none")
     ),
     group = "Ground survey locations"
   ) |>

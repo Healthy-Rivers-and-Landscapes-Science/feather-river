@@ -136,9 +136,13 @@ ground_redd_clean <- bind_rows(raw_ground_2024_clean, raw_ground_2025_clean) |>
     survey_method = "ground"
   ) |>
   distinct(location, date, latitude, longitude, redd_number, .keep_all = TRUE) |>
+  # TODO: confirm with Chris that every ground row is exactly one redd. The
+  # workbooks' `Redd #` column is used above to drop duplicate rows but is not
+  # kept, and number_redds = 1 is assumed for each row.
+  mutate(number_redds = 1) |>
   select(
     location, date, year, latitude, longitude, survey_method,
-    redd_number, survey_week, number_of_fish_on_redd,
+    number_redds, survey_week, number_of_fish_on_redd,
     percent_boulder_30cm, percent_large_16_30cm, percent_medium_6_15cm,
     percent_small_1_5cm, percent_fine_1cm,
     redd_width_m, redd_length_m, velocity_m_sec, water_depth_m
@@ -149,6 +153,96 @@ ground_redd_clean <- bind_rows(raw_ground_2024_clean, raw_ground_2025_clean) |>
 ground_redd_clean <- add_edi_location(ground_redd_clean, ground_location_crosswalk, "ground_location")
 
 write_csv(ground_redd_clean, here::here("edi-redd", "data", "clean", "ground_redd_clean.csv"))
+
+### Format ground redds like the published redd_observation_w_zeros table ----
+
+# Puts the cleaned ground redds into the exact format of the published edi.1802
+# table `redd_observation_w_zeros.csv` (same 19 columns, names and order), so the
+# new rows can be appended to it. `location` is the published EDI name
+# (`edi_location`, from the ground crosswalk).
+#
+# NOT done here: zero-redd rows. The published table's zeros come from a record
+# of which sites were surveyed in which weeks (survey_site_dates.csv); the
+# 2024/2025 ground workbooks only list redds that were found, so there is
+# nothing to build zeros from yet. Without it, a site with no row in
+# 2024/2025 can mean either "surveyed, no redds" or "not surveyed".
+published_dir <- here::here("edi-redd", "archive_of_edi_1802.4_and_earlier", "data")
+published_cols <- names(read_csv(file.path(published_dir, "redd_observation_w_zeros.csv"),
+                                 n_max = 0, show_col_types = FALSE))
+
+# each ground row is one redd; fields the ground workbooks don't have
+# (pot depth, elevation, GPS accuracy, boat point) are NA, as they are for
+# most of the published rows
+ground_redd_observation <- ground_redd_clean |>
+  transmute(
+    date,
+    location        = edi_location,
+    number_redds,
+    number_salmon  = number_of_fish_on_redd,
+    depth_m         = water_depth_m,
+    pot_depth_m     = NA_real_,
+    velocity_m_s    = velocity_m_sec,
+    percent_fines   = percent_fine_1cm,
+    percent_small   = percent_small_1_5cm,
+    percent_med     = percent_medium_6_15cm,
+    percent_large   = percent_large_16_30cm,
+    percent_boulder = percent_boulder_30cm,
+    redd_width_m,
+    redd_length_m,
+    longitude,
+    latitude,
+    elevation_ft    = NA_real_,
+    accuracy_ft     = NA_real_,
+    boat_point      = NA
+  ) |>
+  arrange(date, location)
+
+# The ground workbooks leave a substrate class blank when it was 0%: on every
+# redd with substrate recorded, the non-blank classes add to 100 (812 of 817
+# rows; the other 5 are 105 or 110), and the published 2014-2023 table has 0,
+# not NA, for those classes. So blanks become 0 on redds that have any substrate
+# recorded; redds with no substrate recorded (depth/velocity/substrate only
+# measured on some redds) stay NA.
+substrate_cols <- str_subset(names(ground_redd_observation), "^percent_")
+ground_redd_observation <- ground_redd_observation |>
+  mutate(across(
+    all_of(substrate_cols),
+    \(x) if_else(is.na(x) & if_any(all_of(substrate_cols), \(y) !is.na(y)), 0, x)
+  ))
+
+# checks against the published package
+stopifnot(
+  identical(names(ground_redd_observation), published_cols),
+  !anyNA(ground_redd_observation$location),
+  !anyNA(ground_redd_observation$date)
+)
+
+# every location must already exist in the published package
+unknown_sites <- setdiff(unique(ground_redd_observation$location), read_csv(file.path(published_dir, "survey_site_area.csv"), show_col_types = FALSE)$location)
+if (length(unknown_sites) > 0) {
+  warning("ground location(s) not in the published survey_site_area.csv: ", paste(unknown_sites, collapse = ", "))
+}
+
+# new rows must not overlap the dates already published
+published_last_date <- max(read_csv(file.path(published_dir, "redd_observation_w_zeros.csv"),
+                                    col_select = date, show_col_types = FALSE)$date)
+if (min(ground_redd_observation$date) <= published_last_date) {
+  warning("ground rows on or before the last published date (", published_last_date, ")")
+}
+
+# percent columns in range, and substrate classes adding to ~100
+bad_pct <- ground_redd_observation |> filter(if_any(all_of(substrate_cols), \(x) !is.na(x) & (x < 0 | x > 100)))
+if (nrow(bad_pct) > 0) warning(nrow(bad_pct), " ground row(s) with a percent column outside 0-100")
+
+pct_sum <- rowSums(ground_redd_observation[substrate_cols])
+off_100 <- which(!is.na(pct_sum) & abs(pct_sum - 100) > 1)
+if (length(off_100) > 0) {
+  print(ground_redd_observation[off_100, c("date", "location", substrate_cols)])
+  warning(length(off_100), " ground row(s) where the substrate percentages don't sum to 100")
+}
+
+dir.create(here::here("edi-redd", "data", "publish"), showWarnings = FALSE, recursive = TRUE)
+write_csv(ground_redd_observation, here::here("edi-redd", "data", "publish", "ground_redd_observation_2024_2025.csv"), na = "NA")
 
 ### Compile clean flight route schedule ----
 
