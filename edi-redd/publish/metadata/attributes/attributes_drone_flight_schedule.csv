@@ -1,1 +1,8 @@
 ﻿attributeName,attributeDefinition,class,unit,dateTimeFormatString,missingValueCode,missingValueCodeExplanation
+date,Date the flight route mission was flown,Date,,YYYY-MM-DD,,
+location,"Name of survey location site. Matches ""location"" in the other tables in this package.",character,,,,
+channel_location,Channel in which the location lies: LFC (low-flow channel) or HFC (high-flow channel),character,,,,
+mission_group,Name of the flight route (group of locations) under which the location was flown,character,,,NA,Not recorded
+mission_label,Mission number of the flight on that date,character,,,NA,Not recorded
+redd_total,Number of redds counted at the location on the flight date. 2025: reported in the flight schedule. 2024: inferred from the number of redd points at the location on that date.,numeric,number,,NA,2024 flight with no redd points on the scheduled date but points the next day; count not assigned
+redd_total_source,"How redd_total was obtained: ""flight schedule"" or ""inferred from redd points""",character,,,,

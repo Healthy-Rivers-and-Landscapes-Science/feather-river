@@ -1,1 +1,20 @@
 ﻿attributeName,attributeDefinition,class,unit,dateTimeFormatString,missingValueCode,missingValueCodeExplanation
+date,Date of redd survey,Date,,YYYY-MM-DD,,
+location,"Name of survey location site. Matches ""location"" in the other tables in this package.",character,,,,
+number_redds,Number of redds observed. Only includes full redds with a pot and a tail. Zero indicates the location was surveyed and no redds were found. Each 2024-2025 ground survey record is a single redd.,numeric,number,,,
+number_salmon,Number of salmon observed on the redd,numeric,number,,NA,Not recorded
+depth_m,Water depth in meters at the head of the redd. Measurements are not taken on every redd due to resource constraints.,numeric,meter,,NA,Not recorded
+pot_depth_m,Water depth in meters in the pot of the redd.,numeric,meter,,NA,Not recorded
+velocity_m_s,Water velocity in meters per second at 60% depth at the head of the redd. Measurements are not taken on every redd due to resource constraints.,numeric,metersPerSecond,,NA,Not recorded
+percent_fines,"Substrate composition of the redd as percent fine substrate (silt or sand), defined as less than 1 cm. Evaluated visually.",numeric,percent,,NA,Not recorded
+percent_small,"Substrate composition of the redd as percent small substrate (gravel), defined as 1-5 cm. Evaluated visually.",numeric,percent,,NA,Not recorded
+percent_med,"Substrate composition of the redd as percent medium substrate (cobble), defined as 6-15 cm. Evaluated visually.",numeric,percent,,NA,Not recorded
+percent_large,"Substrate composition of the redd as percent large substrate (large cobble), defined as 16-30 cm. Evaluated visually.",numeric,percent,,NA,Not recorded
+percent_boulder,"Substrate composition of the redd as percent boulder substrate, defined as greater than 30 cm. Evaluated visually.",numeric,percent,,NA,Not recorded
+redd_width_m,"Width of the redd in meters, measured at the widest part of the redd.",numeric,meter,,NA,Not recorded
+redd_length_m,"Length of the redd in meters, measured at the longest part of the redd.",numeric,meter,,NA,Not recorded
+longitude,Longitude of the redd in decimal degrees (WGS84). Measured at the center of the redd.,numeric,degree,,NA,"Not recorded, or record is a zero-redd survey record with no redd location"
+latitude,Latitude of the redd in decimal degrees (WGS84). Measured at the center of the redd.,numeric,degree,,NA,"Not recorded, or record is a zero-redd survey record with no redd location"
+elevation_ft,Elevation at the redd point in feet.,numeric,foot,,NA,Not recorded
+accuracy_ft,Accuracy of the latitude and longitude measurements in feet.,numeric,foot,,NA,Not recorded
+boat_point,"TRUE if the redd observation was taken from a boat, FALSE otherwise.",character,,,NA,Not recorded

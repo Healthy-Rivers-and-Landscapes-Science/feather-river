@@ -21,6 +21,6 @@ make_eml_edi(data_file_names = c("redd_observation_w_zeros.csv",
                                        "attributes_survey_site_area.csv",
                                        "attributes_drone_redd_observation.csv",
                                        "attributes_drone_flight_schedule.csv"),
-             title = "INSERT TITLE OF DATA PACKAGE",
-             maintenance = "INSERT MAINTENANCE",
+             title = "Redd survey data of Chinook salmon in the Feather River",
+             maintenance = "ongoing", # TODO: confirm format hrlpub expects (1802.4: status ongoing, update_frequency annually)
              edi_number = "INSERT EDI NUMBER") # TODO: next version of edi.1802

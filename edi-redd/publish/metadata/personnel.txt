@@ -1,2 +1,3 @@
 givenName	middleInitial	surName	organizationName	electronicMailAddress	userId	role	projectTitle	fundingAgency	fundingNumber
-
+Chris		Cook	California Department of Water Resources	chris.cook@water.ca.gov		creator	Redd survey data of Chinook salmon in the Feather River	California Department of Water Resources		
+Casey		Campos	California Department of Water Resources	casey.campos@water.ca.gov		principal investigator	Redd survey data of Chinook salmon in the Feather River	California Department of Water Resources	

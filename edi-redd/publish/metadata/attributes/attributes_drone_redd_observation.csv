@@ -1,1 +1,8 @@
 ﻿attributeName,attributeDefinition,class,unit,dateTimeFormatString,missingValueCode,missingValueCodeExplanation
+date,Date the flight route was flown (date code of the orthomosaic the redd was marked on),Date,,YYYY-MM-DD,,
+location,"Name of survey location site. Matches ""location"" in the other tables in this package.",character,,,,
+channel_location,Channel in which the location lies: LFC (low-flow channel) or HFC (high-flow channel),character,,,,
+survey_method,"Survey method. Always ""drone"" in this table.",character,,,,
+number_redds,Number of redds at the point. 1 for each marked redd point; 0 for a location that was flown on that date with no redds found (from the flight route schedule).,numeric,number,,,
+longitude,"Longitude of the redd point in decimal degrees (WGS84), calculated in ArcGIS Pro from the orthomosaic.",numeric,degree,,NA,Zero-redd record with no redd point
+latitude,"Latitude of the redd point in decimal degrees (WGS84), calculated in ArcGIS Pro from the orthomosaic.",numeric,degree,,NA,Zero-redd record with no redd point

@@ -1,8 +1,28 @@
 # publish/ - metadata and EML for the next edi.1802 version
 
-Placeholders only, structured like the HRL EDI template
+Structured like the HRL EDI template
 (https://github.com/FlowWest/hrl-edi-template; steps in the hrl-docs
-"Publishing data to EDI" quickstart). Nothing is filled in yet.
+"Publishing data to EDI" quickstart). **Draft content is filled in** (methods,
+abstract, keywords, personnel, coverage, license, attribute dictionaries); it
+needs review. Previous version's metadata is in `metadata/edi.1802.4/`.
+
+## Draft decisions / things to check
+
+- Geographic bounding box was recomputed from all redd points (2014-2025):
+  W -121.64133, E -121.55047, S 39.372913, N 39.518005. The 1802.4 workbook had
+  a different box labelled "Feather River Rotary Screw Trap" (likely a copy-paste
+  error); the old attribute ranges also showed one longitude of -127.64.
+- Temporal coverage (2014-09-09 to 2025-11-18) is not in a file; confirm
+  hrlpub derives it from the data.
+- Units use the EML dictionary (`number` for redd/salmon counts), so
+  `custom_units.txt` is empty.
+- `personnel.txt` and `personnel/personnel.csv` hold the same people (from the
+  1802.4 workbook: Chris Cook creator/contact, Casey Campos PI); no ORCIDs.
+- Taxonomic coverage lists only the scientific name; authority columns blank.
+- Attribute files for the two drone tables use the column names a published
+  file would have (`location` = EDI name, `number_redds`), not the
+  `data/clean/` names (`edi_location`, `n_redds`); rename when building them.
+- `mission_label` definition is a guess - confirm with Chris.
 
 ## Where things live
 

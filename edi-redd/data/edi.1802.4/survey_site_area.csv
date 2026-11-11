@@ -1,0 +1,51 @@
+location,area_ft2,if_restored,when_restored,river_mile_from_confluence
+uppercottonwood,13727,TRUE,2014  2023,66.75
+cottonwood,32992,TRUE,2023,66.7
+lowerauditorium,118404,FALSE,NA,66.4
+moessidechannel,20607,TRUE,2014  2017,66
+topofauditorium,40905,TRUE,2014  2017 2023,66.56
+upperhatchery,27608,TRUE,2014,66.73
+upperauditorium,32089,TRUE,2014  2017,66.6
+middleauditorium,25624,TRUE,2014  2017,66.52
+hatchery,86205,TRUE,2014  2017,66.72
+developing,26350,FALSE,NA,52
+uppermcfarland,24272,FALSE,NA,52.73
+bigbar,35841,FALSE,NA,53.4
+g95eastsidechannelbottom,20659,FALSE,NA,56.9
+g95main,91919,FALSE,NA,57.14
+bigholeeast,73380,FALSE,NA,57.85
+vanceeast,35543,FALSE,NA,58.66
+belowbigholeeast,27330,FALSE,NA,57.75
+lowerhour,133399,FALSE,NA,56
+upperhour,28299,FALSE,NA,56.33
+keister,66717,FALSE,NA,55
+lowermcfarland,22133,FALSE,NA,52.29
+hatcherysidechannel,36196,FALSE,NA,66.6
+tablemountain,37507,FALSE,NA,66.92
+g95westsidechannel,22897,FALSE,NA,57.26
+g95eastsidechanneltop,26601,FALSE,NA,57.1
+goose,25779,FALSE,NA,54.71
+lowerrobinson,78246,FALSE,NA,61.78
+trailerpark,63561,FALSE,NA,64.42
+mathews,34656,FALSE,NA,64.1
+upperrobinson,44423,FALSE,NA,62
+weir,14463,FALSE,NA,60.72
+steep,15139,FALSE,NA,61.07
+eyesidechannel,13088,FALSE,NA,60.3
+steepsidechannel,13226,FALSE,NA,61.08
+aleck,24374,FALSE,NA,63.49
+vancewest,47276,FALSE,NA,58.67
+lowervanceeast,6402,FALSE,NA,58.5
+uppermathews,72591,FALSE,NA,64.18
+greatwestern,627,FALSE,NA,63
+lowertablemountain,20358,FALSE,NA,66.85
+topofhatchery,18874,FALSE,NA,66.75
+bedrock,156861,TRUE,2023,65.9
+hatcherypipe,11883,FALSE,NA,66.76
+belowlowerauditorium,25433,FALSE,NA,66.34
+bigholewest,21194,FALSE,NA,57.88
+lowerbig,27279,FALSE,NA,53.95
+eye,3489,FALSE,NA,60.2
+gateway,4279,FALSE,NA,59.75
+palm,27189,FALSE,NA,55.54
+big,17171,FALSE,NA,54.06

@@ -1,1 +1,2 @@
 geographicDescription	northBoundingCoordinate	southBoundingCoordinate	eastBoundingCoordinate	westBoundingCoordinate
+Lower Feather River, California, from the Table Mountain Bridge in Oroville downstream to the East Gridley Road Bridge near Gridley	39.518005	39.372913	-121.55047	-121.64133

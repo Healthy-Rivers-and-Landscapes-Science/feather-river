@@ -1,1 +1,6 @@
 ﻿attributeName,attributeDefinition,class,unit,dateTimeFormatString,missingValueCode,missingValueCodeExplanation
+location,"Name of survey location site. Matches ""location"" in the other tables in this package.",character,,,,
+area_ft2,"Area of the survey site in square feet, calculated from a polygon drawn around where the redd survey was performed.",numeric,squareFoot,,,
+if_restored,Whether the site was restored (TRUE) or not (FALSE),character,,,,
+when_restored,"For sites that were restored, the year(s) restoration took place.",character,,,NA,Site was not restored
+river_mile_from_confluence,River mile from the confluence with the Sacramento River,numeric,mile,,,

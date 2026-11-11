@@ -1,1 +1,6 @@
 ﻿attributeName,attributeDefinition,class,unit,dateTimeFormatString,missingValueCode,missingValueCodeExplanation
+year,Year of redd survey,numeric,dimensionless,,,
+location,"Name of survey location site. Matches ""location"" in the other tables in this package.",character,,,,
+surveyed,Whether the site was surveyed during the survey interval (TRUE/FALSE),character,,,,
+start_date,Beginning date of survey interval,Date,,YYYY-MM-DD,,
+end_date,End date of survey interval,Date,,YYYY-MM-DD,,
